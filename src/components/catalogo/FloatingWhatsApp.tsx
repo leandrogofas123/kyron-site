@@ -10,8 +10,8 @@ import { linkWhatsApp } from "@/lib/kyron/site";
  * Na cor da marca com o ícone do WhatsApp: reconhecível pelo símbolo, dentro
  * da paleta do Manual (verde do WhatsApp ficaria fora da paleta).
  *
- * Fica ABAIXO do assistente na pilha do canto. Some junto com o banner de
- * cookies, para não cobri-lo no celular.
+ * Fica no canto DIREITO — o assistente fica no esquerdo. Some junto com o
+ * banner de cookies, para não cobri-lo no celular.
  */
 export function FloatingWhatsApp() {
   const [cookiesAbertos, setCookiesAbertos] = useState(false);

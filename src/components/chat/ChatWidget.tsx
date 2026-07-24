@@ -7,7 +7,8 @@ import { registrarEvento } from "@/components/site/Analytics";
 import { linkWhatsApp } from "@/lib/kyron/site";
 
 export function ChatWidget() {
-  const [open, setOpen] = useState(false);
+  // Abre já aberto: o assistente é o principal canal de atendimento do site.
+  const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState("");
   // O banner de cookies ocupa a base da tela e cobriria o launcher no celular.
   const [cookiesAbertos, setCookiesAbertos] = useState(false);
@@ -77,8 +78,8 @@ export function ChatWidget() {
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={open ? "Fechar assistente da Kyron" : "Abrir assistente da Kyron"}
-        /* Empilhado ACIMA do botão de WhatsApp. Tamanho fluido, nunca < 48px. */
-        className="kyron-chat-launcher fixed bottom-[clamp(5rem,13vw,5.75rem)] right-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[clamp(3rem,7vw,3.5rem)] w-[clamp(3rem,7vw,3.5rem)] items-center justify-center rounded-full border border-[var(--kyron-hairline-strong)] bg-kyron-graphite text-kyron-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+        /* Canto ESQUERDO — o WhatsApp fica no direito. Tamanho fluido, nunca < 48px. */
+        className="kyron-chat-launcher fixed bottom-[clamp(1rem,3vw,1.5rem)] left-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[clamp(3rem,7vw,3.5rem)] w-[clamp(3rem,7vw,3.5rem)] items-center justify-center rounded-full border border-[var(--kyron-hairline-strong)] bg-kyron-graphite text-kyron-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out hover:-translate-y-0.5"
       >
         {open ? <IconClose /> : <IconChat />}
       </button>
@@ -91,7 +92,7 @@ export function ChatWidget() {
           /* Em telas pequenas ocupa quase tudo; em telas grandes vira um painel
              lateral. dvh (não vh) para não brigar com a barra do navegador
              móvel, que aparece e some ao rolar. */
-          className="fixed bottom-[clamp(9rem,22vw,9.75rem)] right-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[min(34rem,calc(100dvh-12rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)]"
+          className="fixed bottom-[clamp(5rem,13vw,5.75rem)] left-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[min(34rem,calc(100dvh-8rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)]"
         >
           <header className="flex items-start justify-between gap-4 border-b border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-md py-fluid-sm">
             <div>

@@ -8,7 +8,7 @@ const GREETING: ChatMessage = {
   id: "greeting",
   role: "assistant",
   content:
-    "Olá. Sou o assistente da Kyron. Me conta qual processo da sua operação está consumindo mais tempo da equipe hoje?",
+    "Olá! Sou o assistente da Kyron. Posso ajudar com Apple novos e seminovos, casa inteligente, áudio e nossos serviços de instalação. O que você procura hoje?",
 };
 
 function newId() {

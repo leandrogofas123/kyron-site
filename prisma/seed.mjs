@@ -113,11 +113,40 @@ async function main() {
 
   // Produtos de exemplo só no primeiro deploy (catálogo vazio). Depois que o
   // dono cadastrar itens reais — ou apagar os exemplos — o seed não os recria.
-  if ((await db.produto.count()) > 0) {
+  const catalogoVazio = (await db.produto.count()) === 0;
+
+  // Fotos genéricas TEMPORÁRIAS dos exemplos (banco de imagem livre, servidas
+  // localmente de /public/exemplos). O dono troca pelas reais no admin.
+  const FOTO_EXEMPLO = {
+    "iphone-15-128gb-exemplo": "/exemplos/iphone-novo.webp",
+    "iphone-13-128gb-seminovo-exemplo": "/exemplos/iphone-seminovo.webp",
+    "camera-wifi-interna-exemplo": "/exemplos/camera-wifi.webp",
+    "airpods-exemplo": "/exemplos/airpods.webp",
+  };
+
+  // Anexa a foto de exemplo a um produto que ainda não tenha nenhuma imagem.
+  // Idempotente: roda sempre, mas só age quando falta foto.
+  async function garantirFotoExemplo(slugProduto) {
+    const p = await db.produto.findUnique({
+      where: { slug: slugProduto },
+      include: { imagens: true },
+    });
+    if (!p || p.imagens.length > 0) return;
+    const url = FOTO_EXEMPLO[slugProduto];
+    if (!url) return;
+    await db.produtoImagem.create({
+      data: { produtoId: p.id, url, principal: true, ordem: 0 },
+    });
+  }
+
+  if (!catalogoVazio) {
+    // Catálogo já tem produtos: não recria exemplos, mas garante que os
+    // exemplos existentes ganhem a foto (caso ainda estejam sem).
+    for (const s of Object.keys(FOTO_EXEMPLO)) await garantirFotoExemplo(s);
     const nCat = await db.categoria.count();
     const nServ = await db.servico.count();
     console.log(
-      `Estrutura pronta: ${nCat} categorias, ${nServ} serviços. Catálogo já tem produtos — exemplos não recriados.`,
+      `Estrutura pronta: ${nCat} categorias, ${nServ} serviços. Fotos de exemplo garantidas.`,
     );
     return;
   }
@@ -204,6 +233,9 @@ async function main() {
       destaque: false,
     },
   });
+
+  // Fotos de exemplo nos produtos recém-criados.
+  for (const s of Object.keys(FOTO_EXEMPLO)) await garantirFotoExemplo(s);
 
   const nProd = await db.produto.count();
   const nCat = await db.categoria.count();

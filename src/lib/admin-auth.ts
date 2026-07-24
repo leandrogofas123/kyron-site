@@ -37,6 +37,18 @@ export function senhaConfere(tentativa: string): boolean {
   return timingSafeEqual(a, b);
 }
 
+/** Confere o e-mail de login (sem diferenciar maiúsculas/espaços). */
+export function emailConfere(tentativa: string): boolean {
+  const real = process.env.ADMIN_EMAIL;
+  if (!real) return false;
+  return tentativa.trim().toLowerCase() === real.trim().toLowerCase();
+}
+
+/** E-mail cadastrado para exibir no formulário (nunca a senha). */
+export function emailAdmin(): string | null {
+  return process.env.ADMIN_EMAIL ?? null;
+}
+
 export async function criarSessao(): Promise<void> {
   const expira = Date.now() + DURACAO_MS;
   const payload = `admin.${expira}`;
@@ -82,7 +94,11 @@ export async function sessaoValida(): Promise<boolean> {
   return Number.isFinite(expira) && expira > Date.now();
 }
 
-/** Diz se o admin foi configurado (senha + segredo presentes). */
+/** Diz se o admin foi configurado (e-mail + senha + segredo presentes). */
 export function adminConfigurado(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD && process.env.ADMIN_SECRET);
+  return Boolean(
+    process.env.ADMIN_EMAIL &&
+      process.env.ADMIN_PASSWORD &&
+      process.env.ADMIN_SECRET,
+  );
 }

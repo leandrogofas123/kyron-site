@@ -31,13 +31,13 @@ export default async function Home() {
 
   return (
     <>
-      {/* BANNER — compacto */}
+      {/* BANNER — compacto, centralizado no eixo */}
       <section className="relative overflow-hidden pb-fluid-lg pt-fluid-lg">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-[12vw] -top-[16vw] aspect-square w-[min(30rem,75vw)] rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
+          className="pointer-events-none absolute left-1/2 -top-[16vw] aspect-square w-[min(30rem,75vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
         />
-        <div className="container-kyron relative max-w-[52rem]">
+        <div className="container-kyron relative flex flex-col items-center text-center">
           <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
             Santa Cruz do Sul · RS
           </p>
@@ -48,7 +48,7 @@ export default async function Home() {
             Apple novos e seminovos, casa inteligente, áudio e instalação em
             domicílio. Atendimento consultivo, conversa direta no WhatsApp.
           </p>
-          <div className="mt-fluid-md flex flex-wrap gap-fluid-xs">
+          <div className="mt-fluid-md flex flex-wrap justify-center gap-fluid-xs">
             <Link
               href="/produtos"
               className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
@@ -68,18 +68,10 @@ export default async function Home() {
       {/* AMOSTRA DE SEMINOVOS — cada card leva ao seminovo */}
       {seminovosAmostra.length > 0 && (
         <Section>
-          <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
-            <SectionHeader
-              eyebrow="iPhone seminovos"
-              titulo="Os mais procurados."
-            />
-            <Link
-              href="/seminovos"
-              className="kyron-label mb-fluid-xl text-fluid-xs text-kyron-blue hover:underline"
-            >
-              Ver todos →
-            </Link>
-          </div>
+          <SectionHeader
+            eyebrow="iPhone seminovos"
+            titulo="Os mais procurados."
+          />
           <ul className="grid-fluida-4">
             {seminovosAmostra.map((p, i) => (
               <li key={p.id}>
@@ -87,24 +79,24 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+          <div className="mt-fluid-lg text-center">
+            <Link
+              href="/seminovos"
+              className="kyron-label text-fluid-xs text-kyron-blue hover:underline"
+            >
+              Ver todos os seminovos →
+            </Link>
+          </div>
         </Section>
       )}
 
       {/* SERVIÇOS — caixas com explicação básica; clicar leva ao serviço */}
       {servicosAmostra.length > 0 && (
         <Section>
-          <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
-            <SectionHeader
-              eyebrow="Serviços"
-              titulo="A gente instala e configura para você."
-            />
-            <Link
-              href="/servicos"
-              className="kyron-label mb-fluid-xl text-fluid-xs text-kyron-blue hover:underline"
-            >
-              Ver todos →
-            </Link>
-          </div>
+          <SectionHeader
+            eyebrow="Serviços"
+            titulo="A gente instala e configura para você."
+          />
 
           <ul className="grid-fluida-2">
             {servicosAmostra.map((s) => (
@@ -142,12 +134,18 @@ export default async function Home() {
             ))}
           </ul>
 
-          <div className="mt-fluid-lg flex flex-wrap gap-fluid-xs">
+          <div className="mt-fluid-lg flex flex-col items-center gap-fluid-sm">
             <Link
               href="/orcamento"
               className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
             >
               Pedir orçamento
+            </Link>
+            <Link
+              href="/servicos"
+              className="kyron-label text-fluid-xs text-kyron-blue hover:underline"
+            >
+              Ver todos os serviços →
             </Link>
           </div>
         </Section>

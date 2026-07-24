@@ -35,7 +35,7 @@ export default async function Seminovos() {
 
       <Section semBorda>
         {produtos.length === 0 ? (
-          <p className="text-fluid-base text-kyron-silver">
+          <p className="mx-auto max-w-[48ch] text-center text-fluid-base text-kyron-silver">
             No momento não há seminovos disponíveis. Chame no WhatsApp que a
             gente te avisa quando chegar o próximo.
           </p>

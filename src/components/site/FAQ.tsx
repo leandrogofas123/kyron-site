@@ -17,7 +17,7 @@ export function FAQ({
     <Section>
       <SectionHeader eyebrow="Dúvidas" titulo={titulo} />
 
-      <ul className="max-w-[68ch] divide-y divide-[var(--kyron-hairline)] border-y border-[var(--kyron-hairline)]">
+      <ul className="mx-auto max-w-[68ch] divide-y divide-[var(--kyron-hairline)] border-y border-[var(--kyron-hairline)]">
         {perguntas.map((item) => (
           <li key={item.p}>
             <details className="group">

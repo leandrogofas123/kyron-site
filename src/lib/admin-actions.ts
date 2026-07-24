@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import {
   criarSessao,
+  emailConfere,
   encerrarSessao,
   senhaConfere,
   sessaoValida,
@@ -45,9 +46,11 @@ async function slugUnicoServico(nome: string, ignorarId?: number): Promise<strin
 // ─────────────────────────── Autenticação ───────────────────────────
 
 export async function acaoLogin(_estado: unknown, form: FormData) {
+  const email = String(form.get("email") ?? "");
   const senha = String(form.get("senha") ?? "");
-  if (!senhaConfere(senha)) {
-    return { erro: "Senha incorreta." };
+  // Mensagem única para e-mail ou senha errados — não revela qual falhou.
+  if (!emailConfere(email) || !senhaConfere(senha)) {
+    return { erro: "E-mail ou senha incorretos." };
   }
   await criarSessao();
   redirect("/admin/produtos");

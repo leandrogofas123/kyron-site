@@ -61,6 +61,17 @@ export function Header() {
           >
             {CTA_PRIMARIO.label}
           </Link>
+          <Link
+            href="/admin/login"
+            aria-label="Entrar no painel administrativo"
+            title="Painel admin"
+            className="flex h-9 w-9 items-center justify-center rounded-kyron-sm border border-[var(--kyron-hairline)] text-kyron-silver transition-colors duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </Link>
         </nav>
 
         {/* Alvo de toque nunca abaixo de 44px, mesmo em telas pequenas. */}
@@ -122,6 +133,13 @@ export function Header() {
               className="kyron-label block rounded-kyron-sm bg-kyron-blue py-fluid-sm text-center text-fluid-xs text-white"
             >
               {CTA_PRIMARIO.label}
+            </Link>
+            <Link
+              href="/admin/login"
+              onClick={() => setMenuAberto(false)}
+              className="kyron-label mt-fluid-sm block py-fluid-2xs text-center text-fluid-2xs text-kyron-silver/70"
+            >
+              Painel admin
             </Link>
           </div>
         </div>

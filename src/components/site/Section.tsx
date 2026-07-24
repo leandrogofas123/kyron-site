@@ -35,15 +35,17 @@ export function SectionHeader({
   lede?: string;
 }) {
   return (
-    <div className="mb-fluid-xl max-w-[60ch]">
+    <div className="mx-auto mb-fluid-xl max-w-[60ch] text-center">
       <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
         {eyebrow}
       </p>
-      <h2 className="kyron-display mt-fluid-xs max-w-[20ch] text-fluid-3xl text-kyron-white">
+      <h2 className="kyron-display mx-auto mt-fluid-xs max-w-[20ch] text-fluid-3xl text-kyron-white">
         {titulo}
       </h2>
       {lede && (
-        <p className="mt-fluid-sm text-fluid-lg text-kyron-silver">{lede}</p>
+        <p className="mx-auto mt-fluid-sm max-w-[52ch] text-fluid-lg text-kyron-silver">
+          {lede}
+        </p>
       )}
     </div>
   );

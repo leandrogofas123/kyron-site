@@ -16,10 +16,10 @@ export function PageHero({
     <section className="relative overflow-hidden pb-fluid-xl pt-fluid-xl">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[15vw] -top-[25vw] aspect-square w-[min(38rem,85vw)] rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.1),transparent_68%)]"
+        className="pointer-events-none absolute left-1/2 -top-[25vw] aspect-square w-[min(38rem,85vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.1),transparent_68%)]"
       />
 
-      <div className="container-kyron relative">
+      <div className="container-kyron relative flex flex-col items-center text-center">
         <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
           {eyebrow}
         </p>

@@ -7,13 +7,30 @@ import { acaoLogin } from "@/lib/admin-actions";
 export function LoginForm() {
   const [estado, formAction, pendente] = useActionState(acaoLogin, null);
 
+  const campo =
+    "w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm py-fluid-xs text-fluid-base text-kyron-white focus:border-[var(--kyron-blue-line)] focus:outline-none";
+  const rotulo =
+    "kyron-label mb-fluid-2xs block text-fluid-2xs text-kyron-silver/70";
+
   return (
     <form action={formAction} className="space-y-fluid-sm">
       <div>
-        <label
-          htmlFor="senha"
-          className="kyron-label mb-fluid-2xs block text-fluid-2xs text-kyron-silver/70"
-        >
+        <label htmlFor="email" className={rotulo}>
+          E-mail
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="username"
+          required
+          autoFocus
+          className={campo}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="senha" className={rotulo}>
           Senha
         </label>
         <input
@@ -22,8 +39,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          autoFocus
-          className="w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm py-fluid-xs text-fluid-base text-kyron-white focus:border-[var(--kyron-blue-line)] focus:outline-none"
+          className={campo}
         />
       </div>
 

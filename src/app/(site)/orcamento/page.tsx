@@ -53,7 +53,7 @@ export default async function Orcamento({
       />
 
       <Section semBorda>
-        <div className="max-w-[36rem]">
+        <div className="mx-auto max-w-[36rem]">
           <FormularioOrcamento
             origem={origem}
             referenciaId={referenciaId}

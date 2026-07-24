@@ -44,7 +44,7 @@ export default function Sobre() {
       />
 
       <Section semBorda>
-        <div className="max-w-[54ch] space-y-fluid-sm text-fluid-lg text-kyron-silver">
+        <div className="mx-auto max-w-[54ch] space-y-fluid-sm text-center text-fluid-lg text-kyron-silver">
           <p>
             A Kyron nasceu em Santa Cruz do Sul para aproximar as pessoas da boa
             tecnologia — sem a frieza do e-commerce e sem o risco do comprei-e-me-arrependi.
@@ -72,7 +72,7 @@ export default function Sobre() {
         <SectionHeader eyebrow="No que acreditamos" titulo="O jeito Kyron." />
         <ul className="grid-fluida-3">
           {VALORES.map((v) => (
-            <li key={v.titulo} className="border-t border-[var(--kyron-hairline)] pt-fluid-sm">
+            <li key={v.titulo} className="border-t border-[var(--kyron-hairline)] pt-fluid-sm text-center">
               <h3 className="text-fluid-base font-semibold text-kyron-white">{v.titulo}</h3>
               <p className="mt-fluid-2xs text-fluid-sm text-kyron-silver">{v.texto}</p>
             </li>

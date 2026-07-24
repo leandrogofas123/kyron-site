@@ -6,6 +6,9 @@ import { Section } from "@/components/site/Section";
 import { getServicos } from "@/lib/catalogo";
 import { formatarPreco } from "@/lib/format";
 
+// Lê o banco (serviços) — renderiza a cada acesso, não no build.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Serviços — Automação, Instalação e Assistência",
   description:

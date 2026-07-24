@@ -7,6 +7,10 @@ import { getCategoriasArvore, getProdutosDestaque, getServicos } from "@/lib/cat
 import { KYRON_COMPANY } from "@/lib/kyron/company";
 import { CTA_PRIMARIO } from "@/lib/kyron/site";
 
+// Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
+// não no build — o banco só existe quando o site liga, não durante a montagem.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Kyron Tecnologia — Apple, Casa Inteligente e Automação em Santa Cruz do Sul",
   description:

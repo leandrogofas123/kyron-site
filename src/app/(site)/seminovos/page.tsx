@@ -5,6 +5,9 @@ import { PageHero } from "@/components/site/PageHero";
 import { Section } from "@/components/site/Section";
 import { getSeminovos } from "@/lib/catalogo";
 
+// Lê o banco (estoque de seminovos) — renderiza a cada acesso, não no build.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "iPhone Seminovos — Revisados e com Garantia",
   description:

@@ -3,14 +3,7 @@ import Link from "next/link";
 
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { Section, SectionHeader } from "@/components/site/Section";
-import {
-  getCategoriasArvore,
-  getProdutosDestaque,
-  getSeminovos,
-  getServicos,
-} from "@/lib/catalogo";
-import { KYRON_COMPANY } from "@/lib/kyron/company";
-import { CTA_PRIMARIO } from "@/lib/kyron/site";
+import { getSeminovos, getServicos } from "@/lib/catalogo";
 
 // Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
 // não no build — o banco só existe quando o site liga, não durante a montagem.
@@ -23,22 +16,22 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const revalidate = 300;
-
 export default async function Home() {
-  const [destaques, seminovos, arvore, servicos] = await Promise.all([
-    getProdutosDestaque(8),
+  const [seminovos, servicos] = await Promise.all([
     getSeminovos(),
-    getCategoriasArvore(),
     getServicos(),
   ]);
 
-  const seminovosPreview = seminovos.slice(0, 4);
-  const emDomicilio = servicos.filter((s) => s.atendeEmDomicilio).slice(0, 3);
+  // Home é vitrine de entrada, não o catálogo inteiro: só uma amostra.
+  // A ordem vem do campo "ordem" (curado no admin) — os que o dono destaca
+  // aparecem primeiro. Medição real de "mais vistos" exige rastrear cliques,
+  // uma evolução futura; por enquanto, a curadoria faz esse papel.
+  const seminovosAmostra = seminovos.slice(0, 4);
+  const servicosAmostra = servicos.slice(0, 4);
 
   return (
     <>
-      {/* HERO — compacto, para o conteúdo do site aparecer logo */}
+      {/* BANNER — compacto */}
       <section className="relative overflow-hidden pb-fluid-lg pt-fluid-lg">
         <div
           aria-hidden="true"
@@ -72,35 +65,13 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES */}
-      {destaques.length > 0 && (
-        <Section>
-          <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
-            <SectionHeader eyebrow="Em destaque" titulo="Escolhidos para você." />
-            <Link
-              href="/produtos"
-              className="kyron-label mb-fluid-xl text-fluid-xs text-kyron-blue hover:underline"
-            >
-              Ver tudo →
-            </Link>
-          </div>
-          <ul className="grid-fluida-4">
-            {destaques.map((p, i) => (
-              <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 4} />
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {/* CAMADA: SEMINOVOS — o diferencial da loja */}
-      {seminovosPreview.length > 0 && (
+      {/* AMOSTRA DE SEMINOVOS — cada card leva ao seminovo */}
+      {seminovosAmostra.length > 0 && (
         <Section>
           <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
             <SectionHeader
               eyebrow="iPhone seminovos"
-              titulo="Seminovo com tudo à mostra."
+              titulo="Os mais procurados."
             />
             <Link
               href="/seminovos"
@@ -109,12 +80,8 @@ export default async function Home() {
               Ver todos →
             </Link>
           </div>
-          <p className="mb-fluid-lg max-w-[54ch] text-fluid-base text-kyron-silver">
-            Bateria, condição e garantia publicados antes de você perguntar.
-            Revisados, com garantia da loja.
-          </p>
           <ul className="grid-fluida-4">
-            {seminovosPreview.map((p, i) => (
+            {seminovosAmostra.map((p, i) => (
               <li key={p.id}>
                 <ProdutoCard produto={p} prioridade={i < 2} />
               </li>
@@ -123,114 +90,68 @@ export default async function Home() {
         </Section>
       )}
 
-      {/* CATEGORIAS */}
-      <Section>
-        <SectionHeader eyebrow="Categorias" titulo="Encontre pelo que procura." />
-        <ul className="grid-fluida-4">
-          {arvore.map((cat) => (
-            <li key={cat.id}>
-              <Link
-                href={`/produtos?categoria=${cat.slug}`}
-                className="group flex h-full flex-col justify-between rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md transition-all duration-[400ms] hover:-translate-y-0.5 hover:border-[var(--kyron-blue-line)]"
-              >
-                <h3 className="kyron-display text-fluid-base text-kyron-white">
-                  {cat.nome}
-                </h3>
-                <p className="mt-fluid-sm text-fluid-2xs text-kyron-silver/60">
-                  {cat.filhas.map((f) => f.nome).join(" · ")}
-                </p>
-                <span className="kyron-label mt-fluid-md text-fluid-xs text-kyron-blue">
-                  Explorar →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      {/* SERVIÇO EM DOMICÍLIO */}
-      {emDomicilio.length > 0 && (
+      {/* SERVIÇOS — caixas com explicação básica; clicar leva ao serviço */}
+      {servicosAmostra.length > 0 && (
         <Section>
-          <div className="rounded-kyron-lg border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg">
-            <div className="grid items-center gap-fluid-lg [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))]">
-              <div>
-                <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
-                  Atendimento em domicílio
-                </p>
-                <h2 className="kyron-display mt-fluid-sm text-fluid-2xl text-kyron-white">
-                  A gente vai até a sua casa.
-                </h2>
-                <p className="mt-fluid-sm max-w-[46ch] text-fluid-base text-kyron-silver">
-                  Instalação de automação, câmeras e fechaduras, e configuração do
-                  seu iPhone — sem você precisar sair de casa.
-                </p>
-                <div className="mt-fluid-lg flex flex-wrap gap-fluid-xs">
-                  <Link
-                    href="/servicos"
-                    className="kyron-label inline-block rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px"
-                  >
-                    Conhecer os serviços
-                  </Link>
-                  <Link
-                    href="/orcamento"
-                    className="kyron-label inline-block rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-fluid-md py-fluid-sm text-fluid-xs text-kyron-silver transition-colors duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
-                  >
-                    Pedir orçamento
-                  </Link>
-                </div>
-              </div>
-              <ul className="space-y-fluid-xs">
-                {emDomicilio.map((s) => (
-                  <li key={s.id}>
-                    <Link
-                      href={`/servicos/${s.slug}`}
-                      className="flex items-center gap-fluid-sm rounded-kyron-sm border border-[var(--kyron-hairline)] p-fluid-sm text-fluid-sm text-kyron-silver transition-colors duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
-                    >
-                      <span aria-hidden="true" className="text-kyron-blue">
-                        →
-                      </span>
+          <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
+            <SectionHeader
+              eyebrow="Serviços"
+              titulo="A gente instala e configura para você."
+            />
+            <Link
+              href="/servicos"
+              className="kyron-label mb-fluid-xl text-fluid-xs text-kyron-blue hover:underline"
+            >
+              Ver todos →
+            </Link>
+          </div>
+
+          <ul className="grid-fluida-2">
+            {servicosAmostra.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/servicos/${s.slug}`}
+                  className="group flex h-full flex-col rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md transition-all duration-[400ms] ease-in-out hover:-translate-y-0.5 hover:border-[var(--kyron-blue-line)]"
+                >
+                  <div className="flex items-start justify-between gap-fluid-sm">
+                    <h3 className="kyron-display text-fluid-base text-kyron-white">
                       {s.nome}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    </h3>
+                    {s.atendeEmDomicilio && (
+                      <span className="kyron-label shrink-0 rounded-full border border-[var(--kyron-blue-line)] bg-[var(--kyron-blue-soft)] px-fluid-xs py-1 text-fluid-2xs text-kyron-blue">
+                        Em domicílio
+                      </span>
+                    )}
+                  </div>
+                  {s.descricao && (
+                    <p className="mt-fluid-sm line-clamp-3 text-fluid-sm text-kyron-silver">
+                      {s.descricao}
+                    </p>
+                  )}
+                  <span className="kyron-label mt-auto pt-fluid-md inline-flex items-center gap-1.5 text-fluid-xs text-kyron-blue">
+                    Ver serviço
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-[400ms] group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-fluid-lg flex flex-wrap gap-fluid-xs">
+            <Link
+              href="/orcamento"
+              className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
+            >
+              Pedir orçamento
+            </Link>
           </div>
         </Section>
       )}
-
-      {/*
-        RESERVADO — Prova social / instalações realizadas.
-        Publicar só com fotos reais de instalações e autorização. Sem banco de
-        imagem, sem depoimento inventado (Manual §11).
-      */}
-
-      {/* LOCALIZAÇÃO */}
-      <Section>
-        <SectionHeader eyebrow="Onde estamos" titulo="Santa Cruz do Sul e região." />
-        <div className="grid-fluida-3 max-w-[68ch]">
-          <Bloco titulo="Cidade" texto={KYRON_COMPANY.enderecoPublico} />
-          <Bloco titulo="Atendimento" texto="Loja e domicílio. Confirme pelo WhatsApp." />
-          <Bloco titulo="Empresa" texto={`${KYRON_COMPANY.nomeFantasia} · CNPJ ${KYRON_COMPANY.cnpj}`} />
-        </div>
-        <Link
-          href={CTA_PRIMARIO.href}
-          target={CTA_PRIMARIO.href.startsWith("http") ? "_blank" : undefined}
-          rel={CTA_PRIMARIO.href.startsWith("http") ? "noopener noreferrer" : undefined}
-          className="kyron-label mt-fluid-lg inline-block rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
-        >
-          {CTA_PRIMARIO.label}
-        </Link>
-      </Section>
     </>
-  );
-}
-
-function Bloco({ titulo, texto }: { titulo: string; texto: string }) {
-  return (
-    <div className="border-t border-[var(--kyron-hairline)] pt-fluid-sm">
-      <h3 className="kyron-label text-fluid-2xs text-kyron-silver/55">{titulo}</h3>
-      <p className="mt-1 text-fluid-sm text-kyron-white">{texto}</p>
-    </div>
   );
 }

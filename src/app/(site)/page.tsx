@@ -3,7 +3,12 @@ import Link from "next/link";
 
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { Section, SectionHeader } from "@/components/site/Section";
-import { getCategoriasArvore, getProdutosDestaque, getServicos } from "@/lib/catalogo";
+import {
+  getCategoriasArvore,
+  getProdutosDestaque,
+  getSeminovos,
+  getServicos,
+} from "@/lib/catalogo";
 import { KYRON_COMPANY } from "@/lib/kyron/company";
 import { CTA_PRIMARIO } from "@/lib/kyron/site";
 
@@ -21,34 +26,36 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function Home() {
-  const [destaques, arvore, servicos] = await Promise.all([
+  const [destaques, seminovos, arvore, servicos] = await Promise.all([
     getProdutosDestaque(8),
+    getSeminovos(),
     getCategoriasArvore(),
     getServicos(),
   ]);
 
+  const seminovosPreview = seminovos.slice(0, 4);
   const emDomicilio = servicos.filter((s) => s.atendeEmDomicilio).slice(0, 3);
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative overflow-hidden pb-section pt-fluid-xl">
+      {/* HERO — compacto, para o conteúdo do site aparecer logo */}
+      <section className="relative overflow-hidden pb-fluid-lg pt-fluid-lg">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-[15vw] -top-[20vw] aspect-square w-[min(45rem,90vw)] rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
+          className="pointer-events-none absolute -right-[12vw] -top-[16vw] aspect-square w-[min(30rem,75vw)] rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
         />
         <div className="container-kyron relative max-w-[52rem]">
           <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
             Santa Cruz do Sul · RS
           </p>
-          <h1 className="kyron-display mt-fluid-sm max-w-[18ch] text-fluid-hero text-kyron-white">
+          <h1 className="kyron-display mt-fluid-xs max-w-[20ch] text-fluid-3xl text-kyron-white">
             Tecnologia premium, <span className="text-kyron-blue">perto</span> de você.
           </h1>
-          <p className="mt-fluid-md max-w-[48ch] text-fluid-lg text-kyron-silver">
+          <p className="mt-fluid-sm max-w-[48ch] text-fluid-base text-kyron-silver">
             Apple novos e seminovos, casa inteligente, áudio e instalação em
             domicílio. Atendimento consultivo, conversa direta no WhatsApp.
           </p>
-          <div className="mt-fluid-lg flex flex-wrap gap-fluid-xs">
+          <div className="mt-fluid-md flex flex-wrap gap-fluid-xs">
             <Link
               href="/produtos"
               className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
@@ -81,6 +88,35 @@ export default async function Home() {
             {destaques.map((p, i) => (
               <li key={p.id}>
                 <ProdutoCard produto={p} prioridade={i < 4} />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      {/* CAMADA: SEMINOVOS — o diferencial da loja */}
+      {seminovosPreview.length > 0 && (
+        <Section>
+          <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
+            <SectionHeader
+              eyebrow="iPhone seminovos"
+              titulo="Seminovo com tudo à mostra."
+            />
+            <Link
+              href="/seminovos"
+              className="kyron-label mb-fluid-xl text-fluid-xs text-kyron-blue hover:underline"
+            >
+              Ver todos →
+            </Link>
+          </div>
+          <p className="mb-fluid-lg max-w-[54ch] text-fluid-base text-kyron-silver">
+            Bateria, condição e garantia publicados antes de você perguntar.
+            Revisados, com garantia da loja.
+          </p>
+          <ul className="grid-fluida-4">
+            {seminovosPreview.map((p, i) => (
+              <li key={p.id}>
+                <ProdutoCard produto={p} prioridade={i < 2} />
               </li>
             ))}
           </ul>
@@ -128,12 +164,20 @@ export default async function Home() {
                   Instalação de automação, câmeras e fechaduras, e configuração do
                   seu iPhone — sem você precisar sair de casa.
                 </p>
-                <Link
-                  href="/servicos"
-                  className="kyron-label mt-fluid-lg inline-block rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px"
-                >
-                  Conhecer os serviços
-                </Link>
+                <div className="mt-fluid-lg flex flex-wrap gap-fluid-xs">
+                  <Link
+                    href="/servicos"
+                    className="kyron-label inline-block rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px"
+                  >
+                    Conhecer os serviços
+                  </Link>
+                  <Link
+                    href="/orcamento"
+                    className="kyron-label inline-block rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-fluid-md py-fluid-sm text-fluid-xs text-kyron-silver transition-colors duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
+                  >
+                    Pedir orçamento
+                  </Link>
+                </div>
               </div>
               <ul className="space-y-fluid-xs">
                 {emDomicilio.map((s) => (

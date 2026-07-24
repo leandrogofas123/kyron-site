@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/*
+ * SISTEMA FLUIDO
+ *
+ * Nada aqui é um tamanho fixo. Toda medida é uma fórmula que escala junto com
+ * a largura da tela, com um piso e um teto para não quebrar em extremos.
+ *
+ * clamp(mínimo, valor-que-escala, máximo)
+ *   - o valor do meio cresce com a viewport (vw)
+ *   - o mínimo protege telas pequenas
+ *   - o máximo impede que fique gigante em monitor ultrawide
+ *
+ * Tipografia usa rem (não px, não %) de propósito: rem acompanha a preferência
+ * de tamanho de fonte do navegador. Quem aumenta a fonte por acessibilidade
+ * continua sendo atendido, e o texto ainda escala com a tela.
+ */
+@theme {
+  /* Paleta oficial — Manual de Marca §4 */
+  --color-kyron-black: #060709;
+  --color-kyron-graphite: #14161b;
+  --color-kyron-surface: #1c1f26;
+  --color-kyron-silver: #c9cdd4;
+  --color-kyron-white: #f4f5f7;
+  --color-kyron-blue: #1e6bff;
+
+  --font-display: var(--font-orbitron), system-ui, sans-serif;
+  --font-sans: var(--font-exo2), system-ui, sans-serif;
+
+  /* ── Tipografia fluida ────────────────────────────────────────────────
+     Escala continuamente entre ~360px e ~1440px de viewport. */
+  --text-fluid-2xs: clamp(0.6875rem, 0.66rem + 0.13vw, 0.75rem);
+  --text-fluid-xs: clamp(0.75rem, 0.72rem + 0.16vw, 0.8125rem);
+  --text-fluid-sm: clamp(0.8125rem, 0.77rem + 0.22vw, 0.9375rem);
+  --text-fluid-base: clamp(0.9375rem, 0.89rem + 0.21vw, 1.0625rem);
+  --text-fluid-lg: clamp(1.0625rem, 0.96rem + 0.41vw, 1.25rem);
+  --text-fluid-xl: clamp(1.125rem, 1rem + 0.56vw, 1.375rem);
+  --text-fluid-2xl: clamp(1.375rem, 1.07rem + 1.3vw, 2rem);
+  --text-fluid-3xl: clamp(1.625rem, 1.24rem + 1.7vw, 2.5rem);
+  --text-fluid-hero: clamp(2.125rem, 1.28rem + 3.9vw, 4.25rem);
+
+  /* ── Espaçamento fluido ───────────────────────────────────────────────
+     Usável como p-*, gap-*, mt-* etc. */
+  --spacing-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --spacing-section: clamp(3.5rem, 7vw, 6rem);
+  --spacing-fluid-2xs: clamp(0.375rem, 0.8vw, 0.5rem);
+  --spacing-fluid-xs: clamp(0.5rem, 1.1vw, 0.75rem);
+  --spacing-fluid-sm: clamp(0.75rem, 1.6vw, 1.125rem);
+  --spacing-fluid-md: clamp(1.125rem, 2.4vw, 1.75rem);
+  --spacing-fluid-lg: clamp(1.75rem, 3.4vw, 2.75rem);
+  --spacing-fluid-xl: clamp(2.25rem, 4.6vw, 3.5rem);
+
+  /* Raios — Manual §8 permite apenas 8 / 16 / 24px */
+  --radius-kyron-sm: 0.5rem;
+  --radius-kyron-md: 1rem;
+  --radius-kyron-lg: 1.5rem;
+}
+
+:root {
+  --kyron-hairline: rgba(201, 205, 212, 0.11);
+  --kyron-hairline-strong: rgba(201, 205, 212, 0.22);
+  --kyron-blue-line: rgba(30, 107, 255, 0.4);
+  --kyron-blue-soft: rgba(30, 107, 255, 0.14);
+
+  /* Largura máxima do conteúdo, em rem para acompanhar a fonte base. */
+  --largura-conteudo: 75rem;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--color-kyron-black);
+  /* Impede zoom horizontal indesejado em iOS ao girar o aparelho. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-kyron-black);
+  color: var(--color-kyron-white);
+  font-family: var(--font-sans);
+  font-size: var(--text-fluid-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Nenhuma página rola de lado, em nenhuma largura. */
+  overflow-x: hidden;
+}
+
+/* Mídia nunca estoura o contêiner, em nenhum tamanho de tela. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Foco visível em todo elemento interativo — WCAG 2.4.7. */
+:focus-visible {
+  outline: 2px solid var(--color-kyron-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Nenhum conteúdo depende de animação para ser lido — WCAG 2.3.3. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── Contêiner fluido ───────────────────────────────────────────────────
+   Ocupa a largura disponível menos as margens laterais, até o teto. */
+.container-kyron {
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter);
+}
+
+/* ── Grades que se reorganizam sozinhas ─────────────────────────────────
+   Sem nenhuma media query: as colunas se ajustam a QUALQUER largura.
+
+   A largura mínima de cada coluna é o MAIOR entre:
+     a) --min          → o ponto em que a coluna fica estreita demais para ler
+     b) a largura que produz exatamente --cols colunas
+   O item (b) é o teto: impede que a grade continue somando colunas em
+   monitores grandes (sem ele, 4 cards viram 5 ou 6 num ultrawide).
+
+   Ajuste o espaçamento com [--gap:...] no componente — gap e fórmula usam a
+   mesma variável, então nunca saem de sincronia. */
+.grid-fluida-2,
+.grid-fluida-3,
+.grid-fluida-4 {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      max(
+        var(--min),
+        calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols))
+      ),
+      1fr
+    )
+  );
+}
+.grid-fluida-2 {
+  --min: 20rem;
+  --cols: 2;
+  --gap: var(--spacing-fluid-sm);
+}
+.grid-fluida-3 {
+  --min: 15rem;
+  --cols: 3;
+  --gap: var(--spacing-fluid-sm);
+}
+.grid-fluida-4 {
+  --min: 12rem;
+  --cols: 4;
+  --gap: var(--spacing-fluid-sm);
+}
+
+.kyron-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.kyron-label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Barra de rolagem do painel de chat — prata discreta, sem cor nova. */
+.kyron-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--kyron-hairline-strong) transparent;
+}
+.kyron-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.kyron-scroll::-webkit-scrollbar-thumb {
+  background: var(--kyron-hairline-strong);
+  border-radius: 999px;
+}
+
+@keyframes kyron-pulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+}

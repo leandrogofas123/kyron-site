@@ -1,0 +1,118 @@
+// Modelo de dados do catálogo Kyron.
+//
+// Fiel à seção 5 da spec. É o primeiro módulo do futuro CRM/ERP — por isso o
+// modelo de Produto é limpo e reaproveitável por estoque, venda e cliente nas
+// fases seguintes.
+//
+// SQLite agora; trocar para PostgreSQL depois é mudar só o datasource.
+//
+// Dinheiro é guardado em CENTAVOS (Int), nunca em ponto flutuante — R$ 1.999,90
+// vira 199990. Formatação para reais acontece na exibição. Float em dinheiro é
+// bug garantido (arredondamento).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./kyron.db"
+}
+
+model Categoria {
+  id        Int    @id @default(autoincrement())
+  slug      String @unique
+  nome      String
+  icone     String?
+  ordem     Int    @default(0)
+
+  // Auto-relação: subcategoria aponta para a categoria pai.
+  parentId  Int?
+  parent    Categoria?  @relation("Subcategorias", fields: [parentId], references: [id])
+  filhas    Categoria[] @relation("Subcategorias")
+
+  produtos  Produto[]
+
+  @@index([parentId])
+}
+
+model Produto {
+  id               Int      @id @default(autoincrement())
+  slug             String   @unique
+  nome             String
+  marca            String?
+  // Centavos. precoPromo, quando presente, é o preço vigente.
+  preco            Int
+  precoPromo       Int?
+  descricaoCurta   String?
+  descricaoLonga   String?
+  destaque         Boolean  @default(false)  // aparece na home
+  ativo            Boolean  @default(true)    // inativo some do site, fica no banco
+  ordem            Int      @default(0)
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  categoriaId      Int
+  categoria        Categoria @relation(fields: [categoriaId], references: [id])
+
+  imagens          ProdutoImagem[]
+  seminovo         Seminovo?
+
+  @@index([categoriaId])
+  @@index([ativo, destaque])
+}
+
+model ProdutoImagem {
+  id         Int     @id @default(autoincrement())
+  url        String
+  principal  Boolean @default(false)
+  ordem      Int     @default(0)
+
+  produtoId  Int
+  produto    Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId])
+}
+
+// Estende Produto (1:1). Os campos são exatamente as objeções de quem compra
+// iPhone usado — publicá-los permite vender acima do preço de marketplace.
+model Seminovo {
+  produtoId        Int     @id
+  produto          Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  saudeBateria     Int?    // %
+  condicaoEstetica String  @default("bom") // impecável | ótimo | bom (validado no app)
+  cor              String?
+  capacidade       String?
+  garantiaMeses    Int     @default(0)
+  vendido          Boolean @default(false) // some da vitrine automaticamente
+
+  @@index([vendido])
+}
+
+model Servico {
+  id              Int      @id @default(autoincrement())
+  slug            String   @unique
+  nome            String
+  descricao       String?
+  precoAPartirDe  Int?     // centavos; null = "sob orçamento"
+  atendeEmDomicilio Boolean @default(false)
+  tempoMedio      String?
+  imagemCapa      String?
+  ativo           Boolean  @default(true)
+  ordem           Int      @default(0)
+}
+
+model Lead {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  telefone     String
+  origem       String   @default("geral") // produto | servico | geral
+  referenciaId Int?     // id do produto ou serviço de origem
+  mensagem     String?
+  status       String   @default("novo")  // novo | respondido | vendido | perdido
+  criadoEm     DateTime @default(now())
+
+  @@index([status])
+  @@index([criadoEm])
+}

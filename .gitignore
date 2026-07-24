@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.vercel
+
+# Imagens enviadas e banco local — ficam no disco do servidor, nunca no git
+/data/
+prisma/kyron.db
+prisma/*.db-journal

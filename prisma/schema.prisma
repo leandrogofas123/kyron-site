@@ -16,7 +16,9 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./kyron.db"
+  // Local: file:./kyron.db (definido em .env). Produção: aponta para o disco
+  // persistente do Railway, ex. file:/data/kyron.db (definido no painel).
+  url      = env("DATABASE_URL")
 }
 
 model Categoria {

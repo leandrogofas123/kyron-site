@@ -111,6 +111,17 @@ async function main() {
     ordemServ += 1;
   }
 
+  // Produtos de exemplo só no primeiro deploy (catálogo vazio). Depois que o
+  // dono cadastrar itens reais — ou apagar os exemplos — o seed não os recria.
+  if ((await db.produto.count()) > 0) {
+    const nCat = await db.categoria.count();
+    const nServ = await db.servico.count();
+    console.log(
+      `Estrutura pronta: ${nCat} categorias, ${nServ} serviços. Catálogo já tem produtos — exemplos não recriados.`,
+    );
+    return;
+  }
+
   console.log("Semeando produtos de exemplo…");
   const catSeminovos = idPorSlug[slug("Apple-iPhone seminovos")];
   const catNovos = idPorSlug[slug("Apple-iPhone novos")];

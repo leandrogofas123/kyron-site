@@ -31,7 +31,7 @@ export default function PoliticaDePrivacidade() {
         lede="Como a Kyron trata dados pessoais coletados neste site."
       />
 
-      <Documento atualizadoEm="23 de julho de 2026">
+      <Documento atualizadoEm="25 de julho de 2026">
         <H2>1. Quem é o controlador</H2>
         <p>
           O controlador dos dados pessoais tratados neste site é{" "}
@@ -76,13 +76,24 @@ export default function PoliticaDePrivacidade() {
               O conteúdo das mensagens trocadas, para responder à solicitação e
               melhorar o atendimento.
             </>,
+            <>
+              <strong className="text-kyron-white">
+                Conta de cliente (área de aulas).
+              </strong>{" "}
+              Nome, e-mail e uma senha definida por você para acessar as aulas do
+              Manual de Instalação. A senha é guardada apenas como{" "}
+              <em>hash</em> (código irreversível), nunca em texto legível.
+            </>,
           ]}
         />
         <p>
           <strong className="text-kyron-white">Não solicitamos</strong> CPF, RG,
-          dados bancários, cartão de crédito, senhas ou qualquer credencial de
-          acesso por meio deste site ou do assistente virtual. Se você receber um
-          pedido desse tipo se passando pela Kyron, desconsidere e nos avise.
+          dados bancários ou cartão de crédito por meio deste site ou do
+          assistente virtual. A única senha que tratamos é a que{" "}
+          <strong className="text-kyron-white">você mesmo cria</strong> para a
+          sua conta de acesso às aulas — usada só para o seu login e guardada de
+          forma cifrada. Nunca pedimos senhas de outros serviços; se você receber
+          um pedido desse tipo se passando pela Kyron, desconsidere e nos avise.
         </p>
 
         <H2>3. Para que usamos</H2>
@@ -90,6 +101,7 @@ export default function PoliticaDePrivacidade() {
           itens={[
             "Responder a solicitações de contato, orçamento e agendamento de diagnóstico.",
             "Entender qual solução se aplica ao seu caso antes da primeira conversa.",
+            "Criar e gerenciar a sua conta e liberar o acesso às aulas restritas do Manual de Instalação, após aprovação.",
             "Medir a audiência do site e entender como ele é utilizado, de forma agregada.",
             "Cumprir obrigações legais e regulatórias aplicáveis.",
           ]}
@@ -184,10 +196,11 @@ export default function PoliticaDePrivacidade() {
         <p>
           Adotamos medidas técnicas e administrativas para proteger os dados
           contra acesso não autorizado, perda, alteração e divulgação indevida —
-          incluindo tráfego criptografado, controle de acesso e limitação da coleta
-          ao mínimo necessário. Nenhum sistema é totalmente imune a incidentes; em
-          caso de incidente relevante, comunicaremos os titulares e a ANPD nos
-          termos da lei.
+          incluindo tráfego criptografado, controle de acesso, limitação da coleta
+          ao mínimo necessário e o armazenamento das senhas de conta apenas como{" "}
+          <em>hash</em> (nunca em texto legível). Nenhum sistema é totalmente imune
+          a incidentes; em caso de incidente relevante, comunicaremos os titulares
+          e a ANPD nos termos da lei.
         </p>
 
         <H2>9. Cookies</H2>
@@ -208,7 +221,39 @@ export default function PoliticaDePrivacidade() {
           assistente.
         </p>
 
-        <H2>11. Alterações desta política</H2>
+        <H2>11. Conta de cliente e área de aulas</H2>
+        <p>
+          O Manual de Instalação tem uma área de aulas em vídeo restrita a
+          clientes. Para acessá-la, você cria uma conta com nome, e-mail e senha.
+          O cadastro é aberto, mas o acesso só é liberado após aprovação da
+          Kyron; enquanto isso, sua conta fica com status &quot;em análise&quot;.
+          O tratamento desses dados se apoia no seu{" "}
+          <strong className="text-kyron-white">consentimento</strong> e na
+          execução de medidas preliminares e do contrato de acesso ao conteúdo.
+        </p>
+        <p>
+          Você pode solicitar a exclusão da sua conta e dos dados associados a
+          qualquer momento
+          {CONTATO.email ? (
+            <>
+              {" "}
+              pelo e-mail{" "}
+              <a
+                href={`mailto:${CONTATO.email}`}
+                className="inline-block break-words py-1.5 text-kyron-blue underline underline-offset-2"
+              >
+                {CONTATO.email}
+              </a>
+            </>
+          ) : (
+            " pelos nossos canais de contato"
+          )}
+          . As aulas podem ser exibidas por meio de player de vídeo de terceiro
+          (YouTube, em modo de privacidade reforçada); ao assisti-las, você
+          interage também com a política de privacidade desse provedor.
+        </p>
+
+        <H2>12. Alterações desta política</H2>
         <p>
           Esta política pode ser atualizada. A data de atualização no topo indica a
           versão vigente. Alterações relevantes serão comunicadas pelos canais de

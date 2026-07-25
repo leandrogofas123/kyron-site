@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 
+import { CatalogoControles } from "@/components/catalogo/CatalogoControles";
 import { CategoriaFiltro } from "@/components/catalogo/CategoriaFiltro";
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { PageHero } from "@/components/site/PageHero";
 import { Section } from "@/components/site/Section";
-import { getCategoriasArvore, getProdutos } from "@/lib/catalogo";
+import {
+  getCategoriasArvore,
+  getProdutos,
+  type OrdenarProdutos,
+} from "@/lib/catalogo";
 
 export const metadata: Metadata = {
   title: "Produtos — Apple, Casa Inteligente e Áudio",
@@ -13,19 +18,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "/produtos" },
 };
 
-// Catálogo muda com frequência; recarrega a cada 5 min sem rebuild.
-export const revalidate = 300;
+// Lê o banco e reage a busca/ordenação por query — renderiza a cada acesso.
+export const dynamic = "force-dynamic";
 
 export default async function Produtos({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string }>;
+  searchParams: Promise<{
+    categoria?: string;
+    q?: string;
+    ordenar?: OrdenarProdutos;
+  }>;
 }) {
-  const { categoria } = await searchParams;
+  const { categoria, q, ordenar } = await searchParams;
   const [arvore, { categoria: catAtiva, produtos }] = await Promise.all([
     getCategoriasArvore(),
-    getProdutos(categoria),
+    getProdutos({ categoria, q, ordenar }),
   ]);
+  const buscando = Boolean(q?.trim());
 
   return (
     <>
@@ -50,13 +60,15 @@ export default async function Produtos({
         <div className="mt-fluid-lg">
           <CategoriaFiltro categorias={arvore} ativa={categoria} />
         </div>
+        <CatalogoControles total={produtos.length} />
       </PageHero>
 
       <Section semBorda>
         {produtos.length === 0 ? (
           <p className="mx-auto max-w-[48ch] text-center text-fluid-base text-kyron-silver">
-            Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a
-            gente te ajuda a encontrar.
+            {buscando
+              ? "Nada encontrado para a sua busca. Tente outro termo ou fale no WhatsApp que a gente encontra para você."
+              : "Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a gente te ajuda a encontrar."}
           </p>
         ) : (
           <ul className="grid-fluida-4">

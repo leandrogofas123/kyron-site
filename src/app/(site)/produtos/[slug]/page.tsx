@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Galeria } from "@/components/catalogo/Galeria";
-import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
+import { PainelSeminovo } from "@/components/catalogo/PainelSeminovo";
 import { Preco } from "@/components/catalogo/Preco";
+import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
+import { SelosConfianca } from "@/components/catalogo/SelosConfianca";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getProduto, getProdutos } from "@/lib/catalogo";
 import { formatarPreco, precoVigente } from "@/lib/format";
@@ -42,7 +44,9 @@ export default async function PaginaProduto({ params }: Props) {
   const s = produto.seminovo;
 
   // Produtos relacionados: mesma categoria, exceto o atual.
-  const { produtos: mesmaCategoria } = await getProdutos(produto.categoria.slug);
+  const { produtos: mesmaCategoria } = await getProdutos({
+    categoria: produto.categoria.slug,
+  });
   const relacionados = mesmaCategoria.filter((p) => p.id !== produto.id).slice(0, 4);
 
   const schema = {
@@ -110,20 +114,7 @@ export default async function PaginaProduto({ params }: Props) {
 
             {/* Seminovo: os campos que respondem as objeções de quem compra
                 usado. Exibidos com destaque — spec §9.2. */}
-            {s && (
-              <dl className="mt-fluid-md grid grid-cols-2 gap-fluid-sm rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md">
-                {s.saudeBateria != null && (
-                  <Campo rotulo="Saúde da bateria" valor={`${s.saudeBateria}%`} />
-                )}
-                <Campo rotulo="Condição" valor={s.condicaoEstetica} />
-                {s.capacidade && <Campo rotulo="Capacidade" valor={s.capacidade} />}
-                {s.cor && <Campo rotulo="Cor" valor={s.cor} />}
-                <Campo
-                  rotulo="Garantia"
-                  valor={s.garantiaMeses > 0 ? `${s.garantiaMeses} meses` : "Consulte"}
-                />
-              </dl>
-            )}
+            {s && <PainelSeminovo s={s} />}
 
             {/* CTA único — spec §9.1. A conversa chega já identificando o item. */}
             {whats ? (
@@ -150,6 +141,10 @@ export default async function PaginaProduto({ params }: Props) {
               confirmar disponibilidade.
             </p>
           </div>
+        </div>
+
+        <div className="mt-fluid-xl">
+          <SelosConfianca />
         </div>
 
         {produto.descricaoLonga && (
@@ -180,15 +175,6 @@ export default async function PaginaProduto({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
     </>
-  );
-}
-
-function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div>
-      <dt className="kyron-label text-fluid-2xs text-kyron-silver/55">{rotulo}</dt>
-      <dd className="mt-0.5 text-fluid-sm font-semibold text-kyron-white">{valor}</dd>
-    </div>
   );
 }
 

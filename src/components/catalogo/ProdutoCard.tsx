@@ -11,8 +11,17 @@ export type ProdutoCardData = {
   preco: number;
   precoPromo: number | null;
   imagens: { url: string; principal: boolean }[];
-  seminovo: { saudeBateria: number | null; condicaoEstetica: string } | null;
+  seminovo: {
+    saudeBateria: number | null;
+    condicaoEstetica: string;
+    garantiaMeses: number;
+  } | null;
 };
+
+/** Primeira letra maiúscula — para "ótimo" → "Ótimo". */
+function capitalizar(t: string) {
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 export function ProdutoCard({
   produto,
@@ -58,10 +67,29 @@ export function ProdutoCard({
           {produto.nome}
         </h3>
 
-        {produto.seminovo?.saudeBateria != null && (
-          <p className="mt-1 text-fluid-2xs text-kyron-silver/70">
-            Bateria {produto.seminovo.saudeBateria}% · {produto.seminovo.condicaoEstetica}
-          </p>
+        {produto.seminovo && (
+          <div className="mt-fluid-xs flex flex-wrap items-center gap-x-fluid-xs gap-y-1">
+            {produto.seminovo.saudeBateria != null && (
+              <span className="inline-flex items-center gap-1.5 text-fluid-2xs text-kyron-silver/80">
+                <span
+                  className="relative h-[5px] w-8 overflow-hidden rounded-full bg-kyron-silver/15"
+                  aria-hidden="true"
+                >
+                  <span
+                    className="absolute inset-y-0 left-0 rounded-full bg-[#46c07a]"
+                    style={{ width: `${produto.seminovo.saudeBateria}%` }}
+                  />
+                </span>
+                Bateria {produto.seminovo.saudeBateria}%
+              </span>
+            )}
+            <span className="inline-flex items-center gap-x-fluid-xs text-fluid-2xs text-kyron-silver/70">
+              {produto.seminovo.saudeBateria != null && (
+                <span className="h-1 w-1 rounded-full bg-kyron-silver/40" aria-hidden="true" />
+              )}
+              {capitalizar(produto.seminovo.condicaoEstetica)}
+            </span>
+          </div>
         )}
 
         <div className="mt-auto pt-fluid-sm">

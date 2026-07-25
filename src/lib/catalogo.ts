@@ -1,6 +1,9 @@
 import "server-only";
 
 import { db } from "./db";
+import type { OrdenarProdutos } from "./catalogo-ordenacao";
+
+export { ORDENACOES, type OrdenarProdutos } from "./catalogo-ordenacao";
 
 /**
  * Camada de acesso ao catálogo.
@@ -42,8 +45,33 @@ export function getProdutosDestaque(limite = 8) {
   });
 }
 
-/** Catálogo, opcionalmente filtrado por categoria (inclui subcategorias). */
-export async function getProdutos(categoriaSlug?: string) {
+/** Preço que vale hoje (promo vence o cheio) — para ordenar por preço. */
+function vigente(p: { preco: number; precoPromo: number | null }) {
+  return p.precoPromo != null && p.precoPromo < p.preco ? p.precoPromo : p.preco;
+}
+
+/** Normaliza para busca: sem acento, minúsculo. */
+function normalizar(t: string) {
+  return t
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+/**
+ * Catálogo, opcionalmente filtrado por categoria (inclui subcategorias),
+ * por busca textual (nome/marca) e ordenado.
+ *
+ * Busca e ordenação-por-preço acontecem em memória: o catálogo é pequeno e o
+ * SQLite não oferece "contains" sem acento nem ordenação pelo preço vigente
+ * (que depende da promoção). Para dezenas de itens, é instantâneo e simples.
+ */
+export async function getProdutos(opts?: {
+  categoria?: string;
+  q?: string;
+  ordenar?: OrdenarProdutos;
+}) {
+  const { categoria: categoriaSlug, q, ordenar = "relevancia" } = opts ?? {};
   let categoriaIds: number[] | undefined;
 
   if (categoriaSlug) {
@@ -55,7 +83,7 @@ export async function getProdutos(categoriaSlug?: string) {
     categoriaIds = [cat.id, ...cat.filhas.map((f) => f.id)];
   }
 
-  const produtos = await db.produto.findMany({
+  let produtos = await db.produto.findMany({
     where: {
       ativo: true,
       ...(categoriaIds ? { categoriaId: { in: categoriaIds } } : {}),
@@ -63,6 +91,23 @@ export async function getProdutos(categoriaSlug?: string) {
     orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
     include: { ...imagensOrdenadas, seminovo: true, categoria: true },
   });
+
+  const termo = q?.trim();
+  if (termo) {
+    const alvo = normalizar(termo);
+    produtos = produtos.filter((p) =>
+      normalizar(`${p.nome} ${p.marca ?? ""}`).includes(alvo),
+    );
+  }
+
+  if (ordenar === "menor-preco") {
+    produtos.sort((a, b) => vigente(a) - vigente(b));
+  } else if (ordenar === "maior-preco") {
+    produtos.sort((a, b) => vigente(b) - vigente(a));
+  } else if (ordenar === "novidades") {
+    produtos.sort((a, b) => b.criadoEm.getTime() - a.criadoEm.getTime());
+  }
+  // "relevancia": mantém a ordem curada do banco (ordem asc, criadoEm desc).
 
   const categoria = categoriaSlug
     ? await db.categoria.findUnique({ where: { slug: categoriaSlug } })

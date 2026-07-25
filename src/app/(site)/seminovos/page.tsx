@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
+import { SelosConfianca } from "@/components/catalogo/SelosConfianca";
 import { PageHero } from "@/components/site/PageHero";
 import { Section } from "@/components/site/Section";
 import { getSeminovos } from "@/lib/catalogo";
@@ -49,6 +50,12 @@ export default async function Seminovos() {
           </ul>
         )}
       </Section>
+
+      {produtos.length > 0 && (
+        <Section>
+          <SelosConfianca />
+        </Section>
+      )}
     </>
   );
 }

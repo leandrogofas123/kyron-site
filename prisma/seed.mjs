@@ -115,13 +115,20 @@ async function main() {
   // dono cadastrar itens reais — ou apagar os exemplos — o seed não os recria.
   const catalogoVazio = (await db.produto.count()) === 0;
 
-  // Fotos genéricas TEMPORÁRIAS dos exemplos (banco de imagem livre, servidas
-  // localmente de /public/exemplos). O dono troca pelas reais no admin.
+  // Ilustrações de exemplo (vetoriais, na identidade Kyron, servidas de
+  // /public/exemplos — geradas por scripts/gerar-ilustracoes.mjs). São só um
+  // conjunto digno enquanto não há foto real: o dono troca pelas dele no admin.
   const FOTO_EXEMPLO = {
     "iphone-15-128gb-exemplo": "/exemplos/iphone-novo.webp",
     "iphone-13-128gb-seminovo-exemplo": "/exemplos/iphone-seminovo.webp",
-    "camera-wifi-interna-exemplo": "/exemplos/camera-wifi.webp",
+    "ipad-109-exemplo": "/exemplos/ipad.webp",
+    "apple-watch-se-exemplo": "/exemplos/watch.webp",
     "airpods-exemplo": "/exemplos/airpods.webp",
+    "camera-wifi-interna-exemplo": "/exemplos/camera-wifi.webp",
+    "fechadura-inteligente-exemplo": "/exemplos/fechadura.webp",
+    "caixa-de-som-inteligente-exemplo": "/exemplos/caixa-som.webp",
+    "fone-over-ear-exemplo": "/exemplos/fone.webp",
+    "carregador-usb-c-exemplo": "/exemplos/acessorio.webp",
   };
 
   // Anexa a foto de exemplo a um produto que ainda não tenha nenhuma imagem.
@@ -154,8 +161,12 @@ async function main() {
   console.log("Semeando produtos de exemplo…");
   const catSeminovos = idPorSlug[slug("Apple-iPhone seminovos")];
   const catNovos = idPorSlug[slug("Apple-iPhone novos")];
+  const catAppleOutros = idPorSlug[slug("Apple-iPad / Watch / AirPods")];
   const catCameras = idPorSlug[slug("Casa Inteligente-Câmeras Wi-Fi")];
+  const catFechaduras = idPorSlug[slug("Casa Inteligente-Fechaduras inteligentes")];
   const catFones = idPorSlug[slug("Áudio-Fones")];
+  const catCaixas = idPorSlug[slug("Áudio-Caixas de som")];
+  const catCabos = idPorSlug[slug("Acessórios-Carregadores e cabos")];
 
   // Produto novo em destaque
   const ip15 = await db.produto.upsert({
@@ -219,7 +230,33 @@ async function main() {
     },
   });
 
-  // Áudio
+  // Apple — iPad / Watch / AirPods
+  await db.produto.upsert({
+    where: { slug: "ipad-109-exemplo" },
+    update: {},
+    create: {
+      slug: "ipad-109-exemplo",
+      nome: 'iPad 10,9" 64GB (exemplo)',
+      marca: "Apple",
+      categoriaId: catAppleOutros,
+      preco: 429900,
+      descricaoCurta: "Tela Liquid Retina, chip veloz e o dia todo de bateria.",
+      destaque: true,
+    },
+  });
+  await db.produto.upsert({
+    where: { slug: "apple-watch-se-exemplo" },
+    update: {},
+    create: {
+      slug: "apple-watch-se-exemplo",
+      nome: "Apple Watch SE (exemplo)",
+      marca: "Apple",
+      categoriaId: catAppleOutros,
+      preco: 289900,
+      descricaoCurta: "Saúde, atividade e notificações no seu pulso.",
+      destaque: false,
+    },
+  });
   await db.produto.upsert({
     where: { slug: "airpods-exemplo" },
     update: {},
@@ -227,9 +264,68 @@ async function main() {
       slug: "airpods-exemplo",
       nome: "AirPods (exemplo)",
       marca: "Apple",
-      categoriaId: catFones,
+      categoriaId: catAppleOutros,
       preco: 149900,
       descricaoCurta: "Som imersivo e cancelamento de ruído.",
+      destaque: false,
+    },
+  });
+
+  // Casa inteligente — fechadura
+  await db.produto.upsert({
+    where: { slug: "fechadura-inteligente-exemplo" },
+    update: {},
+    create: {
+      slug: "fechadura-inteligente-exemplo",
+      nome: "Fechadura Inteligente (exemplo)",
+      marca: "Yale",
+      categoriaId: catFechaduras,
+      preco: 89900,
+      precoPromo: 79900,
+      descricaoCurta: "Senha, biometria e abertura pelo celular.",
+      destaque: true,
+    },
+  });
+
+  // Áudio — fone e caixa de som
+  await db.produto.upsert({
+    where: { slug: "fone-over-ear-exemplo" },
+    update: {},
+    create: {
+      slug: "fone-over-ear-exemplo",
+      nome: "Fone Over-Ear (exemplo)",
+      marca: "JBL",
+      categoriaId: catFones,
+      preco: 69900,
+      descricaoCurta: "Graves potentes e horas de bateria sem fio.",
+      destaque: false,
+    },
+  });
+  await db.produto.upsert({
+    where: { slug: "caixa-de-som-inteligente-exemplo" },
+    update: {},
+    create: {
+      slug: "caixa-de-som-inteligente-exemplo",
+      nome: "Caixa de Som Inteligente (exemplo)",
+      marca: "Amazon",
+      categoriaId: catCaixas,
+      preco: 54900,
+      descricaoCurta: "Assistente de voz e som ambiente para a casa.",
+      destaque: false,
+    },
+  });
+
+  // Acessórios — carregador + cabo
+  await db.produto.upsert({
+    where: { slug: "carregador-usb-c-exemplo" },
+    update: {},
+    create: {
+      slug: "carregador-usb-c-exemplo",
+      nome: "Carregador 20W + Cabo USB-C (exemplo)",
+      marca: "Apple",
+      categoriaId: catCabos,
+      preco: 24900,
+      descricaoCurta: "Carga rápida para iPhone e iPad, com cabo incluso.",
       destaque: false,
     },
   });

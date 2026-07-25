@@ -14,6 +14,7 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://kyroncompany.com";
 
 export const NAV_PRINCIPAL = [
+  { label: "Início", href: "/" },
   { label: "Produtos", href: "/produtos" },
   { label: "Seminovos", href: "/seminovos" },
   { label: "Serviços", href: "/servicos" },

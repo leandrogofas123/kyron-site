@@ -63,50 +63,70 @@ export function ChatWidget() {
     void send(text);
   }
 
+  // Compacto por padrão (só cabeçalho + campo). Cresce quando a conversa começa
+  // — ou quando há erro/lead a mostrar.
+  const expandido =
+    messages.length > 1 || isStreaming || Boolean(error) || leadRegistrado;
+
   // Enquanto o banner de cookies estiver na tela, o assistente sai de cena.
   if (cookiesAbertos && !open) return null;
 
   return (
     <>
-      <button
-        ref={launcherRef}
-        type="button"
-        onClick={() => {
-          if (!open) registrarEvento("chat_open");
-          setOpen((v) => !v);
-        }}
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={open ? "Fechar assistente da Kyron" : "Abrir assistente da Kyron"}
-        /* Canto ESQUERDO — o WhatsApp fica no direito. Tamanho fluido, nunca < 48px. */
-        className="kyron-chat-launcher fixed bottom-[clamp(1rem,3vw,1.5rem)] left-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[clamp(3rem,7vw,3.5rem)] w-[clamp(3rem,7vw,3.5rem)] items-center justify-center rounded-full border border-[var(--kyron-hairline-strong)] bg-kyron-graphite text-kyron-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out hover:-translate-y-0.5"
-      >
-        {open ? <IconClose /> : <IconChat />}
-      </button>
+      {!open && (
+        <button
+          ref={launcherRef}
+          type="button"
+          onClick={() => {
+            registrarEvento("chat_open");
+            setOpen(true);
+          }}
+          aria-expanded={false}
+          aria-controls={panelId}
+          aria-label="Abrir assistente da Kyron"
+          /* Canto DIREITO — o WhatsApp fica no esquerdo. Tamanho fluido, nunca < 48px. */
+          className="kyron-chat-launcher fixed bottom-[clamp(1rem,3vw,1.5rem)] right-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[clamp(3rem,7vw,3.5rem)] w-[clamp(3rem,7vw,3.5rem)] items-center justify-center rounded-full border border-[var(--kyron-hairline-strong)] bg-kyron-graphite text-kyron-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+        >
+          <IconChat />
+        </button>
+      )}
 
       {open && (
         <div
           id={panelId}
           role="dialog"
           aria-label="Assistente da Kyron"
-          /* Em telas pequenas ocupa quase tudo; em telas grandes vira um painel
-             lateral. dvh (não vh) para não brigar com a barra do navegador
-             móvel, que aparece e some ao rolar. */
-          className="fixed bottom-[clamp(5rem,13vw,5.75rem)] left-[clamp(1rem,3vw,1.5rem)] z-50 flex h-[min(34rem,calc(100dvh-8rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)]"
+          /* Canto DIREITO. Compacto (altura automática) até a conversa começar;
+             aí cresce até a altura máxima. dvh (não vh) para não brigar com a
+             barra do navegador móvel, que aparece e some ao rolar. */
+          className={`fixed bottom-[clamp(1rem,3vw,1.5rem)] right-[clamp(1rem,3vw,1.5rem)] z-50 flex w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)] ${
+            expandido ? "h-[min(34rem,calc(100dvh-4rem))]" : ""
+          }`}
         >
-          <header className="flex items-start justify-between gap-4 border-b border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-md py-fluid-sm">
-            <div>
-              <p className="kyron-display text-fluid-xs text-kyron-white">Kyron</p>
-              <p className="mt-0.5 text-fluid-2xs text-kyron-silver/70">
-                Assistente · responde com base no que a Kyron faz
+          <header className="flex items-center justify-between gap-4 border-b border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-md py-fluid-sm">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2 w-2 shrink-0 rounded-full bg-kyron-blue"
+                aria-hidden="true"
+              />
+              <p className="kyron-display text-fluid-xs tracking-[0.14em] text-kyron-white">
+                KYRON BOT
               </p>
             </div>
-            <span
-              className="mt-1 h-2 w-2 shrink-0 rounded-full bg-kyron-blue"
-              aria-hidden="true"
-            />
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                launcherRef.current?.focus();
+              }}
+              aria-label="Minimizar assistente"
+              className="flex h-8 w-8 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors duration-300 hover:text-kyron-white"
+            >
+              <IconMinimize />
+            </button>
           </header>
 
+          {expandido && (
           <div
             ref={logRef}
             className="kyron-scroll flex-1 space-y-4 overflow-y-auto px-fluid-md py-fluid-md"
@@ -158,6 +178,7 @@ export function ChatWidget() {
               </div>
             )}
           </div>
+          )}
 
           <form
             className="border-t border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
@@ -206,9 +227,11 @@ export function ChatWidget() {
               )}
             </div>
 
-            <p className="mt-2 text-fluid-2xs leading-snug text-kyron-silver/50">
-              Assistente automatizado. Não informe senhas, dados bancários ou documentos.
-            </p>
+            {expandido && (
+              <p className="mt-2 text-fluid-2xs leading-snug text-kyron-silver/50">
+                Assistente automatizado. Não informe senhas, dados bancários ou documentos.
+              </p>
+            )}
           </form>
         </div>
       )}
@@ -247,14 +270,15 @@ function IconChat() {
   );
 }
 
-function IconClose() {
+function IconMinimize() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="m6 6 12 12M18 6 6 18"
+        d="m6 10 6 6 6-6"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

@@ -41,6 +41,13 @@ export const metadata: Metadata = {
     siteName: "Kyron Tecnologia",
     url: SITE_URL,
   },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "Kyron Tecnologia — Apple, Casa Inteligente e Automação em Santa Cruz do Sul",
+    description:
+      "Apple novos e seminovos, casa inteligente, áudio e serviços de instalação. Conversa direta no WhatsApp.",
+  },
 };
 
 export const viewport: Viewport = {

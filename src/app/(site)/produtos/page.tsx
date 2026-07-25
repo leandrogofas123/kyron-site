@@ -54,7 +54,7 @@ export default async function Produtos({
 
       <Section semBorda>
         {produtos.length === 0 ? (
-          <p className="text-fluid-base text-kyron-silver">
+          <p className="mx-auto max-w-[48ch] text-center text-fluid-base text-kyron-silver">
             Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a
             gente te ajuda a encontrar.
           </p>

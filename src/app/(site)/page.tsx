@@ -32,8 +32,15 @@ export default async function Home() {
 
   return (
     <>
-      {/* BANNER — compacto, centralizado no eixo */}
-      <section className="relative overflow-hidden pb-fluid-lg pt-fluid-lg">
+      {/* BANNER INICIAL — carrossel de Automação Residencial, no topo. */}
+      <section className="pb-fluid-md pt-fluid-lg">
+        <div className="container-kyron">
+          <BannerAutomacao />
+        </div>
+      </section>
+
+      {/* HERO APPLE — o foco principal segue sendo iPhone/seminovos */}
+      <section className="relative overflow-hidden pb-fluid-lg pt-fluid-md">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 -top-[16vw] aspect-square w-[min(30rem,75vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
@@ -90,12 +97,6 @@ export default async function Home() {
           </div>
         </Section>
       )}
-
-      {/* AUTOMAÇÃO RESIDENCIAL — banner rotativo. Fica ABAIXO da Apple de
-          propósito: divulga a linha sem tirar o foco de iPhone/seminovos. */}
-      <Section>
-        <BannerAutomacao />
-      </Section>
 
       {/* SERVIÇOS — caixas com explicação básica; clicar leva ao serviço */}
       {servicosAmostra.length > 0 && (

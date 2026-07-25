@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
+import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getSeminovos, getServicos } from "@/lib/catalogo";
 
@@ -89,6 +90,12 @@ export default async function Home() {
           </div>
         </Section>
       )}
+
+      {/* AUTOMAÇÃO RESIDENCIAL — banner rotativo. Fica ABAIXO da Apple de
+          propósito: divulga a linha sem tirar o foco de iPhone/seminovos. */}
+      <Section>
+        <BannerAutomacao />
+      </Section>
 
       {/* SERVIÇOS — caixas com explicação básica; clicar leva ao serviço */}
       {servicosAmostra.length > 0 && (

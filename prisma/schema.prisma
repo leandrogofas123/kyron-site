@@ -105,6 +105,38 @@ model Servico {
   ordem           Int      @default(0)
 }
 
+// Cliente com acesso às aulas restritas do Manual de Instalação.
+// Cadastro é aberto, mas o acesso só é liberado após o admin aprovar.
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senhaHash String                       // scrypt (salt:hash), nunca a senha crua
+  aprovado  Boolean  @default(false)     // admin libera antes de ver as aulas
+  criadoEm  DateTime @default(now())
+
+  @@index([aprovado])
+}
+
+// Conteúdo do Manual de Instalação. Um modelo cobre os dois casos:
+//  - Post público (novidades/informações): restrito=false, sem vídeo.
+//  - Aula em vídeo: youtubeId preenchido; restrito=true exige login aprovado.
+model Post {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  titulo       String
+  resumo       String?
+  conteudo     String?                    // texto (novidades/instruções)
+  youtubeId    String?                    // preenchido = é uma AULA em vídeo
+  restrito     Boolean  @default(false)   // true = só clientes aprovados
+  publicado    Boolean  @default(true)
+  ordem        Int      @default(0)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([publicado])
+}
+
 model Lead {
   id           Int      @id @default(autoincrement())
   nome         String

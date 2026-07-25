@@ -111,6 +111,36 @@ async function main() {
     ordemServ += 1;
   }
 
+  console.log("Semeando Manual de Instalação (exemplos)…");
+  await db.post.upsert({
+    where: { slug: "bem-vindo-ao-manual" },
+    update: {},
+    create: {
+      slug: "bem-vindo-ao-manual",
+      titulo: "Bem-vindo ao Manual de Instalação",
+      resumo: "Novidades, dicas e tutoriais da Kyron.",
+      conteudo:
+        "Aqui você acompanha novidades e informações. As aulas em vídeo de instalação e configuração são liberadas para clientes com acesso aprovado.",
+      restrito: false,
+      publicado: true,
+      ordem: 0,
+    },
+  });
+  await db.post.upsert({
+    where: { slug: "aula-exemplo-automacao" },
+    update: {},
+    create: {
+      slug: "aula-exemplo-automacao",
+      titulo: "Aula: primeiros passos na automação (exemplo)",
+      resumo: "Como configurar sua primeira tomada inteligente.",
+      conteudo:
+        "Aula de exemplo — o dono substitui pelo vídeo real (YouTube não listado) no painel.",
+      restrito: true,
+      publicado: true,
+      ordem: 1,
+    },
+  });
+
   // Produtos de exemplo só no primeiro deploy (catálogo vazio). Depois que o
   // dono cadastrar itens reais — ou apagar os exemplos — o seed não os recria.
   const catalogoVazio = (await db.produto.count()) === 0;

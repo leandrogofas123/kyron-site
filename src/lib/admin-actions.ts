@@ -12,6 +12,7 @@ import {
 } from "./admin-auth";
 import { db } from "./db";
 import { gerarSlug, parsePreco } from "./format";
+import { extrairYoutubeId } from "./manual";
 import { salvarImagemProduto } from "./uploads";
 
 async function exigirAdmin() {
@@ -37,6 +38,18 @@ async function slugUnicoServico(nome: string, ignorarId?: number): Promise<strin
   let n = 1;
   while (true) {
     const existente = await db.servico.findUnique({ where: { slug } });
+    if (!existente || existente.id === ignorarId) return slug;
+    n += 1;
+    slug = `${base}-${n}`;
+  }
+}
+
+async function slugUnicoPost(titulo: string, ignorarId?: number): Promise<string> {
+  const base = gerarSlug(titulo) || "post";
+  let slug = base;
+  let n = 1;
+  while (true) {
+    const existente = await db.post.findUnique({ where: { slug } });
     if (!existente || existente.id === ignorarId) return slug;
     n += 1;
     slug = `${base}-${n}`;
@@ -230,4 +243,69 @@ export async function acaoStatusLead(id: number, status: string) {
   if (!validos.includes(status)) return;
   await db.lead.update({ where: { id }, data: { status } });
   revalidatePath("/admin/leads");
+}
+
+// ─────────────────── Manual de Instalação (posts / aulas) ───────────────────
+
+export async function acaoSalvarPost(_estado: unknown, form: FormData) {
+  await exigirAdmin();
+
+  const id = form.get("id") ? Number(form.get("id")) : null;
+  const titulo = String(form.get("titulo") ?? "").trim();
+  if (titulo.length < 2) return { erro: "Informe o título." };
+
+  const youtubeBruto = String(form.get("youtube") ?? "").trim();
+  const youtubeId = youtubeBruto ? extrairYoutubeId(youtubeBruto) : null;
+  if (youtubeBruto && !youtubeId) {
+    return { erro: "Link do YouTube inválido. Cole a URL do vídeo ou o ID." };
+  }
+
+  const dados = {
+    titulo,
+    resumo: String(form.get("resumo") ?? "").trim() || null,
+    conteudo: String(form.get("conteudo") ?? "").trim() || null,
+    youtubeId,
+    restrito: form.get("restrito") === "on",
+    publicado: form.get("publicado") === "on",
+  };
+
+  if (id) {
+    const slug = await slugUnicoPost(titulo, id);
+    await db.post.update({ where: { id }, data: { ...dados, slug } });
+  } else {
+    const slug = await slugUnicoPost(titulo);
+    await db.post.create({ data: { ...dados, slug } });
+  }
+
+  revalidatePath("/admin/manual");
+  revalidatePath("/manual");
+  redirect("/admin/manual");
+}
+
+export async function acaoAlternarPostPublicado(id: number, publicado: boolean) {
+  await exigirAdmin();
+  await db.post.update({ where: { id }, data: { publicado } });
+  revalidatePath("/admin/manual");
+  revalidatePath("/manual");
+}
+
+export async function acaoExcluirPost(id: number) {
+  await exigirAdmin();
+  await db.post.delete({ where: { id } });
+  revalidatePath("/admin/manual");
+  revalidatePath("/manual");
+}
+
+// ───────────────────── Clientes (acesso às aulas) ─────────────────────
+
+export async function acaoAprovarUsuario(id: number, aprovado: boolean) {
+  await exigirAdmin();
+  await db.usuario.update({ where: { id }, data: { aprovado } });
+  revalidatePath("/admin/clientes");
+}
+
+export async function acaoExcluirUsuario(id: number) {
+  await exigirAdmin();
+  await db.usuario.delete({ where: { id } });
+  revalidatePath("/admin/clientes");
 }

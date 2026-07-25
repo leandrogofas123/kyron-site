@@ -14,3 +14,6 @@ next-env.d.ts
 /data/
 prisma/kyron.db
 prisma/*.db-journal
+
+# Renders intermediários da geração de ilustrações — não versionar
+scripts/_preview/

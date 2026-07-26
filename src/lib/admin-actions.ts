@@ -105,6 +105,7 @@ export async function acaoSalvarProduto(_estado: unknown, form: FormData) {
     marca: String(form.get("marca") ?? "").trim() || null,
     descricaoCurta: String(form.get("descricaoCurta") ?? "").trim() || null,
     descricaoLonga: String(form.get("descricaoLonga") ?? "").trim() || null,
+    compatibilidade: String(form.get("compatibilidade") ?? "").trim() || null,
     destaque: form.get("destaque") === "on",
     ativo: form.get("ativo") !== "off",
   };
@@ -158,6 +159,7 @@ export async function acaoSalvarProduto(_estado: unknown, form: FormData) {
   revalidatePath("/admin/produtos");
   revalidatePath("/produtos");
   revalidatePath("/seminovos");
+  revalidatePath("/monte-seu-kit");
   revalidatePath("/");
   redirect("/admin/produtos");
 }
@@ -168,6 +170,7 @@ export async function acaoAlternarAtivo(id: number, ativo: boolean) {
   revalidatePath("/admin/produtos");
   revalidatePath("/produtos");
   revalidatePath("/");
+  revalidatePath("/monte-seu-kit");
 }
 
 export async function acaoExcluirProduto(id: number) {
@@ -176,6 +179,7 @@ export async function acaoExcluirProduto(id: number) {
   revalidatePath("/admin/produtos");
   revalidatePath("/produtos");
   revalidatePath("/");
+  revalidatePath("/monte-seu-kit");
 }
 
 export async function acaoDefinirImagemPrincipal(imagemId: number, produtoId: number) {

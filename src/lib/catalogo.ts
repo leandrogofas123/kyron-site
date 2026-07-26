@@ -123,6 +123,15 @@ export function getProduto(slug: string) {
   });
 }
 
+
+/** Itens ativos que alimentam o configurador Monte seu Kit Celular. */
+export function getProdutosParaKit() {
+  return db.produto.findMany({
+    where: { ativo: true },
+    orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
+    include: { ...imagensOrdenadas, categoria: true, seminovo: true },
+  });
+}
 /** Vitrine de seminovos: só disponíveis (não vendidos). */
 export function getSeminovos() {
   return db.produto.findMany({

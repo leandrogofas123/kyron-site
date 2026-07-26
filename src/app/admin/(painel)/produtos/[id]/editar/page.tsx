@@ -48,6 +48,7 @@ export default async function EditarProduto({
           id: produto.id,
           nome: produto.nome,
           marca: produto.marca,
+          compatibilidade: produto.compatibilidade,
           categoriaId: produto.categoriaId,
           preco: produto.preco,
           precoPromo: produto.precoPromo,

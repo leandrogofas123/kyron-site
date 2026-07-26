@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Logo } from "./Logo";
+import { DepartmentDrawer } from "./DepartmentDrawer";
 import { CTA_PRIMARIO, NAV_PRINCIPAL } from "@/lib/kyron/site";
 
 export function Header() {
   const [rolou, setRolou] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
+  const [departamentosAbertos, setDepartamentosAbertos] = useState(false);
 
   // Único uso de glassmorphism no site: separa camadas sem ocupar área.
   useEffect(() => {
@@ -19,15 +21,20 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    if (!menuAberto) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuAberto(false);
+    if (!menuAberto && !departamentosAbertos) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuAberto(false);
+        setDepartamentosAbertos(false);
+      }
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [menuAberto]);
+  }, [departamentosAbertos, menuAberto]);
 
   return (
     <header
@@ -41,6 +48,27 @@ export function Header() {
       <div className="container-kyron flex h-[clamp(3.75rem,7vw,4.5rem)] items-center justify-between">
         {/* prioridade: o logo faz parte do LCP do topo da página. */}
         <Logo altura={30} prioridade />
+
+        <button
+          type="button"
+          onClick={() => setDepartamentosAbertos(true)}
+          aria-expanded={departamentosAbertos}
+          aria-controls="departamentos-kyron"
+          className="hidden min-h-10 items-center gap-2 rounded-kyron-sm border border-[var(--kyron-hairline)] px-2.5 text-fluid-2xs text-kyron-silver transition-colors hover:border-[var(--kyron-blue-line)] hover:text-kyron-white lg:flex"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          <span className="hidden xl:inline">Departamentos</span>
+        </button>
+
+        <form action="/produtos" className="hidden min-w-0 flex-1 2xl:flex 2xl:max-w-[14rem]">
+          <label htmlFor="busca-topo" className="sr-only">Buscar produtos</label>
+          <div className="flex min-w-0 flex-1 items-center rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-black/40 focus-within:border-[var(--kyron-blue-line)]">
+            <svg className="ml-2 shrink-0 text-kyron-silver/55" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.7" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+            <input id="busca-topo" name="q" type="search" placeholder="Buscar produtos" className="min-w-0 flex-1 bg-transparent py-2 pl-1 pr-2 text-fluid-2xs text-kyron-white placeholder:text-kyron-silver/45 focus:outline-none" />
+          </div>
+        </form>
 
         <nav
           aria-label="Navegação principal"
@@ -144,6 +172,7 @@ export function Header() {
           </div>
         </div>
       )}
+      <DepartmentDrawer aberto={departamentosAbertos} onFechar={() => setDepartamentosAbertos(false)} />
     </header>
   );
 }

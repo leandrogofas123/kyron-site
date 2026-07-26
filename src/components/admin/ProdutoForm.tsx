@@ -20,6 +20,7 @@ export type ProdutoEdit = {
   precoPromo: number | null;
   descricaoCurta: string | null;
   descricaoLonga: string | null;
+  compatibilidade: string | null;
   destaque: boolean;
   ativo: boolean;
   imagens: { id: number; url: string; principal: boolean }[];
@@ -153,6 +154,22 @@ export function ProdutoForm({
           <textarea id="descricaoLonga" name="descricaoLonga" rows={4} defaultValue={produto?.descricaoLonga ?? ""} className={`${campo} resize-y`} />
         </div>
 
+
+        <div>
+          <label htmlFor="compatibilidade" className={rotulo}>
+            Compatibilidade
+          </label>
+          <input
+            id="compatibilidade"
+            name="compatibilidade"
+            defaultValue={produto?.compatibilidade ?? ""}
+            className={campo}
+            placeholder="Ex.: iPhone 15, iPhone 14 ou Universal"
+          />
+          <p className="mt-1 text-fluid-2xs text-kyron-silver/55">
+            Usado no Monte seu Kit Celular para mostrar acess?rios certos.
+          </p>
+        </div>
         <div className="flex flex-wrap gap-fluid-md">
           <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
             <input type="checkbox" name="destaque" defaultChecked={produto?.destaque} className="h-4 w-4 accent-[#1e6bff]" />

@@ -16,6 +16,7 @@ export const SITE_URL =
 export const NAV_PRINCIPAL = [
   { label: "Início", href: "/" },
   { label: "Produtos", href: "/produtos" },
+  { label: "Monte seu kit", href: "/monte-seu-kit" },
   { label: "Seminovos", href: "/seminovos" },
   { label: "Serviços", href: "/servicos" },
   { label: "Manual de Instalação", href: "/manual" },

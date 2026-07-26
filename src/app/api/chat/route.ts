@@ -29,36 +29,56 @@ const requestSchema = z.object({
 const registrarContato: Anthropic.Tool = {
   name: "registrar_contato",
   description:
-    "Registra o contato do visitante para que um especialista da Kyron responda. " +
-    "Chame apenas quando o visitante demonstrar intenção real de conversar E você " +
-    "já tiver coletado, idealmente, nome, empresa, e-mail e telefone. Registre com " +
-    "o que tiver desde que haja pelo menos o nome e um canal de resposta (e-mail ou " +
-    "telefone). Não chame para simplesmente encerrar a conversa.",
+    "Registra o contato do visitante para um especialista da Kyron dar sequência. " +
+    "Chame quando a pessoa demonstrar intenção real (orçamento de serviço, projeto " +
+    "de automação, avaliação técnica, condição especial ou preferir deixar o contato) " +
+    "E você já tiver, no mínimo, nome + um canal de resposta (WhatsApp de preferência, " +
+    "ou e-mail) + a necessidade. Não chame só para encerrar a conversa nem para dúvida " +
+    "simples que resolve no WhatsApp direto.",
   input_schema: {
     type: "object",
     properties: {
-      nome: { type: "string", description: "Nome do visitante." },
-      email: { type: "string", description: "E-mail do visitante. Peça sempre." },
+      nome: { type: "string", description: "Como a pessoa quer ser chamada." },
       telefone: {
         type: "string",
-        description: "Telefone ou WhatsApp com DDD. Peça sempre.",
+        description:
+          "WhatsApp/telefone com DDD. Canal principal — priorize sobre e-mail.",
       },
-      empresa: { type: "string", description: "Nome da empresa do visitante. Peça sempre." },
+      email: {
+        type: "string",
+        description: "E-mail (opcional). Só se a pessoa oferecer ou preferir.",
+      },
+      empresa: {
+        type: "string",
+        description: "Nome da empresa, só se a compra/serviço for para uma empresa.",
+      },
       interesse: {
         type: "string",
         enum: [
-          "ia-aplicada",
-          "automacao-integracao",
-          "engenharia-de-software",
-          "dados-e-decisao",
+          "apple",
+          "seminovos",
+          "casa-inteligente",
+          "audio-acessorios",
+          "assistencia-tecnica",
+          "servico-instalacao",
           "nao-definido",
         ],
-        description: "A prática da Kyron mais próxima do problema descrito.",
+        description: "A categoria da loja mais próxima da necessidade.",
+      },
+      urgencia: {
+        type: "string",
+        description:
+          "Quão urgente é, quando der para perceber. Ex.: 'para hoje', 'sem pressa'.",
+      },
+      perfil: {
+        type: "string",
+        description:
+          "Perfil percebido, quando claro. Ex.: 'econômico', 'premium', 'técnico', 'inseguro'.",
       },
       resumo: {
         type: "string",
         description:
-          "O problema do visitante em uma ou duas frases, com as palavras dele.",
+          "A necessidade em uma ou duas frases, com as palavras da pessoa.",
       },
     },
     required: ["nome", "resumo"],

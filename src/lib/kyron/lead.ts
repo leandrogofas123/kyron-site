@@ -15,17 +15,21 @@ export const leadSchema = z.object({
   empresa: z.string().max(160).optional(),
   interesse: z
     .enum([
-      "ia-aplicada",
-      "automacao-integracao",
-      "engenharia-de-software",
-      "dados-e-decisao",
+      "apple",
+      "seminovos",
+      "casa-inteligente",
+      "audio-acessorios",
+      "assistencia-tecnica",
+      "servico-instalacao",
       "nao-definido",
     ])
     .default("nao-definido"),
+  urgencia: z.string().max(120).optional(),
+  perfil: z.string().max(160).optional(),
   resumo: z
     .string()
     .max(1200)
-    .describe("O problema do visitante, em uma ou duas frases."),
+    .describe("A necessidade do visitante, em uma ou duas frases."),
 });
 
 export type Lead = z.infer<typeof leadSchema>;

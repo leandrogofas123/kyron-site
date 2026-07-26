@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     {
       nome: dados.nome,
       telefone: dados.telefone,
-      interesse: dados.origem === "servico" ? "automacao-integracao" : "nao-definido",
+      interesse: dados.origem === "servico" ? "servico-instalacao" : "nao-definido",
       resumo: dados.mensagem,
     },
     { pagina: "/orcamento" },

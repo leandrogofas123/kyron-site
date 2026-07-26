@@ -115,10 +115,12 @@ async function anexarNota(
 }
 
 const ROTULO_INTERESSE: Record<string, string> = {
-  "ia-aplicada": "IA Aplicada",
-  "automacao-integracao": "Automação & Integração",
-  "engenharia-de-software": "Engenharia de Software",
-  "dados-e-decisao": "Dados & Decisão",
+  apple: "Apple (novos)",
+  seminovos: "iPhone seminovos",
+  "casa-inteligente": "Casa inteligente / automação",
+  "audio-acessorios": "Áudio e acessórios",
+  "assistencia-tecnica": "Assistência técnica",
+  "servico-instalacao": "Serviço / instalação",
   "nao-definido": "Não definido",
 };
 
@@ -128,8 +130,12 @@ function montarNota(lead: Lead, transcricao?: string): string {
     "Lead capturado pelo assistente do site.",
     "",
     `Interesse: ${ROTULO_INTERESSE[lead.interesse] ?? lead.interesse}`,
-    `Problema relatado: ${lead.resumo}`,
   ];
+
+  if (lead.urgencia?.trim()) linhas.push(`Urgência: ${lead.urgencia.trim()}`);
+  if (lead.perfil?.trim()) linhas.push(`Perfil: ${lead.perfil.trim()}`);
+
+  linhas.push(`Necessidade: ${lead.resumo}`);
 
   if (transcricao?.trim()) {
     linhas.push("", "— Conversa —", transcricao.trim());

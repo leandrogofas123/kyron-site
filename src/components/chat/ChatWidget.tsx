@@ -6,6 +6,19 @@ import { useChat } from "./useChat";
 import { registrarEvento } from "@/components/site/Analytics";
 import { linkWhatsApp } from "@/lib/kyron/site";
 
+/** Atalhos que abrem a conversa já num trilho claro. */
+const OPCOES_INICIAIS = [
+  { label: "iPhone e acessórios", mensagem: "Quero ver iPhone e acessórios." },
+  {
+    label: "Automação residencial",
+    mensagem: "Quero saber sobre automação residencial.",
+  },
+  {
+    label: "Assistência técnica ou instalação",
+    mensagem: "Preciso de assistência técnica ou instalação.",
+  },
+];
+
 export function ChatWidget() {
   // Abre já aberto: o assistente é o principal canal de atendimento do site.
   const [open, setOpen] = useState(true);
@@ -63,6 +76,11 @@ export function ChatWidget() {
     void send(text);
   }
 
+  function escolherOpcao(mensagem: string) {
+    registrarEvento("chat_open");
+    void send(mensagem);
+  }
+
   // Compacto por padrão (só cabeçalho + campo). Cresce quando a conversa começa
   // — ou quando há erro/lead a mostrar.
   const expandido =
@@ -109,9 +127,14 @@ export function ChatWidget() {
                 className="h-2 w-2 shrink-0 rounded-full bg-kyron-blue"
                 aria-hidden="true"
               />
-              <p className="kyron-display text-fluid-xs tracking-[0.14em] text-kyron-white">
-                KYRON BOT
-              </p>
+              <div>
+                <p className="kyron-display text-fluid-xs tracking-[0.14em] text-kyron-white">
+                  CHAT
+                </p>
+                <p className="mt-0.5 text-fluid-2xs text-kyron-silver">
+                  Leandro Gofas <span className="text-kyron-blue">• online</span>
+                </p>
+              </div>
             </div>
             <button
               type="button"
@@ -125,6 +148,32 @@ export function ChatWidget() {
               <IconMinimize />
             </button>
           </header>
+
+          {!expandido && (
+            <div className="space-y-2 border-b border-[var(--kyron-hairline)] px-fluid-sm py-fluid-sm">
+              <p className="text-fluid-xs text-kyron-silver">
+                Escolha uma opção para começar:
+              </p>
+              <div className="grid gap-2">
+                {OPCOES_INICIAIS.map((opcao) => (
+                  <button
+                    key={opcao.label}
+                    type="button"
+                    onClick={() => escolherOpcao(opcao.mensagem)}
+                    className="group flex min-h-11 items-center justify-between gap-3 rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-3.5 py-2.5 text-left text-fluid-xs font-medium text-kyron-white transition-all duration-300 hover:-translate-y-px hover:border-[var(--kyron-blue-line)] hover:bg-kyron-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kyron-blue"
+                  >
+                    {opcao.label}
+                    <span
+                      aria-hidden="true"
+                      className="text-kyron-blue transition-transform duration-300 group-hover:translate-x-0.5"
+                    >
+                      →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {expandido && (
           <div

@@ -144,10 +144,15 @@ model Post {
 model Lead {
   id           Int      @id @default(autoincrement())
   nome         String
-  telefone     String
-  origem       String   @default("geral") // produto | servico | geral
+  telefone     String?
+  email        String?
+  origem       String   @default("geral") // produto | servico | geral | chat
   referenciaId Int?     // id do produto ou serviço de origem
+  interesse    String?  // categoria da loja (quando veio do chat)
+  urgencia     String?
+  perfil       String?
   mensagem     String?
+  transcricao  String?  // conversa do chat, quando houver
   status       String   @default("novo")  // novo | respondido | vendido | perdido
   criadoEm     DateTime @default(now())
 

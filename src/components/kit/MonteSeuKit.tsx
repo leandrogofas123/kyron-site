@@ -23,17 +23,17 @@ type Etapa = { id: EtapaId; numero: string; titulo: string; descricao: string; o
 type Selecoes = Record<EtapaId, ProdutoKit | ProdutoKit[] | null>;
 
 const ETAPAS: Etapa[] = [
-  { id: "celular", numero: "01", titulo: "Escolha seu celular", descricao: "Novo ou seminovo revisado. Este ? o ponto de partida do seu kit.", obrigatoria: true },
-  { id: "pelicula-tela", numero: "02", titulo: "Pel?cula para a tela", descricao: "Prote??o indicada para o modelo que voc? escolheu." },
-  { id: "pelicula-camera", numero: "03", titulo: "Pel?cula para a c?mera", descricao: "Prote??o extra para as lentes traseiras." },
-  { id: "capa", numero: "04", titulo: "Case / capa", descricao: "Estilo e prote??o com encaixe para o seu aparelho." },
-  { id: "carregador", numero: "05", titulo: "Carregador", descricao: "Pot?ncia e conector certos para o seu novo kit." },
-  { id: "fone", numero: "06", titulo: "Fone de ouvido", descricao: "Escolha o ?udio que combina com a sua rotina." },
-  { id: "extras", numero: "07", titulo: "Acess?rios extras", descricao: "Power bank, trip?, luz para selfie, carregador ou suporte veicular.", multipla: true },
+  { id: "celular", numero: "01", titulo: "Escolha seu celular", descricao: "Novo ou seminovo revisado. Este é o ponto de partida do seu kit.", obrigatoria: true },
+  { id: "pelicula-tela", numero: "02", titulo: "Película para a tela", descricao: "Proteção indicada para o modelo que você escolheu." },
+  { id: "pelicula-camera", numero: "03", titulo: "Película para a câmera", descricao: "Proteção extra para as lentes traseiras." },
+  { id: "capa", numero: "04", titulo: "Case / capa", descricao: "Estilo e proteção com encaixe para o seu aparelho." },
+  { id: "carregador", numero: "05", titulo: "Carregador", descricao: "Potência e conector certos para o seu novo kit." },
+  { id: "fone", numero: "06", titulo: "Fone de ouvido", descricao: "Escolha o áudio que combina com a sua rotina." },
+  { id: "extras", numero: "07", titulo: "Acessórios extras", descricao: "Power bank, tripé, luz para selfie, carregador ou suporte veicular.", multipla: true },
 ];
 
 function normalizar(texto: string) {
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 function modeloDoCelular(nome: string) {
@@ -118,8 +118,8 @@ export function MonteSeuKit({ produtos, whatsappBase }: { produtos: ProdutoKit[]
   }
 
   const mensagem = escolhidos.length
-    ? `Ol?! Montei este kit de celular no site da Kyron:\n\n${escolhidos.map((produto) => `? ${produto.nome} ? ${formatarPreco(precoVigente(produto.preco, produto.precoPromo).atual)}`).join("\n")}\n\nTotal estimado: ${formatarPreco(total)}\n\nPodem confirmar compatibilidade, disponibilidade e prazo?`
-    : "Ol?! Quero montar um kit de celular e preciso de ajuda para escolher.";
+    ? `Olá! Montei este kit de celular no site da Kyron:\n\n${escolhidos.map((produto) => `• ${produto.nome} — ${formatarPreco(precoVigente(produto.preco, produto.precoPromo).atual)}`).join("\n")}\n\nTotal estimado: ${formatarPreco(total)}\n\nPodem confirmar compatibilidade, disponibilidade e prazo?`
+    : "Olá! Quero montar um kit de celular e preciso de ajuda para escolher.";
   const linkWhatsapp = whatsappBase.startsWith("http") ? `${whatsappBase}?text=${encodeURIComponent(mensagem)}` : whatsappBase;
 
   return (
@@ -146,7 +146,7 @@ export function MonteSeuKit({ produtos, whatsappBase }: { produtos: ProdutoKit[]
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <h3 className="text-fluid-base font-semibold text-kyron-white">{etapa.titulo}</h3>
-                        {etapa.obrigatoria && <span className="kyron-label text-fluid-2xs text-kyron-blue">Obrigat?rio</span>}
+                        {etapa.obrigatoria && <span className="kyron-label text-fluid-2xs text-kyron-blue">Obrigatório</span>}
                       </div>
                       <p className="mt-1 text-fluid-sm text-kyron-silver/75">{etapa.descricao}</p>
                       {itens.length ? (
@@ -163,7 +163,7 @@ export function MonteSeuKit({ produtos, whatsappBase }: { produtos: ProdutoKit[]
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-fluid-sm text-fluid-2xs text-kyron-silver/55">{bloqueada ? "Escolha o celular primeiro para ver acess?rios compat?veis." : "Nenhum item selecionado."}</p>
+                        <p className="mt-fluid-sm text-fluid-2xs text-kyron-silver/55">{bloqueada ? "Escolha o celular primeiro para ver acessórios compatíveis." : "Nenhum item selecionado."}</p>
                       )}
                       <button type="button" disabled={bloqueada} onClick={() => setEtapaAberta(etapa.id)} className="kyron-label mt-fluid-sm min-h-11 rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-3.5 text-fluid-2xs text-kyron-white transition-all duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-blue disabled:cursor-not-allowed disabled:opacity-35">
                         {itens.length ? etapa.multipla ? "Adicionar outro" : "Trocar item" : "Escolher item"}
@@ -183,7 +183,7 @@ export function MonteSeuKit({ produtos, whatsappBase }: { produtos: ProdutoKit[]
               <ul className="mt-fluid-sm space-y-2 border-y border-[var(--kyron-hairline)] py-fluid-sm">
                 {escolhidos.map((produto) => <li key={produto.id} className="flex items-start justify-between gap-3 text-fluid-xs"><span className="min-w-0 text-kyron-silver">{produto.nome}</span><span className="shrink-0 text-kyron-white">{formatarPreco(precoVigente(produto.preco, produto.precoPromo).atual)}</span></li>)}
               </ul>
-            ) : <p className="mt-fluid-sm border-y border-[var(--kyron-hairline)] py-fluid-sm text-fluid-sm text-kyron-silver">Selecione um celular para come?ar seu kit.</p>}
+            ) : <p className="mt-fluid-sm border-y border-[var(--kyron-hairline)] py-fluid-sm text-fluid-sm text-kyron-silver">Selecione um celular para começar seu kit.</p>}
             <div className="mt-fluid-md flex items-end justify-between gap-3"><p className="text-fluid-xs text-kyron-silver">Total estimado</p><p className="kyron-display text-fluid-xl text-kyron-white">{formatarPreco(total)}</p></div>
             <p className="mt-1 text-fluid-2xs text-kyron-silver/55">Disponibilidade e compatibilidade confirmadas pela Kyron antes do atendimento.</p>
             <a href={linkWhatsapp} target={linkWhatsapp.startsWith("http") ? "_blank" : undefined} rel={linkWhatsapp.startsWith("http") ? "noopener noreferrer" : undefined} className="kyron-label mt-fluid-md flex min-h-12 items-center justify-center rounded-kyron-sm bg-kyron-blue px-4 text-center text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]">{celular ? "Enviar kit no WhatsApp" : "Quero ajuda para escolher"}</a>
@@ -195,15 +195,17 @@ export function MonteSeuKit({ produtos, whatsappBase }: { produtos: ProdutoKit[]
         <div role="dialog" aria-modal="true" aria-labelledby="titulo-selecao-kit" className="fixed inset-0 z-[60] flex items-end bg-black/70 p-fluid-sm backdrop-blur-sm md:items-center md:justify-center">
           <div className="max-h-[min(44rem,calc(100dvh-2rem))] w-full max-w-[54rem] overflow-y-auto rounded-kyron-md border border-[var(--kyron-hairline-strong)] bg-kyron-black p-fluid-md shadow-[0_24px_64px_rgba(0,0,0,0.6)]">
             <div className="flex items-start justify-between gap-fluid-sm">
-              <div><p className="kyron-label text-fluid-2xs text-kyron-blue">{etapaAtual.numero}</p><h2 id="titulo-selecao-kit" className="kyron-display mt-1 text-fluid-xl text-kyron-white">{etapaAtual.titulo}</h2>{celular && etapaAtual.id !== "celular" && <p className="mt-1 text-fluid-xs text-kyron-silver">Mostrando op??es para {modeloDoCelular(celular.nome)}.</p>}</div>
-              <button type="button" onClick={() => setEtapaAberta(null)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-kyron-sm text-fluid-xl text-kyron-silver transition-colors hover:text-kyron-white" aria-label="Fechar sele??o">?</button>
+              <div><p className="kyron-label text-fluid-2xs text-kyron-blue">{etapaAtual.numero}</p><h2 id="titulo-selecao-kit" className="kyron-display mt-1 text-fluid-xl text-kyron-white">{etapaAtual.titulo}</h2>{celular && etapaAtual.id !== "celular" && <p className="mt-1 text-fluid-xs text-kyron-silver">Mostrando opções para {modeloDoCelular(celular.nome)}.</p>}</div>
+              <button type="button" onClick={() => setEtapaAberta(null)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors hover:text-kyron-white" aria-label="Fechar seleção">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+              </button>
             </div>
             {opcoes.length ? (
               <ul className="mt-fluid-md grid gap-fluid-sm sm:grid-cols-2">
                 {opcoes.map((produto) => <li key={produto.id}><button type="button" onClick={() => escolher(produto)} className="group flex h-full w-full gap-3 rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite p-3 text-left transition-all duration-300 hover:-translate-y-px hover:border-[var(--kyron-blue-line)]"><Miniatura produto={produto} grande /><span className="min-w-0 flex-1">{produto.marca && <span className="kyron-label text-fluid-2xs text-kyron-silver/55">{produto.marca}</span>}<span className="mt-1 block text-fluid-sm font-semibold text-kyron-white">{produto.nome}</span>{produto.descricaoCurta && <span className="mt-1 block text-fluid-2xs leading-snug text-kyron-silver">{produto.descricaoCurta}</span>}<span className="mt-2 block text-fluid-sm font-semibold text-kyron-blue">{formatarPreco(precoVigente(produto.preco, produto.precoPromo).atual)}</span></span></button></li>)}
               </ul>
             ) : (
-              <div className="mt-fluid-md rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md"><p className="text-fluid-base text-kyron-white">Ainda n?o h? op??es cadastradas nesta etapa.</p><p className="mt-1 text-fluid-sm text-kyron-silver">Fale com a Kyron para verificar disponibilidade ou pedir um item espec?fico.</p><a href={linkWhatsapp} target={linkWhatsapp.startsWith("http") ? "_blank" : undefined} rel={linkWhatsapp.startsWith("http") ? "noopener noreferrer" : undefined} className="kyron-label mt-fluid-sm inline-flex min-h-11 items-center rounded-kyron-sm bg-kyron-blue px-3.5 text-fluid-2xs text-white">Falar no WhatsApp</a></div>
+              <div className="mt-fluid-md rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md"><p className="text-fluid-base text-kyron-white">Ainda não há opções cadastradas nesta etapa.</p><p className="mt-1 text-fluid-sm text-kyron-silver">Fale com a Kyron para verificar disponibilidade ou pedir um item específico.</p><a href={linkWhatsapp} target={linkWhatsapp.startsWith("http") ? "_blank" : undefined} rel={linkWhatsapp.startsWith("http") ? "noopener noreferrer" : undefined} className="kyron-label mt-fluid-sm inline-flex min-h-11 items-center rounded-kyron-sm bg-kyron-blue px-3.5 text-fluid-2xs text-white">Falar no WhatsApp</a></div>
             )}
           </div>
         </div>

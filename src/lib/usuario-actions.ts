@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { db } from "./db";
+import { linhaEmail, notificarPorEmail } from "./kyron/notificar";
 import {
   criarSessaoUsuario,
   encerrarSessaoUsuario,
@@ -33,6 +34,17 @@ export async function acaoCriarConta(_estado: Estado, form: FormData) {
   const usuario = await db.usuario.create({
     data: { nome, email, senhaHash: hashSenha(senha) },
   });
+
+  // Avisa o dono do novo cadastro (aguardando aprovação).
+  void notificarPorEmail(
+    `Novo cadastro de cliente: ${nome}`,
+    [
+      "<h2>Novo cliente aguardando aprovação</h2>",
+      linhaEmail("Nome", nome),
+      linhaEmail("E-mail", email),
+      "<p>Aprove em /admin/clientes para liberar o acesso às aulas.</p>",
+    ].join(""),
+  );
 
   // Já entra logado (mas pendente) para ver o status "em análise".
   await criarSessaoUsuario(usuario.id);

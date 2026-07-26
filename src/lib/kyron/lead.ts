@@ -1,9 +1,13 @@
 import { z } from "zod";
 
-import { enviarLeadHubSpot, hubspotConfigurado } from "./hubspot";
+import { db } from "../db";
+import { linhaEmail, notificarPorEmail } from "./notificar";
 
 /**
- * Contato capturado pelo agente durante a conversa.
+ * Contato capturado pelo agente ou pelo formulário de orçamento.
+ *
+ * Fica no BANCO (aba Leads do painel, com Kanban) — o HubSpot foi suspenso.
+ * A cada novo lead, um e-mail avisa o dono.
  *
  * Deliberadamente NÃO existem campos para CPF, CNPJ, dados bancários ou
  * qualquer credencial. O agente também está instruído a recusar esses dados.
@@ -38,82 +42,81 @@ export type LeadResult =
   | { ok: true; message: string }
   | { ok: false; message: string };
 
+const ROTULO_INTERESSE: Record<string, string> = {
+  apple: "Apple (novos)",
+  seminovos: "iPhone seminovos",
+  "casa-inteligente": "Casa inteligente / automação",
+  "audio-acessorios": "Áudio e acessórios",
+  "assistencia-tecnica": "Assistência técnica",
+  "servico-instalacao": "Serviço / instalação",
+  "nao-definido": "Não definido",
+};
+
 /**
- * Entrega o lead. Sem webhook configurado, apenas registra no log do servidor —
- * o agente segue funcionando, o contato não se perde silenciosamente.
+ * Grava o lead no banco (vira card do Kanban) e dispara o e-mail de aviso.
  */
 export async function deliverLead(
   lead: Lead,
-  origem: { pagina?: string; userAgent?: string; transcricao?: string },
+  contexto: {
+    origem?: string;
+    referenciaId?: number;
+    pagina?: string;
+    userAgent?: string;
+    transcricao?: string;
+  } = {},
 ): Promise<LeadResult> {
   if (!lead.email && !lead.telefone) {
     return {
       ok: false,
       message:
-        "Falta um canal de resposta. Peça o e-mail corporativo ou o telefone antes de registrar.",
-    };
-  }
-
-  const payload = {
-    ...lead,
-    origem: "chat-site",
-    pagina: origem.pagina ?? null,
-    userAgent: origem.userAgent ?? null,
-    registradoEm: new Date().toISOString(),
-  };
-
-  // Destino principal: HubSpot. O contato vira lead e a conversa fica anexada
-  // como nota. Quem responde revê tudo dentro do CRM.
-  if (hubspotConfigurado()) {
-    const resultado = await enviarLeadHubSpot(lead, origem.transcricao);
-    if (resultado.ok) {
-      return {
-        ok: true,
-        message:
-          "Contato registrado. Um especialista responde em até 1 dia útil.",
-      };
-    }
-    // HubSpot falhou: cai para o webhook/log abaixo em vez de perder o lead.
-    console.error("[kyron:lead] HubSpot falhou, usando fallback:", resultado.motivo);
-  }
-
-  const webhook = process.env.KYRON_LEAD_WEBHOOK_URL;
-
-  if (!webhook) {
-    console.info("[kyron:lead] registrando no log", payload);
-    return {
-      ok: true,
-      message: "Contato registrado. Um especialista responde em até 1 dia útil.",
+        "Falta um canal de resposta. Peça o WhatsApp ou o e-mail antes de registrar.",
     };
   }
 
   try {
-    const response = await fetch(webhook, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(8_000),
+    await db.lead.create({
+      data: {
+        nome: lead.nome,
+        telefone: lead.telefone ?? null,
+        email: lead.email ?? null,
+        origem: contexto.origem ?? "chat",
+        referenciaId: contexto.referenciaId ?? null,
+        interesse: lead.interesse,
+        urgencia: lead.urgencia ?? null,
+        perfil: lead.perfil ?? null,
+        mensagem: lead.resumo,
+        transcricao: contexto.transcricao ?? null,
+      },
     });
-
-    if (!response.ok) {
-      console.error("[kyron:lead] webhook respondeu", response.status, payload);
-      return {
-        ok: false,
-        message:
-          "Não consegui registrar agora. Ofereça o WhatsApp como alternativa e não peça os dados de novo.",
-      };
-    }
-
-    return {
-      ok: true,
-      message: "Contato registrado. Um especialista responde em até 1 dia útil.",
-    };
-  } catch (error) {
-    console.error("[kyron:lead] falha ao enviar", error, payload);
+  } catch (erro) {
+    console.error("[kyron:lead] falha ao gravar", erro);
     return {
       ok: false,
       message:
         "Não consegui registrar agora. Ofereça o WhatsApp como alternativa e não peça os dados de novo.",
     };
   }
+
+  // E-mail de aviso — best effort, não bloqueia.
+  void notificarPorEmail(
+    `Novo lead: ${lead.nome}`,
+    [
+      "<h2>Novo lead pelo site</h2>",
+      linhaEmail("Nome", lead.nome),
+      linhaEmail("WhatsApp/telefone", lead.telefone),
+      linhaEmail("E-mail", lead.email),
+      linhaEmail("Interesse", ROTULO_INTERESSE[lead.interesse] ?? lead.interesse),
+      linhaEmail("Urgência", lead.urgencia),
+      linhaEmail("Perfil", lead.perfil),
+      linhaEmail("Necessidade", lead.resumo),
+      linhaEmail("Origem", contexto.origem),
+    ]
+      .filter(Boolean)
+      .join(""),
+  );
+
+  return {
+    ok: true,
+    message: "Contato registrado. Um especialista responde em até 1 dia útil.",
+  };
 }

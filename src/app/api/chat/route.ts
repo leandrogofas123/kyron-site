@@ -319,6 +319,7 @@ export async function POST(request: Request) {
             send({ type: "tool", name: "registrar_contato" });
 
             const result = await deliverLead(parsed.data, {
+              origem: "chat",
               pagina: body.pagina,
               userAgent,
               transcricao: transcreverConversa(messages),

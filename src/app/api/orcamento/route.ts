@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { db } from "@/lib/db";
 import { deliverLead } from "@/lib/kyron/lead";
 import { checkRateLimit, clientKeyFromHeaders } from "@/lib/rate-limit";
 
@@ -47,35 +46,23 @@ export async function POST(request: Request) {
   // Bot: responde sucesso e descarta em silêncio.
   if (dados.site) return Response.json({ ok: true });
 
-  // 1. Grava no banco — fonte de verdade, aparece no admin de leads.
-  try {
-    await db.lead.create({
-      data: {
-        nome: dados.nome,
-        telefone: dados.telefone,
-        origem: dados.origem,
-        referenciaId: dados.referenciaId ?? null,
-        mensagem: dados.mensagem,
-      },
-    });
-  } catch (erro) {
-    console.error("[kyron:orcamento] falha ao gravar lead", erro);
-    return Response.json(
-      { erro: "Não conseguimos registrar agora. Tente novamente em instantes." },
-      { status: 500 },
-    );
-  }
-
-  // 2. Espelha no HubSpot (não bloqueia o sucesso se o CRM falhar).
-  await deliverLead(
+  // Grava no banco (aba Leads / Kanban) e dispara o e-mail de aviso.
+  const registro = await deliverLead(
     {
       nome: dados.nome,
       telefone: dados.telefone,
       interesse: dados.origem === "servico" ? "servico-instalacao" : "nao-definido",
       resumo: dados.mensagem,
     },
-    { pagina: "/orcamento" },
-  ).catch((erro) => console.error("[kyron:orcamento] HubSpot", erro));
+    { origem: dados.origem, referenciaId: dados.referenciaId, pagina: "/orcamento" },
+  );
+
+  if (!registro.ok) {
+    return Response.json(
+      { erro: "Não conseguimos registrar agora. Tente novamente em instantes." },
+      { status: 500 },
+    );
+  }
 
   return Response.json({ ok: true });
 }

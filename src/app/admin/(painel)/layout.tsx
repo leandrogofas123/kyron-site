@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 
 import { acaoLogout } from "@/lib/admin-actions";
 import { sessaoValida } from "@/lib/admin-auth";
+import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Painel Kyron",
@@ -23,6 +26,15 @@ export default async function PainelLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   if (!(await sessaoValida())) redirect("/admin/login");
+
+  const [leadsNovos, clientesPendentes] = await Promise.all([
+    db.lead.count({ where: { status: "novo" } }),
+    db.usuario.count({ where: { aprovado: false } }),
+  ]);
+  const novidades: Record<string, number> = {
+    "/admin/leads": leadsNovos,
+    "/admin/clientes": clientesPendentes,
+  };
 
   return (
     <div className="min-h-dvh">
@@ -46,15 +58,23 @@ export default async function PainelLayout({
           aria-label="Seções do painel"
           className="kyron-scroll container-kyron flex gap-fluid-md overflow-x-auto pb-fluid-2xs"
         >
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="kyron-label whitespace-nowrap py-fluid-2xs text-fluid-2xs text-kyron-silver transition-colors hover:text-kyron-white"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV.map((item) => {
+            const qtd = novidades[item.href] ?? 0;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="kyron-label flex items-center gap-1.5 whitespace-nowrap py-fluid-2xs text-fluid-2xs text-kyron-silver transition-colors hover:text-kyron-white"
+              >
+                {item.label}
+                {qtd > 0 && (
+                  <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-kyron-blue px-1 text-[0.625rem] font-semibold leading-4 text-white">
+                    {qtd}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
       </header>
 

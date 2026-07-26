@@ -167,7 +167,7 @@ export function ProdutoForm({
             placeholder="Ex.: iPhone 15, iPhone 14 ou Universal"
           />
           <p className="mt-1 text-fluid-2xs text-kyron-silver/55">
-            Usado no Monte seu Kit Celular para mostrar acess?rios certos.
+            Usado no Monte seu Kit Celular para mostrar acessórios certos.
           </p>
         </div>
         <div className="flex flex-wrap gap-fluid-md">

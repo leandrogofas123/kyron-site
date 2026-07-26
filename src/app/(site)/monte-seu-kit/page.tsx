@@ -8,7 +8,7 @@ import { linkWhatsApp } from "@/lib/kyron/site";
 export const metadata: Metadata = {
   title: "Monte seu Kit Celular",
   description:
-    "Escolha seu iPhone e acess?rios compat?veis: pel?cula, capa, carregador, fone e extras. Envie o kit para a Kyron pelo WhatsApp.",
+    "Escolha seu iPhone e acessórios compatíveis: película, capa, carregador, fone e extras. Envie o kit para a Kyron pelo WhatsApp.",
   alternates: { canonical: "/monte-seu-kit" },
 };
 
@@ -42,7 +42,7 @@ export default async function MonteSeuKitPage() {
             Seu iPhone, do <span className="text-kyron-blue">seu jeito</span>.
           </>
         }
-        lede="Escolha o celular e complemente com acess?rios compat?veis. A Kyron confere cada detalhe antes do atendimento pelo WhatsApp."
+        lede="Escolha o celular e complemente com acessórios compatíveis. A Kyron confere cada detalhe antes do atendimento pelo WhatsApp."
       />
       <MonteSeuKit
         produtos={dados}

@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
+import { getProdutos, type OrdenarProdutos } from "@/lib/catalogo";
+import { formatarPreco, precoVigente } from "@/lib/format";
 import { KYRON_SYSTEM_PROMPT } from "@/lib/kyron/system-prompt";
 import { deliverLead, leadSchema } from "@/lib/kyron/lead";
 import { checkRateLimit, clientKeyFromHeaders } from "@/lib/rate-limit";
@@ -84,6 +86,82 @@ const registrarContato: Anthropic.Tool = {
     required: ["nome", "resumo"],
   },
 };
+
+const buscarProdutos: Anthropic.Tool = {
+  name: "buscar_produtos",
+  description:
+    "Busca produtos REAIS no catálogo da Kyron, com preço e link da página. Use " +
+    "DEPOIS de entender o que a pessoa quer (modelo, capacidade, novo ou seminovo, " +
+    "faixa de preço). Nunca fale um preço sem antes buscar aqui — os preços vêm só " +
+    "desta ferramenta. Retorna nome, preço atual, condição do seminovo e a URL da " +
+    "página, para você indicar o produto com o link direto.",
+  input_schema: {
+    type: "object",
+    properties: {
+      termo: {
+        type: "string",
+        description:
+          "Texto de busca por nome/marca. Ex.: 'iPhone 13', 'AirPods', 'câmera wifi'.",
+      },
+      apenasSeminovos: {
+        type: "boolean",
+        description: "true para trazer só seminovos.",
+      },
+      ordenar: {
+        type: "string",
+        enum: ["relevancia", "menor-preco", "maior-preco", "novidades"],
+        description:
+          "Ordenação. Use 'menor-preco' quando a pessoa quer economizar.",
+      },
+    },
+    required: [],
+  },
+};
+
+/** Executa a busca e devolve um resumo enxuto (com URL) para o modelo. */
+async function executarBuscaProdutos(input: unknown) {
+  const args = (input ?? {}) as {
+    termo?: string;
+    apenasSeminovos?: boolean;
+    ordenar?: OrdenarProdutos;
+  };
+  const permitidas: OrdenarProdutos[] = [
+    "relevancia",
+    "menor-preco",
+    "maior-preco",
+    "novidades",
+  ];
+  const ordenar: OrdenarProdutos =
+    args.ordenar && permitidas.includes(args.ordenar) ? args.ordenar : "relevancia";
+
+  const { produtos } = await getProdutos({ q: args.termo, ordenar });
+  const lista = args.apenasSeminovos
+    ? produtos.filter((p) => p.seminovo)
+    : produtos;
+
+  const itens = lista.slice(0, 6).map((p) => {
+    const { atual, original, emPromocao } = precoVigente(p.preco, p.precoPromo);
+    return {
+      nome: p.nome,
+      preco: formatarPreco(atual),
+      ...(emPromocao && original != null
+        ? { precoDe: formatarPreco(original) }
+        : {}),
+      ...(p.seminovo
+        ? {
+            seminovo: true,
+            bateria: p.seminovo.saudeBateria
+              ? `${p.seminovo.saudeBateria}%`
+              : undefined,
+            condicao: p.seminovo.condicaoEstetica,
+          }
+        : { seminovo: false }),
+      url: `/produtos/${p.slug}`,
+    };
+  });
+
+  return { encontrados: lista.length, produtos: itens };
+}
 
 function sseChunk(payload: unknown): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`);
@@ -170,7 +248,7 @@ export async function POST(request: Request) {
                   cache_control: { type: "ephemeral" },
                 },
               ],
-              tools: [registrarContato],
+              tools: [registrarContato, buscarProdutos],
               messages,
             },
             { signal: request.signal },
@@ -203,6 +281,16 @@ export async function POST(request: Request) {
 
           for (const block of message.content) {
             if (block.type !== "tool_use") continue;
+
+            if (block.name === "buscar_produtos") {
+              const resultado = await executarBuscaProdutos(block.input);
+              toolResults.push({
+                type: "tool_result",
+                tool_use_id: block.id,
+                content: JSON.stringify(resultado),
+              });
+              continue;
+            }
 
             if (block.name !== "registrar_contato") {
               toolResults.push({

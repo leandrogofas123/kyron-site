@@ -98,7 +98,8 @@ export function useChat() {
             }
 
             if (event.type === "delta") appendToLast(event.text);
-            else if (event.type === "tool") setLeadRegistrado(true);
+            else if (event.type === "tool" && event.name === "registrar_contato")
+              setLeadRegistrado(true);
             else if (event.type === "error") setError(event.message);
           }
         }

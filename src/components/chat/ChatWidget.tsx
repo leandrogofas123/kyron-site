@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 import { useChat } from "./useChat";
 import { registrarEvento } from "@/components/site/Analytics";
@@ -147,7 +147,7 @@ export function ChatWidget() {
                   key={message.id}
                   className="max-w-[92%] whitespace-pre-wrap text-fluid-sm leading-relaxed text-kyron-silver"
                 >
-                  {message.content}
+                  {renderConteudo(message.content)}
                 </p>
               ),
             )}
@@ -237,6 +237,63 @@ export function ChatWidget() {
       )}
     </>
   );
+}
+
+/**
+ * Renderiza o texto do assistente transformando links markdown [texto](url) em
+ * botões clicáveis dentro da conversa. Links internos abrem na mesma aba;
+ * externos, em nova. Durante o streaming, um link ainda incompleto aparece como
+ * texto até fechar — e então vira botão.
+ */
+function renderConteudo(texto: string): ReactNode[] {
+  const re = /\[([^\]]+)\]\((\/[^\s)]+|https?:\/\/[^\s)]+)\)/g;
+  const nos: ReactNode[] = [];
+  let ultimo = 0;
+  let chave = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = re.exec(texto)) !== null) {
+    if (m.index > ultimo) nos.push(...comNegrito(texto.slice(ultimo, m.index), `t${chave}`));
+    const [, rotulo, url] = m;
+    const externo = url.startsWith("http");
+    nos.push(
+      <a
+        key={`lk-${chave++}`}
+        href={url}
+        {...(externo
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+        className="my-1 inline-flex items-center gap-1.5 rounded-kyron-sm bg-kyron-blue px-3.5 py-2 text-fluid-xs font-medium text-white no-underline transition-all duration-300 hover:-translate-y-px hover:shadow-[0_6px_18px_rgba(30,107,255,0.3)]"
+      >
+        {rotulo}
+        <span aria-hidden="true">→</span>
+      </a>,
+    );
+    ultimo = m.index + m[0].length;
+  }
+  if (ultimo < texto.length) nos.push(...comNegrito(texto.slice(ultimo), "fim"));
+  return nos;
+}
+
+/** Converte **negrito** de um trecho de texto em <strong>. */
+function comNegrito(texto: string, prefixo: string): ReactNode[] {
+  const re = /\*\*([^*]+)\*\*/g;
+  const nos: ReactNode[] = [];
+  let ultimo = 0;
+  let chave = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = re.exec(texto)) !== null) {
+    if (m.index > ultimo) nos.push(texto.slice(ultimo, m.index));
+    nos.push(
+      <strong key={`${prefixo}-b${chave++}`} className="font-semibold text-kyron-white">
+        {m[1]}
+      </strong>,
+    );
+    ultimo = m.index + m[0].length;
+  }
+  if (ultimo < texto.length) nos.push(texto.slice(ultimo));
+  return nos;
 }
 
 function TypingDots() {

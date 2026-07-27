@@ -218,3 +218,30 @@ canvas {
     opacity: 1;
   }
 }
+
+/* Barra lateral de Departamentos.
+   Largura em CSS puro (não via utilitária condicional) para o recolher/expandir
+   ser determinístico: no desktop ela ACOPLA ao layout e empurra o conteúdo;
+   no celular ela desliza por cima. */
+.kyron-sidebar {
+  width: min(20rem, 85vw);
+}
+@media (min-width: 1024px) {
+  .kyron-sidebar {
+    width: 0;
+    border-right-width: 0;
+  }
+  .kyron-sidebar[data-aberta="true"] {
+    width: 17rem;
+    border-right-width: 1px;
+  }
+}
+/* Conteúdo com largura fixa: não reflui enquanto a barra recolhe. */
+.kyron-sidebar-conteudo {
+  width: min(20rem, 85vw);
+}
+@media (min-width: 1024px) {
+  .kyron-sidebar-conteudo {
+    width: 17rem;
+  }
+}

@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { DepartmentDrawer } from "./DepartmentDrawer";
 import { Logo } from "./Logo";
 import { CTA_PRIMARIO, NAV_PRINCIPAL } from "@/lib/kyron/site";
 
-export function Header() {
+export function Header({
+  sidebarAberta = false,
+  onAlternarSidebar,
+}: {
+  sidebarAberta?: boolean;
+  onAlternarSidebar?: () => void;
+}) {
   const [rolou, setRolou] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
-  const [departamentosAbertos, setDepartamentosAbertos] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setRolou(window.scrollY > 40);
@@ -19,13 +23,12 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Só o menu mobile trava a rolagem; a barra lateral do desktop convive
+  // com a página (fica acoplada, não sobreposta).
   useEffect(() => {
-    if (!menuAberto && !departamentosAbertos) return;
+    if (!menuAberto) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setMenuAberto(false);
-        setDepartamentosAbertos(false);
-      }
+      if (e.key === "Escape") setMenuAberto(false);
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -33,7 +36,7 @@ export function Header() {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [departamentosAbertos, menuAberto]);
+  }, [menuAberto]);
 
   return (
     <header
@@ -97,36 +100,40 @@ export function Header() {
         </button>
       </div>
 
-      {/* NÍVEL 2 — departamentos + navegação (desktop) */}
-      <div className="hidden border-t border-[var(--kyron-hairline)] lg:block">
-        <div className="container-kyron flex h-[clamp(2.5rem,3.5vw,3rem)] items-center gap-fluid-md">
-          <button
-            type="button"
-            onClick={() => setDepartamentosAbertos(true)}
-            aria-expanded={departamentosAbertos}
-            aria-controls="departamentos-kyron"
-            className="flex shrink-0 items-center gap-2 rounded-kyron-sm bg-kyron-blue/10 px-3 py-1.5 text-fluid-2xs text-kyron-white transition-colors hover:bg-kyron-blue/20"
-          >
-            <MenuIcon size={16} />
-            <span>Departamentos</span>
-          </button>
+      {/* NÍVEL 2 — departamentos + navegação (desktop).
+          Com a barra lateral aberta, esta faixa some: a navegação passa a ser
+          feita pela lateral, sem duplicar comandos na tela. */}
+      {!sidebarAberta && (
+        <div className="hidden border-t border-[var(--kyron-hairline)] lg:block">
+          <div className="container-kyron flex h-[clamp(2.5rem,3.5vw,3rem)] items-center gap-fluid-md">
+            <button
+              type="button"
+              onClick={onAlternarSidebar}
+              aria-expanded={sidebarAberta}
+              aria-controls="departamentos-kyron"
+              className="flex shrink-0 items-center gap-2 rounded-kyron-sm bg-kyron-blue/10 px-3 py-1.5 text-fluid-2xs text-kyron-white transition-colors hover:bg-kyron-blue/20"
+            >
+              <MenuIcon size={16} />
+              <span>Departamentos</span>
+            </button>
 
-          <nav
-            aria-label="Navegação principal"
-            className="kyron-scroll flex items-center gap-fluid-md overflow-x-auto"
-          >
-            {NAV_PRINCIPAL.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap text-fluid-xs text-kyron-silver transition-colors duration-300 hover:text-kyron-white"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+            <nav
+              aria-label="Navegação principal"
+              className="kyron-scroll flex items-center gap-fluid-md overflow-x-auto"
+            >
+              {NAV_PRINCIPAL.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="whitespace-nowrap text-fluid-xs text-kyron-silver transition-colors duration-300 hover:text-kyron-white"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* MENU MOBILE */}
       {menuAberto && (
@@ -154,7 +161,7 @@ export function Header() {
               type="button"
               onClick={() => {
                 setMenuAberto(false);
-                setDepartamentosAbertos(true);
+                onAlternarSidebar?.();
               }}
               className="flex w-full items-center gap-2 rounded-kyron-sm bg-kyron-blue/10 px-fluid-sm py-fluid-sm text-fluid-sm text-kyron-white"
             >
@@ -198,10 +205,6 @@ export function Header() {
         </div>
       )}
 
-      <DepartmentDrawer
-        aberto={departamentosAbertos}
-        onFechar={() => setDepartamentosAbertos(false)}
-      />
     </header>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 
 const DEPARTAMENTOS = [
   {
@@ -50,6 +51,27 @@ export function SidebarDepartamentos({
   aberta: boolean;
   onFechar: () => void;
 }) {
+  /*
+   * No celular a barra abre sobreposta, então a página atrás não deve rolar.
+   * No desktop ela é acoplada e a página rola normalmente. A limpeza sempre
+   * devolve a rolagem — antes o travamento herdado do menu mobile ficava preso
+   * e a página não rolava mais depois de abrir os Departamentos.
+   */
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 1023px)").matches;
+    if (!aberta || !mobile) {
+      document.body.style.overflow = "";
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onFechar();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [aberta, onFechar]);
+
   return (
     <>
       {/* Fundo escurecido — só no celular, onde a barra fica sobreposta. */}

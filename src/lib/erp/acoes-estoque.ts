@@ -135,6 +135,8 @@ export async function acaoMovimentar(_estado: Estado, form: FormData) {
   if (!Number.isInteger(produtoId)) return { erro: "Escolha o produto." };
   if (!Number.isFinite(quantidade)) return { erro: "Informe a quantidade." };
 
+  const clienteId = inteiro(form, "clienteId");
+
   const r = await movimentarEstoque({
     produtoId,
     tipo,
@@ -143,12 +145,14 @@ export async function acaoMovimentar(_estado: Estado, form: FormData) {
     documento: texto(form, "documento"),
     observacao: texto(form, "observacao"),
     colaboradorId: eu.id,
+    clienteId: clienteId && clienteId > 0 ? clienteId : null,
   });
 
   if (!r.ok) return { erro: r.erro };
 
   revalidatePath("/erp/estoque");
   revalidatePath("/erp/produtos");
+  revalidatePath("/erp/clientes");
   revalidatePath("/erp");
   return { ok: true };
 }
@@ -188,4 +192,35 @@ export async function acaoExcluirFornecedor(id: number) {
   await exigirPermissao("fornecedores.editar");
   await db.fornecedor.update({ where: { id }, data: { excluidoEm: new Date() } });
   revalidatePath("/erp/fornecedores");
+}
+
+// ──────────────────────────── Clientes ────────────────────────────
+
+export async function acaoSalvarCliente(_estado: Estado, form: FormData) {
+  await exigirPermissao("clientes.editar");
+
+  const id = form.get("id") ? Number(form.get("id")) : null;
+  const nome = String(form.get("nome") ?? "").trim();
+  if (nome.length < 2) return { erro: "Informe o nome do cliente." };
+
+  const dados = {
+    nome,
+    telefone: texto(form, "telefone"),
+    email: texto(form, "email"),
+    cpf: texto(form, "cpf"),
+    cidade: texto(form, "cidade"),
+    observacoes: texto(form, "observacoes"),
+  };
+
+  if (id) await db.clienteErp.update({ where: { id }, data: dados });
+  else await db.clienteErp.create({ data: dados });
+
+  revalidatePath("/erp/clientes");
+  return { ok: true };
+}
+
+export async function acaoExcluirCliente(id: number) {
+  await exigirPermissao("clientes.editar");
+  await db.clienteErp.update({ where: { id }, data: { excluidoEm: new Date() } });
+  revalidatePath("/erp/clientes");
 }

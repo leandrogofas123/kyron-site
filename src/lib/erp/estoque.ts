@@ -31,6 +31,7 @@ export async function movimentarEstoque(dados: {
   observacao?: string | null;
   colaboradorId?: number | null;
   notaId?: number | null;
+  clienteId?: number | null;
 }): Promise<ResultadoMovimentacao> {
   const sinal = sinalDe(dados.tipo);
   if (sinal == null) return { ok: false, erro: "Tipo de movimentação inválido." };
@@ -76,6 +77,7 @@ export async function movimentarEstoque(dados: {
           observacao: dados.observacao?.trim() || null,
           colaboradorId: dados.colaboradorId ?? null,
           notaId: dados.notaId ?? null,
+          clienteId: dados.clienteId ?? null,
         },
       });
 

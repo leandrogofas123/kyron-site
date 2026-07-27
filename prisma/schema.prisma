@@ -193,10 +193,15 @@ model MovimentacaoEstoque {
   colaborador   Colaborador? @relation(fields: [colaboradorId], references: [id])
   notaId        Int?
   nota          NotaFiscal?  @relation(fields: [notaId], references: [id])
+  // Venda/troca/assistência podem ser atribuídas a um cliente — é o que
+  // alimenta o histórico e o controle de garantia por pessoa.
+  clienteId     Int?
+  cliente       ClienteErp?  @relation(fields: [clienteId], references: [id])
 
   @@index([produtoId, criadoEm])
   @@index([tipo])
   @@index([notaId])
+  @@index([clienteId])
 }
 
 /// Nota fiscal de entrada (XML da NF-e importado).
@@ -253,6 +258,8 @@ model ClienteErp {
   observacoes String?
   excluidoEm  DateTime?
   criadoEm    DateTime @default(now())
+
+  movimentacoes MovimentacaoEstoque[]
 
   @@index([nome])
   @@index([telefone])

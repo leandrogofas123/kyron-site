@@ -11,8 +11,10 @@ const rotulo = "kyron-label mb-fluid-2xs block text-fluid-2xs text-kyron-silver/
 
 export function FormMovimentar({
   produtos,
+  clientes = [],
 }: {
   produtos: { id: number; nome: string; sku: string | null; quantidade: number }[];
+  clientes?: { id: number; nome: string; telefone: string | null }[];
 }) {
   const [estado, mover, movendo] = useActionState(acaoMovimentar, null);
 
@@ -63,6 +65,27 @@ export function FormMovimentar({
           </p>
         </div>
       </div>
+
+      {clientes.length > 0 && (
+        <div>
+          <label htmlFor="clienteId" className={rotulo}>
+            Cliente
+          </label>
+          <select id="clienteId" name="clienteId" defaultValue="" className={campo}>
+            <option value="">—</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+                {c.telefone ? ` · ${c.telefone}` : ""}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-fluid-2xs text-kyron-silver/55">
+            Em vendas, vincular o cliente monta o histórico e o controle de
+            garantia dele.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-fluid-sm sm:grid-cols-2">
         <div>

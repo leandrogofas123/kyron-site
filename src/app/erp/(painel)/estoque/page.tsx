@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FormMovimentar } from "@/components/erp/FormMovimentar";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { movimentacoesRecentes, rotuloTipo } from "@/lib/erp/estoque";
+import { clientesParaSelecao } from "@/lib/erp/clientes";
 import { produtosParaSelecao } from "@/lib/erp/produtos";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +18,11 @@ function quando(d: Date): string {
 }
 
 export default async function ErpEstoque() {
-  const [eu, produtos, movimentacoes] = await Promise.all([
+  const [eu, produtos, movimentacoes, clientes] = await Promise.all([
     colaboradorLogado(),
     produtosParaSelecao(),
     movimentacoesRecentes(),
+    clientesParaSelecao(),
   ]);
   const podeMovimentar = eu ? podeFazer(eu.papel, "estoque.movimentar") : false;
 
@@ -47,7 +49,7 @@ export default async function ErpEstoque() {
                 </Link>
               </p>
             ) : (
-              <FormMovimentar produtos={produtos} />
+              <FormMovimentar produtos={produtos} clientes={clientes} />
             )
           ) : (
             <p className="text-fluid-sm text-kyron-silver">

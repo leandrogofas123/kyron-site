@@ -17,7 +17,11 @@ export async function notificarPorEmail(
   corpoHtml: string,
 ): Promise<void> {
   const key = process.env.RESEND_API_KEY;
-  const para = process.env.NOTIFY_EMAIL ?? "leandrogofas@gmail.com";
+  // Sem domínio verificado, o Resend só ENTREGA para o e-mail dono da conta —
+  // por isso o padrão é o e-mail com que a conta do Resend foi criada.
+  // Ao verificar kyroncompany.com no Resend, defina EMAIL_FROM e NOTIFY_EMAIL
+  // livremente.
+  const para = process.env.NOTIFY_EMAIL ?? "leandrogofas1@gmail.com";
   const de = process.env.EMAIL_FROM ?? "Kyron <onboarding@resend.dev>";
 
   if (!key) {

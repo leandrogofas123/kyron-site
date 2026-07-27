@@ -19,7 +19,11 @@ const DURACAO_MS = 1000 * 60 * 60 * 12; // 12 horas
 export const PAPEIS = ["admin", "gerente", "vendedor", "tecnico"] as const;
 export type Papel = (typeof PAPEIS)[number];
 
-/** O que cada papel pode fazer. Regra única, usada em telas e ações. */
+/**
+ * O que cada papel pode fazer. Regra única, usada em telas e ações.
+ * "colaboradores.*" (conceder acesso a outras pessoas) é exclusivo do admin
+ * master — nenhum outro papel recebe essa ação.
+ */
 const PERMISSOES: Record<Papel, string[]> = {
   admin: ["*"],
   gerente: [

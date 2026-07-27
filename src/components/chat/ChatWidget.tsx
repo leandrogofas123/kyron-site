@@ -86,8 +86,11 @@ export function ChatWidget() {
   const expandido =
     messages.length > 1 || isStreaming || Boolean(error) || leadRegistrado;
 
-  // Enquanto o banner de cookies estiver na tela, o assistente sai de cena.
-  if (cookiesAbertos && !open) return null;
+  // Enquanto o banner de cookies estiver na tela, o assistente sai de cena por
+  // completo — inclusive aberto. Na primeira visita os dois disputavam o mesmo
+  // canto e cobriam o banner inicial; o assistente volta assim que a pessoa
+  // escolhe as preferências.
+  if (cookiesAbertos) return null;
 
   return (
     <>

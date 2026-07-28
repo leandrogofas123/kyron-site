@@ -7,6 +7,9 @@ import path from "node:path";
 import sharp from "sharp";
 
 import { UPLOADS_DIR } from "./uploads-path";
+import { criarLog } from "@/lib/log";
+
+const log = criarLog("upload");
 
 /**
  * Recebe a foto do produto e devolve uma URL servível.
@@ -49,7 +52,7 @@ export async function salvarImagemProduto(arquivo: File): Promise<ResultadoUploa
 
     return { ok: true, url: `/uploads/${nome}` };
   } catch (erro) {
-    console.error("[kyron:upload]", erro);
+    log.erro("falha ao processar imagem", { erro });
     return { ok: false, erro: "Não foi possível processar a imagem." };
   }
 }

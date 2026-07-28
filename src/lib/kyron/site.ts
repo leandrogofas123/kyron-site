@@ -10,8 +10,24 @@ import { KYRON_COMPANY } from "./company";
  * dizendo qual produto ou serviço, sem o vendedor precisar perguntar.
  */
 
+/**
+ * Domínio canônico do site.
+ *
+ * ATENÇÃO: `kyroncompany.com` NÃO pertence à Kyron — é domínio de terceiro, do
+ * qual a empresa possui apenas uma caixa de e-mail. Usá-lo como canônico faz o
+ * sitemap, o robots e as imagens de preview (og:image) apontarem para um
+ * servidor alheio: todo link compartilhado no WhatsApp e no Instagram puxa o
+ * preview errado, e o Google recebe um sitemap de um domínio que não é nosso.
+ *
+ * O fallback é a URL pública do Railway, que é o endereço real enquanto a
+ * Kyron não registra domínio próprio. Ao registrar (ex.: kyrontecnologia.com.br),
+ * basta apontar NEXT_PUBLIC_SITE_URL para ele nas variáveis do Railway.
+ */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://kyroncompany.com";
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : "http://localhost:3000");
 
 export const NAV_PRINCIPAL = [
   { label: "Início", href: "/" },

@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { db } from "../db";
 import { linhaEmail, notificarPorEmail } from "./notificar";
+import { criarLog } from "@/lib/log";
+
+const log = criarLog("lead");
 
 /**
  * Contato capturado pelo agente ou pelo formulário de orçamento.
@@ -89,7 +92,7 @@ export async function deliverLead(
       },
     });
   } catch (erro) {
-    console.error("[kyron:lead] falha ao gravar", erro);
+    log.erro("falha ao gravar lead no banco", { erro });
     return {
       ok: false,
       message:

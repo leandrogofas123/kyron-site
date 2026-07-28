@@ -20,6 +20,7 @@ const NAV = [
   { label: "Fornecedores", href: "/erp/fornecedores", acao: "fornecedores.ver" },
   { label: "Clientes", href: "/erp/clientes", acao: "clientes.ver" },
   { label: "Colaboradores", href: "/erp/colaboradores", acao: "colaboradores.ver" },
+  { label: "Auditoria", href: "/erp/auditoria", acao: "auditoria.ver" },
 ];
 
 const ROTULO_PAPEL: Record<string, string> = {

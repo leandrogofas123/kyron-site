@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { db } from "../db";
+import { logger } from "../core/logger";
 import { linhaEmail, notificarPorEmail } from "./notificar";
 
 /**
@@ -89,7 +90,7 @@ export async function deliverLead(
       },
     });
   } catch (erro) {
-    console.error("[kyron:lead] falha ao gravar", erro);
+    logger.error("falha ao gravar lead", { erro });
     return {
       ok: false,
       message:

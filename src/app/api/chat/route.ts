@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import { getProdutos, type OrdenarProdutos } from "@/lib/catalogo";
+import { logger } from "@/lib/core/logger";
 import { formatarPreco, precoVigente } from "@/lib/format";
 import { KYRON_SYSTEM_PROMPT } from "@/lib/kyron/system-prompt";
 import { deliverLead, leadSchema } from "@/lib/kyron/lead";
@@ -341,7 +342,7 @@ export async function POST(request: Request) {
         if (request.signal.aborted) {
           // Navegação ou fechamento do widget. Silencioso por design.
         } else {
-          console.error("[kyron:chat]", error);
+          logger.error("falha no assistente", { erro: error });
           send({
             type: "error",
             message:

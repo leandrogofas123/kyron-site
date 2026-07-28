@@ -6,6 +6,7 @@ import path from "node:path";
 
 import sharp from "sharp";
 
+import { logger } from "./core/logger";
 import { UPLOADS_DIR } from "./uploads-path";
 
 /**
@@ -49,7 +50,7 @@ export async function salvarImagemProduto(arquivo: File): Promise<ResultadoUploa
 
     return { ok: true, url: `/uploads/${nome}` };
   } catch (erro) {
-    console.error("[kyron:upload]", erro);
+    logger.error("falha no upload de imagem", { erro });
     return { ok: false, erro: "Não foi possível processar a imagem." };
   }
 }

@@ -10,6 +10,7 @@ import {
   senhaConfere,
   sessaoValida,
 } from "./admin-auth";
+import { auditar } from "./core/audit";
 import { db } from "./db";
 import { gerarSlug, parsePreco } from "./format";
 import { extrairYoutubeId } from "./manual";
@@ -304,7 +305,22 @@ export async function acaoExcluirPost(id: number) {
 
 export async function acaoAprovarUsuario(id: number, aprovado: boolean) {
   await exigirAdmin();
+  const alvo = await db.usuario.findUnique({
+    where: { id },
+    select: { nome: true, email: true },
+  });
   await db.usuario.update({ where: { id }, data: { aprovado } });
+
+  await auditar({
+    ator: { tipo: "admin", nome: "Administrador" },
+    modulo: "admin",
+    acao: aprovado ? "aprovar-cliente" : "revogar-cliente",
+    entidade: "Usuario",
+    entidadeId: id,
+    depois: { aprovado },
+    metadata: { alvo: alvo?.nome, email: alvo?.email },
+  });
+
   revalidatePath("/admin/clientes");
 }
 

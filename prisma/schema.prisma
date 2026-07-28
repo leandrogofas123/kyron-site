@@ -137,6 +137,39 @@ model Servico {
   ordem           Int      @default(0)
 }
 
+// ────────────────────────── CORE ───────────────────────────
+
+/// Trilha de auditoria de TODA a plataforma (módulo core).
+/// Responde "quem fez o quê, quando e a partir de onde" — inclusive para o que
+/// o ledger de estoque não cobre: preço alterado, acesso concedido, cliente
+/// aprovado, login. Nomes em português para casar com o resto do schema.
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  criadoEm    DateTime @default(now())
+
+  // Quem: admin | colaborador | usuario | sistema
+  atorTipo    String   @default("sistema")
+  atorId      Int?
+  atorNome    String?
+
+  modulo      String   // erp | admin | loja | auth
+  acao        String   // criar | atualizar | excluir | aprovar | login | ...
+  entidade    String?  // Produto, Colaborador, ClienteErp…
+  entidadeId  String?
+
+  valorAntes  String?  // JSON serializado (só os campos que mudaram)
+  valorDepois String?
+
+  ip          String?
+  userAgent   String?
+  metadata    String?  // JSON livre
+
+  @@index([criadoEm])
+  @@index([modulo, acao])
+  @@index([entidade, entidadeId])
+  @@index([atorTipo, atorId])
+}
+
 // ─────────────────────────── ERP ───────────────────────────
 
 model Fornecedor {

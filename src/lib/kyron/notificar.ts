@@ -1,3 +1,6 @@
+import { criarLog } from "@/lib/log";
+
+const log = criarLog("notify");
 import "server-only";
 
 /**
@@ -40,10 +43,13 @@ export async function notificarPorEmail(
       signal: AbortSignal.timeout(8_000),
     });
     if (!r.ok) {
-      console.error("[kyron:notify] Resend falhou", r.status, await r.text().catch(() => ""));
+      log.erro("Resend recusou o envio", {
+        status: r.status,
+        resposta: await r.text().catch(() => ""),
+      });
     }
   } catch (erro) {
-    console.error("[kyron:notify] erro ao enviar", erro);
+    log.erro("falha ao enviar e-mail", { erro });
   }
 }
 

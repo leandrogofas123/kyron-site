@@ -6,6 +6,9 @@ import { formatarPreco, precoVigente } from "@/lib/format";
 import { KYRON_SYSTEM_PROMPT } from "@/lib/kyron/system-prompt";
 import { deliverLead, leadSchema } from "@/lib/kyron/lead";
 import { checkRateLimit, clientKeyFromHeaders } from "@/lib/rate-limit";
+import { criarLog } from "@/lib/log";
+
+const log = criarLog("chat");
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -341,7 +344,7 @@ export async function POST(request: Request) {
         if (request.signal.aborted) {
           // Navegação ou fechamento do widget. Silencioso por design.
         } else {
-          console.error("[kyron:chat]", error);
+          log.erro("falha durante o streaming da resposta", { erro: error });
           send({
             type: "error",
             message:

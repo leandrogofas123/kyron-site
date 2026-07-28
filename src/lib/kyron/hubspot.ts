@@ -1,4 +1,7 @@
 import type { Lead } from "./lead";
+import { criarLog } from "@/lib/log";
+
+const log = criarLog("hubspot");
 
 /**
  * Integração com o HubSpot CRM.
@@ -79,7 +82,10 @@ async function criarOuAtualizarContato(lead: Lead): Promise<string | null> {
     return id;
   }
 
-  console.error("[kyron:hubspot] falha ao criar contato", criar.status, await criar.text().catch(() => ""));
+  log.erro("falha ao criar contato", {
+    status: criar.status,
+    resposta: await criar.text().catch(() => ""),
+  });
   return null;
 }
 
@@ -110,7 +116,7 @@ async function anexarNota(
     signal: AbortSignal.timeout(10_000),
   }).catch((erro) => {
     // A nota é um extra. Se falhar, o contato já foi criado — não perde o lead.
-    console.error("[kyron:hubspot] falha ao anexar nota", erro);
+    log.erro("falha ao anexar nota ao contato", { erro });
   });
 }
 
@@ -161,7 +167,7 @@ export async function enviarLeadHubSpot(
     await anexarNota(contatoId, montarNota(lead, transcricao));
     return { ok: true };
   } catch (erro) {
-    console.error("[kyron:hubspot]", erro);
+    log.erro("falha na integração", { erro });
     return { ok: false, motivo: "erro de comunicação com o HubSpot" };
   }
 }

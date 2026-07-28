@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
@@ -10,6 +10,7 @@ import {
   senhaConfere,
   sessaoValida,
 } from "./admin-auth";
+import { TAG } from "./cache";
 import { db } from "./db";
 import { gerarSlug, parsePreco } from "./format";
 import { extrairYoutubeId } from "./manual";
@@ -161,6 +162,9 @@ export async function acaoSalvarProduto(_estado: unknown, form: FormData) {
   revalidatePath("/seminovos");
   revalidatePath("/monte-seu-kit");
   revalidatePath("/");
+  // Invalida o cache da camada de dados (ver src/lib/cache.ts).
+  revalidateTag(TAG.produtos);
+  revalidateTag(TAG.seminovos);
   redirect("/admin/produtos");
 }
 
@@ -171,6 +175,8 @@ export async function acaoAlternarAtivo(id: number, ativo: boolean) {
   revalidatePath("/produtos");
   revalidatePath("/");
   revalidatePath("/monte-seu-kit");
+  // Invalida o cache da camada de dados (ver src/lib/cache.ts).
+  revalidateTag(TAG.produtos);
 }
 
 export async function acaoExcluirProduto(id: number) {
@@ -180,6 +186,8 @@ export async function acaoExcluirProduto(id: number) {
   revalidatePath("/produtos");
   revalidatePath("/");
   revalidatePath("/monte-seu-kit");
+  // Invalida o cache da camada de dados (ver src/lib/cache.ts).
+  revalidateTag(TAG.produtos);
 }
 
 export async function acaoDefinirImagemPrincipal(imagemId: number, produtoId: number) {
@@ -188,6 +196,9 @@ export async function acaoDefinirImagemPrincipal(imagemId: number, produtoId: nu
   await db.produtoImagem.update({ where: { id: imagemId }, data: { principal: true } });
   revalidatePath(`/admin/produtos`);
   revalidatePath(`/produtos`);
+  // A foto principal aparece no card do catálogo e na vitrine de seminovos.
+  revalidateTag(TAG.produtos);
+  revalidateTag(TAG.seminovos);
 }
 
 export async function acaoExcluirImagem(imagemId: number) {
@@ -195,6 +206,8 @@ export async function acaoExcluirImagem(imagemId: number) {
   await db.produtoImagem.delete({ where: { id: imagemId } });
   revalidatePath(`/admin/produtos`);
   revalidatePath(`/produtos`);
+  revalidateTag(TAG.produtos);
+  revalidateTag(TAG.seminovos);
 }
 
 // ──────────────────────────── Seminovos ─────────────────────────────
@@ -205,6 +218,8 @@ export async function acaoMarcarVendido(produtoId: number, vendido: boolean) {
   revalidatePath("/admin/seminovos");
   revalidatePath("/seminovos");
   revalidatePath("/");
+  // Invalida o cache da camada de dados (ver src/lib/cache.ts).
+  revalidateTag(TAG.seminovos);
 }
 
 // ───────────────────────────── Serviços ─────────────────────────────
@@ -236,6 +251,8 @@ export async function acaoSalvarServico(_estado: unknown, form: FormData) {
 
   revalidatePath("/admin/servicos");
   revalidatePath("/servicos");
+  // Invalida o cache da camada de dados (ver src/lib/cache.ts).
+  revalidateTag(TAG.servicos);
   redirect("/admin/servicos");
 }
 

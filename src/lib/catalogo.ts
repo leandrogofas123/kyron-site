@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cachear, TAG } from "./cache";
 import { db } from "./db";
 import type { OrdenarProdutos } from "./catalogo-ordenacao";
 
@@ -12,6 +13,11 @@ export { ORDENACOES, type OrdenarProdutos } from "./catalogo-ordenacao";
  * aqui, num só lugar:
  *  - produto inativo não aparece (ativo = true)
  *  - seminovo vendido sai da vitrine (vendido = false)
+ *
+ * CACHE: as leituras públicas passam por `cachear()` (ver `./cache.ts`). O
+ * Postgres deixa de ser consultado a cada visita, e as ações do admin invalidam
+ * por tag na hora que salvam. Leituras do ADMIN não são cacheadas — quem acabou
+ * de salvar precisa ver o próprio dado, não uma cópia de 5 minutos atrás.
  */
 
 const imagensOrdenadas = {
@@ -19,13 +25,16 @@ const imagensOrdenadas = {
 };
 
 /** Árvore de categorias (pais com filhas) — para menu e filtros. */
-export function getCategoriasArvore() {
-  return db.categoria.findMany({
-    where: { parentId: null },
-    orderBy: { ordem: "asc" },
-    include: { filhas: { orderBy: { ordem: "asc" } } },
-  });
-}
+export const getCategoriasArvore = cachear(
+  () =>
+    db.categoria.findMany({
+      where: { parentId: null },
+      orderBy: { ordem: "asc" },
+      include: { filhas: { orderBy: { ordem: "asc" } } },
+    }),
+  ["categorias-arvore"],
+  [TAG.categorias],
+);
 
 /** Todas as categorias em lista plana (admin, selects). */
 export function getCategoriasPlanas() {
@@ -36,14 +45,17 @@ export function getCategoriasPlanas() {
 }
 
 /** Produtos em destaque para a home. */
-export function getProdutosDestaque(limite = 8) {
-  return db.produto.findMany({
-    where: { ativo: true, destaque: true },
-    orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
-    take: limite,
-    include: { ...imagensOrdenadas, seminovo: true, categoria: true },
-  });
-}
+export const getProdutosDestaque = cachear(
+  (limite: number = 8) =>
+    db.produto.findMany({
+      where: { ativo: true, destaque: true },
+      orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
+      take: limite,
+      include: { ...imagensOrdenadas, seminovo: true, categoria: true },
+    }),
+  ["produtos-destaque"],
+  [TAG.produtos],
+);
 
 /** Preço que vale hoje (promo vence o cheio) — para ordenar por preço. */
 function vigente(p: { preco: number; precoPromo: number | null }) {
@@ -66,31 +78,58 @@ function normalizar(t: string) {
  * SQLite não oferece "contains" sem acento nem ordenação pelo preço vigente
  * (que depende da promoção). Para dezenas de itens, é instantâneo e simples.
  */
+/**
+ * Leitura crua do catálogo por categoria — a parte que toca o banco.
+ *
+ * Só isto é cacheado. Busca textual e ordenação continuam fora do cache, em
+ * memória: são baratas e variam a cada requisição, então incluí-las na chave
+ * fragmentaria o cache em uma entrada por termo digitado, sem ganho nenhum.
+ */
+const lerCatalogoPorCategoria = cachear(
+  async (categoriaSlug?: string) => {
+    let categoriaIds: number[] | undefined;
+    let categoria = null;
+
+    if (categoriaSlug) {
+      const cat = await db.categoria.findUnique({
+        where: { slug: categoriaSlug },
+        include: { filhas: { select: { id: true } } },
+      });
+      if (!cat) return { categoria: null, produtos: null };
+      categoriaIds = [cat.id, ...cat.filhas.map((f) => f.id)];
+      const { filhas: _filhas, ...semFilhas } = cat;
+      categoria = semFilhas;
+    }
+
+    const produtos = await db.produto.findMany({
+      where: {
+        ativo: true,
+        ...(categoriaIds ? { categoriaId: { in: categoriaIds } } : {}),
+      },
+      orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
+      include: { ...imagensOrdenadas, seminovo: true, categoria: true },
+    });
+
+    return { categoria, produtos };
+  },
+  ["catalogo-por-categoria"],
+  [TAG.produtos, TAG.categorias],
+);
+
 export async function getProdutos(opts?: {
   categoria?: string;
   q?: string;
   ordenar?: OrdenarProdutos;
 }) {
   const { categoria: categoriaSlug, q, ordenar = "relevancia" } = opts ?? {};
-  let categoriaIds: number[] | undefined;
 
-  if (categoriaSlug) {
-    const cat = await db.categoria.findUnique({
-      where: { slug: categoriaSlug },
-      include: { filhas: { select: { id: true } } },
-    });
-    if (!cat) return { categoria: null, produtos: [] };
-    categoriaIds = [cat.id, ...cat.filhas.map((f) => f.id)];
-  }
+  const lido = await lerCatalogoPorCategoria(categoriaSlug);
+  // Categoria pedida não existe.
+  if (lido.produtos === null) return { categoria: null, produtos: [] };
 
-  let produtos = await db.produto.findMany({
-    where: {
-      ativo: true,
-      ...(categoriaIds ? { categoriaId: { in: categoriaIds } } : {}),
-    },
-    orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
-    include: { ...imagensOrdenadas, seminovo: true, categoria: true },
-  });
+  const { categoria } = lido;
+  // Cópia: o array vem do cache e não pode ser ordenado no lugar.
+  let produtos = [...lido.produtos];
 
   const termo = q?.trim();
   if (termo) {
@@ -109,47 +148,57 @@ export async function getProdutos(opts?: {
   }
   // "relevancia": mantém a ordem curada do banco (ordem asc, criadoEm desc).
 
-  const categoria = categoriaSlug
-    ? await db.categoria.findUnique({ where: { slug: categoriaSlug } })
-    : null;
-
   return { categoria, produtos };
 }
 
-export function getProduto(slug: string) {
-  return db.produto.findFirst({
-    where: { slug, ativo: true },
-    include: { ...imagensOrdenadas, seminovo: true, categoria: true },
-  });
-}
-
+export const getProduto = cachear(
+  (slug: string) =>
+    db.produto.findFirst({
+      where: { slug, ativo: true },
+      include: { ...imagensOrdenadas, seminovo: true, categoria: true },
+    }),
+  ["produto-por-slug"],
+  [TAG.produtos],
+);
 
 /** Itens ativos que alimentam o configurador Monte seu Kit Celular. */
-export function getProdutosParaKit() {
-  return db.produto.findMany({
-    where: { ativo: true },
-    orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
-    include: { ...imagensOrdenadas, categoria: true, seminovo: true },
-  });
-}
+export const getProdutosParaKit = cachear(
+  () =>
+    db.produto.findMany({
+      where: { ativo: true },
+      orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
+      include: { ...imagensOrdenadas, categoria: true, seminovo: true },
+    }),
+  ["produtos-para-kit"],
+  [TAG.produtos],
+);
+
 /** Vitrine de seminovos: só disponíveis (não vendidos). */
-export function getSeminovos() {
-  return db.produto.findMany({
-    where: { ativo: true, seminovo: { is: { vendido: false } } },
-    orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
-    include: { ...imagensOrdenadas, seminovo: true, categoria: true },
-  });
-}
+export const getSeminovos = cachear(
+  () =>
+    db.produto.findMany({
+      where: { ativo: true, seminovo: { is: { vendido: false } } },
+      orderBy: [{ ordem: "asc" }, { criadoEm: "desc" }],
+      include: { ...imagensOrdenadas, seminovo: true, categoria: true },
+    }),
+  ["seminovos"],
+  [TAG.seminovos, TAG.produtos],
+);
 
-export function getServicos() {
-  return db.servico.findMany({
-    where: { ativo: true },
-    orderBy: { ordem: "asc" },
-  });
-}
+export const getServicos = cachear(
+  () =>
+    db.servico.findMany({
+      where: { ativo: true },
+      orderBy: { ordem: "asc" },
+    }),
+  ["servicos"],
+  [TAG.servicos],
+);
 
-export function getServico(slug: string) {
-  return db.servico.findFirst({ where: { slug, ativo: true } });
-}
+export const getServico = cachear(
+  (slug: string) => db.servico.findFirst({ where: { slug, ativo: true } }),
+  ["servico-por-slug"],
+  [TAG.servicos],
+);
 
 export type ProdutoComRelacoes = Awaited<ReturnType<typeof getProduto>>;

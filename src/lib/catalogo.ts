@@ -181,6 +181,35 @@ export async function getCompativeis(
   return itens;
 }
 
+/**
+ * Acessórios compatíveis com um MODELO informado por texto ("iPhone 15").
+ * Service usado pela IA — o assistente pergunta o modelo e sugere acessórios
+ * que servem (declarados no campo compatibilidade) ou universais.
+ */
+export async function acessoriosParaModelo(modelo: string, limite = 8) {
+  const m = modelo.trim();
+  if (!m) return [];
+  return db.produto.findMany({
+    where: {
+      ativo: true,
+      excluidoEm: null,
+      OR: [
+        { compatibilidade: { contains: m, mode: "insensitive" } },
+        { compatibilidade: { contains: "Universal", mode: "insensitive" } },
+      ],
+    },
+    take: limite,
+    orderBy: [{ destaque: "desc" }, { ordem: "asc" }],
+    select: {
+      nome: true,
+      slug: true,
+      preco: true,
+      precoPromo: true,
+      categoria: { select: { nome: true } },
+    },
+  });
+}
+
 /** Itens ativos que alimentam o configurador Monte seu Kit Celular. */
 export function getProdutosParaKit() {
   return db.produto.findMany({

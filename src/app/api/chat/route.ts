@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
-import { getProdutos, type OrdenarProdutos } from "@/lib/catalogo";
+import { acessoriosParaModelo, getProdutos, type OrdenarProdutos } from "@/lib/catalogo";
 import { logger } from "@/lib/core/logger";
 import { formatarPreco, precoVigente } from "@/lib/format";
 import { KYRON_SYSTEM_PROMPT } from "@/lib/kyron/system-prompt";
@@ -118,6 +118,45 @@ const buscarProdutos: Anthropic.Tool = {
     required: [],
   },
 };
+
+const verificarCompatibilidade: Anthropic.Tool = {
+  name: "verificar_compatibilidade",
+  description:
+    "Dado o MODELO do celular da pessoa (ex.: 'iPhone 15', 'iPhone 13'), retorna " +
+    "acessórios REAIS da Kyron que servem nele — capas, películas, carregadores, " +
+    "cabos — com preço e link. Use quando a pessoa tem um aparelho e quer acessório, " +
+    "ou para sugerir um complemento após ela demonstrar interesse num celular. " +
+    "Pergunte o modelo antes, se ainda não souber.",
+  input_schema: {
+    type: "object",
+    properties: {
+      modelo: {
+        type: "string",
+        description: "Modelo do celular. Ex.: 'iPhone 15', 'iPhone 13 Pro'.",
+      },
+    },
+    required: ["modelo"],
+  },
+};
+
+/** Acessórios compatíveis com o modelo, resumido (com URL) para o modelo. */
+async function executarCompatibilidade(input: unknown) {
+  const args = (input ?? {}) as { modelo?: string };
+  const modelo = (args.modelo ?? "").trim();
+  if (!modelo) return { encontrados: 0, acessorios: [] };
+
+  const itens = await acessoriosParaModelo(modelo);
+  const acessorios = itens.map((p) => {
+    const { atual } = precoVigente(p.preco, p.precoPromo);
+    return {
+      nome: p.nome,
+      categoria: p.categoria.nome,
+      preco: formatarPreco(atual),
+      url: `/produtos/${p.slug}`,
+    };
+  });
+  return { modelo, encontrados: acessorios.length, acessorios };
+}
 
 /** Executa a busca e devolve um resumo enxuto (com URL) para o modelo. */
 async function executarBuscaProdutos(input: unknown) {
@@ -249,7 +288,7 @@ export async function POST(request: Request) {
                   cache_control: { type: "ephemeral" },
                 },
               ],
-              tools: [registrarContato, buscarProdutos],
+              tools: [registrarContato, buscarProdutos, verificarCompatibilidade],
               messages,
             },
             { signal: request.signal },
@@ -285,6 +324,16 @@ export async function POST(request: Request) {
 
             if (block.name === "buscar_produtos") {
               const resultado = await executarBuscaProdutos(block.input);
+              toolResults.push({
+                type: "tool_result",
+                tool_use_id: block.id,
+                content: JSON.stringify(resultado),
+              });
+              continue;
+            }
+
+            if (block.name === "verificar_compatibilidade") {
+              const resultado = await executarCompatibilidade(block.input);
               toolResults.push({
                 type: "tool_result",
                 tool_use_id: block.id,

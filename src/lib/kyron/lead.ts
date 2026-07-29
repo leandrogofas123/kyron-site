@@ -85,7 +85,7 @@ export async function deliverLead(
       urgencia: lead.urgencia,
       transcricao: contexto.transcricao,
     });
-    await db.lead.create({
+    const novoLead = await db.lead.create({
       data: {
         nome: lead.nome,
         telefone: lead.telefone ?? null,
@@ -100,6 +100,18 @@ export async function deliverLead(
         score,
       },
     });
+
+    // Integração AI→CRM: a conversa vira o primeiro evento da timeline do lead.
+    if (origem === "chat") {
+      await db.interacao.create({
+        data: {
+          tipo: "chat_ia",
+          conteudo: lead.resumo,
+          leadId: novoLead.id,
+          autorNome: "Assistente Kyron",
+        },
+      });
+    }
   } catch (erro) {
     logger.error("falha ao gravar lead", { erro });
     return {

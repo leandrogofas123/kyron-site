@@ -4,7 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 
 import { auditar } from "../core/audit";
-import { enviarEmail } from "../core/providers/mail";
+import { enviarTemplate } from "../notificacao/servico";
 import { gerarHash, conferirHash } from "../core/security";
 import { db } from "../db";
 import { abrirSessao, encerrarSessaoAtual, encerrarTodasSessoes } from "./sessao";
@@ -137,10 +137,7 @@ export async function acaoCadastrar(_estado: Estado, form: FormData): Promise<Es
   });
 
   // Avisa a loja que há um cadastro para aprovar.
-  enviarEmail({
-    assunto: "Novo cadastro aguardando aprovação — Kyron",
-    html: `<p><strong>${nome}</strong> (${email}) criou uma conta e aguarda liberação de acesso às aulas.</p>`,
-  });
+  void enviarTemplate("novo-cliente", undefined, { nome, email });
 
   redirect("/aulas");
 }
@@ -172,13 +169,7 @@ export async function acaoRecuperarSenha(_estado: Estado, form: FormData): Promi
 
   const base = process.env.APP_URL ?? "https://kyron-site-production.up.railway.app";
   const link = `${base}/redefinir-senha?token=${bruto}`;
-  enviarEmail({
-    para: usuario.email,
-    assunto: "Redefinir sua senha — Kyron",
-    html: `<p>Recebemos um pedido para redefinir sua senha.</p>
-<p><a href="${link}">Clique aqui para criar uma nova senha</a> (válido por 30 minutos).</p>
-<p>Se não foi você, ignore este e-mail.</p>`,
-  });
+  void enviarTemplate("recuperar-senha", usuario.email, { link });
 
   await auditar({
     ator: { tipo: "usuario", id: usuario.id, nome: usuario.nome },

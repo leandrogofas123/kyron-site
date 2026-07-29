@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "../db";
 import { calcularScore } from "../crm";
 import { logger } from "../core/logger";
-import { linhaEmail, notificarPorEmail } from "./notificar";
+import { enviarTemplate } from "../notificacao/servico";
 
 /**
  * Contato capturado pelo agente ou pelo formulário de orçamento.
@@ -43,16 +43,6 @@ export type Lead = z.infer<typeof leadSchema>;
 export type LeadResult =
   | { ok: true; message: string }
   | { ok: false; message: string };
-
-const ROTULO_INTERESSE: Record<string, string> = {
-  apple: "Apple (novos)",
-  seminovos: "iPhone seminovos",
-  "casa-inteligente": "Casa inteligente / automação",
-  "audio-acessorios": "Áudio e acessórios",
-  "assistencia-tecnica": "Assistência técnica",
-  "servico-instalacao": "Serviço / instalação",
-  "nao-definido": "Não definido",
-};
 
 /**
  * Grava o lead no banco (vira card do Kanban) e dispara o e-mail de aviso.
@@ -121,23 +111,17 @@ export async function deliverLead(
     };
   }
 
-  // E-mail de aviso — best effort, não bloqueia.
-  void notificarPorEmail(
-    `Novo lead: ${lead.nome}`,
-    [
-      "<h2>Novo lead pelo site</h2>",
-      linhaEmail("Nome", lead.nome),
-      linhaEmail("WhatsApp/telefone", lead.telefone),
-      linhaEmail("E-mail", lead.email),
-      linhaEmail("Interesse", ROTULO_INTERESSE[lead.interesse] ?? lead.interesse),
-      linhaEmail("Urgência", lead.urgencia),
-      linhaEmail("Perfil", lead.perfil),
-      linhaEmail("Necessidade", lead.resumo),
-      linhaEmail("Origem", contexto.origem),
-    ]
-      .filter(Boolean)
-      .join(""),
-  );
+  // Aviso ao dono — best effort, via NotificationService (fica no histórico).
+  void enviarTemplate("novo-lead", undefined, {
+    nome: lead.nome,
+    telefone: lead.telefone,
+    email: lead.email,
+    interesse: lead.interesse,
+    urgencia: lead.urgencia,
+    perfil: lead.perfil,
+    resumo: lead.resumo,
+    origem: contexto.origem,
+  });
 
   return {
     ok: true,

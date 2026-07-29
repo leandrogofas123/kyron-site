@@ -472,6 +472,25 @@ model Conta {
   @@index([vencimento])
 }
 
+/// Histórico de notificações (módulo Notification). Toda comunicação enviada
+/// pela plataforma passa pelo NotificationService e deixa um registro aqui —
+/// antes os e-mails sumiam no provedor sem rastro.
+model Notificacao {
+  id           Int      @id @default(autoincrement())
+  canal        String   @default("email") // email | whatsapp | sms | push | interno
+  template     String?  // id do template usado (ver notificacao/templates.ts)
+  destinatario String
+  assunto      String?
+  status       String   @default("pendente") // pendente | enviado | falhou
+  provider     String?  // resend | log | ...
+  tentativas   Int      @default(0)
+  erro         String?
+  criadoEm     DateTime @default(now())
+
+  @@index([canal, status])
+  @@index([criadoEm])
+}
+
 model Post {
   id           Int      @id @default(autoincrement())
   slug         String   @unique

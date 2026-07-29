@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { vincularMarca } from "./catalogo-marca";
 import { sessaoValida } from "./admin-auth";
 import { acaoLogout as logoutPlataforma, autenticar } from "./auth/actions";
 import { encerrarSessaoAtual } from "./auth/sessao";
@@ -93,12 +94,16 @@ export async function acaoSalvarProduto(_estado: unknown, form: FormData) {
   const precoPromoRaw = String(form.get("precoPromo") ?? "").trim();
   const precoPromo = precoPromoRaw ? parsePreco(precoPromoRaw) : null;
 
+  const marca = String(form.get("marca") ?? "").trim() || null;
+  const marcaId = await vincularMarca(marca);
+
   const dados = {
     nome,
     categoriaId,
     preco,
     precoPromo: precoPromo && precoPromo > 0 ? precoPromo : null,
-    marca: String(form.get("marca") ?? "").trim() || null,
+    marca,
+    marcaId,
     descricaoCurta: String(form.get("descricaoCurta") ?? "").trim() || null,
     descricaoLonga: String(form.get("descricaoLonga") ?? "").trim() || null,
     compatibilidade: String(form.get("compatibilidade") ?? "").trim() || null,

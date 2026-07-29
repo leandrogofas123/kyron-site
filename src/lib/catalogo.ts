@@ -124,6 +124,63 @@ export function getProduto(slug: string) {
 }
 
 
+/** Token curto de modelo a partir do nome ("iPhone 15 128GB (exemplo)" → "iPhone 15"). */
+function tokenModelo(produto: { modelo?: string | null; nome: string }): string {
+  if (produto.modelo?.trim()) return produto.modelo.trim();
+  return produto.nome
+    .replace(/\(.*?\)/g, " ") // tira "(exemplo)"
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .join(" ");
+}
+
+/**
+ * Produtos compatíveis com um dado produto (módulo Catalog).
+ * Duas direções: acessórios que citam o modelo (ou "Universal") e produtos que
+ * casam com a compatibilidade que ESTE item declara. Fallback: mesma categoria.
+ */
+export async function getCompativeis(
+  produto: { id: number; nome: string; modelo?: string | null; compatibilidade?: string | null; categoriaId: number },
+  limite = 6,
+) {
+  const alvo = tokenModelo(produto);
+  const declarados = (produto.compatibilidade ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s && s.toLowerCase() !== "universal");
+
+  const ou: Array<Record<string, unknown>> = [
+    { compatibilidade: { contains: "Universal", mode: "insensitive" } },
+  ];
+  if (alvo) ou.push({ compatibilidade: { contains: alvo, mode: "insensitive" } });
+  for (const t of declarados) ou.push({ nome: { contains: t, mode: "insensitive" } });
+
+  const base = {
+    take: limite,
+    orderBy: [{ destaque: "desc" as const }, { ordem: "asc" as const }],
+    include: { ...imagensOrdenadas, categoria: true, seminovo: true },
+  };
+
+  let itens = await db.produto.findMany({
+    where: { ativo: true, excluidoEm: null, id: { not: produto.id }, OR: ou },
+    ...base,
+  });
+
+  if (itens.length === 0) {
+    itens = await db.produto.findMany({
+      where: {
+        ativo: true,
+        excluidoEm: null,
+        id: { not: produto.id },
+        categoriaId: produto.categoriaId,
+      },
+      ...base,
+    });
+  }
+  return itens;
+}
+
 /** Itens ativos que alimentam o configurador Monte seu Kit Celular. */
 export function getProdutosParaKit() {
   return db.produto.findMany({

@@ -8,7 +8,7 @@ import { Preco } from "@/components/catalogo/Preco";
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { SelosConfianca } from "@/components/catalogo/SelosConfianca";
 import { Section, SectionHeader } from "@/components/site/Section";
-import { getProduto, getProdutos } from "@/lib/catalogo";
+import { getCompativeis, getProduto } from "@/lib/catalogo";
 import { formatarPreco, precoVigente } from "@/lib/format";
 import { SITE_URL, linkWhatsAppProduto } from "@/lib/kyron/site";
 
@@ -43,11 +43,9 @@ export default async function PaginaProduto({ params }: Props) {
   const { atual } = precoVigente(produto.preco, produto.precoPromo);
   const s = produto.seminovo;
 
-  // Produtos relacionados: mesma categoria, exceto o atual.
-  const { produtos: mesmaCategoria } = await getProdutos({
-    categoria: produto.categoria.slug,
-  });
-  const relacionados = mesmaCategoria.filter((p) => p.id !== produto.id).slice(0, 4);
+  // Produtos compatíveis (acessórios que servem neste item, itens que ele
+  // declara compatíveis, ou — sem match — a mesma categoria).
+  const relacionados = await getCompativeis(produto, 4);
 
   const schema = {
     "@context": "https://schema.org",
@@ -159,7 +157,7 @@ export default async function PaginaProduto({ params }: Props) {
 
       {relacionados.length > 0 && (
         <Section>
-          <SectionHeader eyebrow="Você também pode gostar" titulo={produto.categoria.nome} />
+          <SectionHeader eyebrow="Combina com este produto" titulo="Produtos compatíveis" />
           <ul className="grid-fluida-4">
             {relacionados.map((p) => (
               <li key={p.id}>

@@ -133,6 +133,33 @@ const SERVICOS = [
   },
 ];
 
+// Marca como entidade: a partir dos textos livres já existentes em Produto,
+// cria as marcas e vincula. Idempotente e auto-corretivo a cada deploy.
+async function semearMarcas() {
+  const produtos = await db.produto.findMany({
+    where: { marca: { not: null } },
+    select: { id: true, marca: true, marcaId: true },
+  });
+  let vinculados = 0;
+  for (const p of produtos) {
+    const nome = p.marca?.trim();
+    if (!nome) continue;
+    const s = slug(nome);
+    if (!s) continue;
+    const marca = await db.marca.upsert({
+      where: { slug: s },
+      update: {},
+      create: { slug: s, nome },
+    });
+    if (p.marcaId !== marca.id) {
+      await db.produto.update({ where: { id: p.id }, data: { marcaId: marca.id } });
+      vinculados++;
+    }
+  }
+  const total = await db.marca.count();
+  console.log(`Marcas: ${total} marca(s), ${vinculados} produto(s) vinculado(s).`);
+}
+
 async function main() {
   await semearAuth();
 
@@ -247,6 +274,7 @@ async function main() {
     console.log(
       `Estrutura pronta: ${nCat} categorias, ${nServ} serviços. Fotos de exemplo garantidas.`,
     );
+    await semearMarcas();
     return;
   }
 
@@ -429,6 +457,7 @@ async function main() {
   const nCat = await db.categoria.count();
   const nServ = await db.servico.count();
   console.log(`Pronto: ${nCat} categorias, ${nProd} produtos, ${nServ} serviços.`);
+  await semearMarcas();
 }
 
 main()

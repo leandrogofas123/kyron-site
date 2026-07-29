@@ -38,11 +38,30 @@ model Categoria {
   @@index([parentId])
 }
 
+/// Marca comercial (Apple, JBL, Intelbras…). Antes era texto livre em Produto;
+/// virou entidade para dar filtro por marca, página de marca e consistência
+/// ("Apple" e "apple" deixam de ser marcas diferentes). O texto `marca` de
+/// Produto continua existindo como rótulo de exibição/fallback.
+model Marca {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  nome      String
+  logo      String?
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+  produtos  Produto[]
+
+  @@index([ativo])
+}
+
 model Produto {
   id               Int      @id @default(autoincrement())
   slug             String   @unique
   nome             String
   marca            String?
+  marcaId          Int?
+  marcaRef         Marca?   @relation(fields: [marcaId], references: [id])
   // Centavos. precoPromo, quando presente, é o preço vigente.
   preco            Int
   precoPromo       Int?
@@ -94,6 +113,7 @@ model Produto {
   @@index([fornecedorId])
   @@index([excluidoEm])
   @@index([nome])
+  @@index([marcaId])
 }
 
 model ProdutoImagem {

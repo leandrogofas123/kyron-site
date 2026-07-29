@@ -431,6 +431,47 @@ model TokenAcesso {
 // Conteúdo do Manual de Instalação. Um modelo cobre os dois casos:
 //  - Post público (novidades/informações): restrito=false, sem vídeo.
 //  - Aula em vídeo: youtubeId preenchido; restrito=true exige login aprovado.
+/// Lançamento do fluxo de caixa (módulo Financeiro). LEDGER IMUTÁVEL: nunca
+/// editar nem excluir — corrige-se com um novo lançamento. O saldo é sempre
+/// derivado da soma (entrada − saída).
+model Lancamento {
+  id          Int      @id @default(autoincrement())
+  tipo        String   // entrada | saida
+  valor       Int      // centavos, sempre positivo
+  categoria   String?  // rótulo do plano de contas (ver financeiro/plano.ts)
+  descricao   String
+  forma       String?  // pix | cartao | dinheiro | boleto | transferencia
+  data        DateTime @default(now())
+  contaId     Int?     // veio da baixa de uma Conta?
+  usuarioId   Int?
+  usuarioNome String?
+  criadoEm    DateTime @default(now())
+
+  @@index([data])
+  @@index([tipo])
+  @@index([categoria])
+}
+
+/// Conta a pagar ou a receber (módulo Financeiro). Ao dar baixa (status pago),
+/// gera um Lançamento no caixa — o ledger continua sendo a verdade do saldo.
+model Conta {
+  id           Int      @id @default(autoincrement())
+  tipo         String   // pagar | receber
+  descricao    String
+  valor        Int      // centavos
+  categoria    String?
+  vencimento   DateTime
+  status       String   @default("aberto") // aberto | pago | cancelado
+  pagoEm       DateTime?
+  forma        String?
+  fornecedorId Int?     // vínculo leve (sem FK) — origem opcional
+  clienteId    Int?
+  criadoEm     DateTime @default(now())
+
+  @@index([tipo, status])
+  @@index([vencimento])
+}
+
 model Post {
   id           Int      @id @default(autoincrement())
   slug         String   @unique

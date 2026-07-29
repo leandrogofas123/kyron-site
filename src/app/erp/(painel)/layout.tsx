@@ -20,6 +20,7 @@ const NAV = [
   { label: "Notas fiscais", href: "/erp/notas", acao: "notas.ver" },
   { label: "Fornecedores", href: "/erp/fornecedores", acao: "fornecedores.ver" },
   { label: "Clientes", href: "/erp/clientes", acao: "clientes.ver" },
+  { label: "Financeiro", href: "/erp/financeiro", acao: "financeiro" },
   { label: "Colaboradores", href: "/erp/colaboradores", acao: "colaboradores.ver" },
   { label: "Auditoria", href: "/erp/auditoria", acao: "auditoria.ver" },
 ];

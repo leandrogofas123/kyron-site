@@ -33,6 +33,7 @@ const PERMISSOES: Record<Papel, string[]> = {
     "fornecedores.editar",
     "clientes.ver",
     "clientes.editar",
+    "financeiro",
   ],
   vendedor: [
     "dashboard",

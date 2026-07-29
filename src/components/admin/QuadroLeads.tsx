@@ -14,6 +14,7 @@ export type LeadKanban = {
   mensagem: string | null;
   criadoEm: string;
   status: string;
+  score: number;
 };
 
 const COLUNAS = [
@@ -22,6 +23,13 @@ const COLUNAS = [
   { id: "vendido", label: "Vendido" },
   { id: "perdido", label: "Perdido" },
 ] as const;
+
+/** Cor do selo de score (mesma régua do faixaScore no servidor). */
+function corScore(score: number): string {
+  if (score >= 70) return "border-[var(--kyron-blue-line)] text-kyron-blue";
+  if (score >= 40) return "border-[var(--kyron-hairline-strong)] text-kyron-silver";
+  return "border-[var(--kyron-hairline)] text-kyron-silver/50";
+}
 
 function linkWhats(tel: string | null): string | null {
   if (!tel) return null;
@@ -43,7 +51,9 @@ export function QuadroLeads({ leads: iniciais }: { leads: LeadKanban[] }) {
   return (
     <div className="grid gap-fluid-sm md:grid-cols-2 xl:grid-cols-4">
       {COLUNAS.map((col) => {
-        const cards = leads.filter((l) => l.status === col.id);
+        const cards = leads
+          .filter((l) => l.status === col.id)
+          .sort((a, b) => b.score - a.score);
         return (
           <div
             key={col.id}
@@ -90,9 +100,17 @@ export function QuadroLeads({ leads: iniciais }: { leads: LeadKanban[] }) {
                     }}
                     className="cursor-grab rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-sm active:cursor-grabbing"
                   >
-                    <p className="text-fluid-sm font-semibold text-kyron-white">
-                      {l.nome}
-                    </p>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="min-w-0 truncate text-fluid-sm font-semibold text-kyron-white">
+                        {l.nome}
+                      </p>
+                      <span
+                        title="Score do lead (0-100)"
+                        className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[0.65rem] leading-none ${corScore(l.score)}`}
+                      >
+                        {l.score}
+                      </span>
+                    </div>
                     <p className="text-fluid-2xs text-kyron-silver/55">
                       {l.criadoEm} · {l.origem}
                       {l.interesse && l.interesse !== "nao-definido"

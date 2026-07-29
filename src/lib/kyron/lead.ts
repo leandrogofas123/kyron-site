@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { db } from "../db";
+import { calcularScore } from "../crm";
 import { logger } from "../core/logger";
 import { linhaEmail, notificarPorEmail } from "./notificar";
 
@@ -75,18 +76,28 @@ export async function deliverLead(
   }
 
   try {
+    const origem = contexto.origem ?? "chat";
+    const score = calcularScore({
+      telefone: lead.telefone,
+      email: lead.email,
+      origem,
+      interesse: lead.interesse,
+      urgencia: lead.urgencia,
+      transcricao: contexto.transcricao,
+    });
     await db.lead.create({
       data: {
         nome: lead.nome,
         telefone: lead.telefone ?? null,
         email: lead.email ?? null,
-        origem: contexto.origem ?? "chat",
+        origem,
         referenciaId: contexto.referenciaId ?? null,
         interesse: lead.interesse,
         urgencia: lead.urgencia ?? null,
         perfil: lead.perfil ?? null,
         mensagem: lead.resumo,
         transcricao: contexto.transcricao ?? null,
+        score,
       },
     });
   } catch (erro) {

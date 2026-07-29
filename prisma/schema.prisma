@@ -317,6 +317,7 @@ model ClienteErp {
   criadoEm    DateTime @default(now())
 
   movimentacoes MovimentacaoEstoque[]
+  interacoes    Interacao[]
 
   @@index([nome])
   @@index([telefone])
@@ -433,8 +434,32 @@ model Lead {
   mensagem     String?
   transcricao  String?  // conversa do chat, quando houver
   status       String   @default("novo")  // novo | respondido | vendido | perdido
+  score        Int      @default(0)        // 0-100, triagem automática (ver crm.ts)
   criadoEm     DateTime @default(now())
 
+  interacoes   Interacao[]
+
   @@index([status])
+  @@index([criadoEm])
+  @@index([score])
+}
+
+/// Interação tipada com um lead ou cliente (módulo CRM). É o átomo da timeline:
+/// WhatsApp enviado, ligação, visita, observação. Vendas e garantias já vivem no
+/// ledger de estoque; a timeline unifica os dois na hora de exibir.
+model Interacao {
+  id         Int      @id @default(autoincrement())
+  tipo       String   // whatsapp | ligacao | visita | email | chat_ia | loja | suporte | observacao
+  conteudo   String?
+  leadId     Int?
+  lead       Lead?       @relation(fields: [leadId], references: [id])
+  clienteId  Int?
+  cliente    ClienteErp? @relation(fields: [clienteId], references: [id])
+  autorId    Int?     // Usuario que registrou
+  autorNome  String?
+  criadoEm   DateTime @default(now())
+
+  @@index([leadId])
+  @@index([clienteId])
   @@index([criadoEm])
 }

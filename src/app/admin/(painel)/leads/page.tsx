@@ -26,6 +26,7 @@ export default async function AdminLeads() {
     mensagem: l.mensagem,
     criadoEm: quando(l.criadoEm),
     status: l.status,
+    score: l.score,
   }));
 
   return (

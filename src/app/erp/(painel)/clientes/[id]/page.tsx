@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RegistrarInteracao } from "@/components/erp/RegistrarInteracao";
+import { timelineCliente } from "@/lib/crm";
 import { formatarPreco } from "@/lib/format";
 import { historicoCliente, obterCliente } from "@/lib/erp/clientes";
-import { rotuloTipo } from "@/lib/erp/estoque";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,10 @@ export default async function FichaCliente({
   const clienteId = Number(id);
   if (!Number.isInteger(clienteId)) notFound();
 
-  const [cliente, historico] = await Promise.all([
+  const [cliente, historico, timeline] = await Promise.all([
     obterCliente(clienteId),
     historicoCliente(clienteId),
+    timelineCliente(clienteId),
   ]);
   if (!cliente) notFound();
 
@@ -35,7 +37,6 @@ export default async function FichaCliente({
     (s, c) => s + c.produto.preco * c.quantidade,
     0,
   );
-  const agora = new Date();
 
   return (
     <>
@@ -54,52 +55,52 @@ export default async function FichaCliente({
       <div className="mb-fluid-xl grid gap-fluid-sm sm:grid-cols-3">
         <Cartao rotulo="Compras" valor={String(compras.length)} />
         <Cartao rotulo="Total em compras" valor={formatarPreco(totalGasto)} />
-        <Cartao rotulo="Interações" valor={String(historico.length)} />
+        <Cartao rotulo="Eventos" valor={String(timeline.length)} />
       </div>
 
       <h2 className="kyron-label mb-fluid-sm text-fluid-2xs text-kyron-silver/70">
-        Histórico
+        Linha do tempo
       </h2>
 
-      {historico.length === 0 ? (
+      <RegistrarInteracao clienteId={clienteId} />
+
+      {timeline.length === 0 ? (
         <p className="text-fluid-sm text-kyron-silver/60">
-          Nenhuma movimentação vinculada a este cliente ainda. Ao registrar uma
-          venda em <Link href="/erp/estoque" className="text-kyron-blue hover:underline">Estoque</Link>,
-          selecione o cliente para montar o histórico.
+          Nada por aqui ainda. Registre uma interação acima, ou vincule uma venda
+          a este cliente em{" "}
+          <Link href="/erp/estoque" className="text-kyron-blue hover:underline">
+            Estoque
+          </Link>{" "}
+          para montar a linha do tempo.
         </p>
       ) : (
         <ol className="space-y-fluid-2xs">
-          {historico.map((h) => {
-            const vencida = h.garantiaAte ? h.garantiaAte < agora : false;
-            return (
-              <li
-                key={h.id}
-                className="rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <Link
-                    href={`/erp/produtos/${h.produto.id}`}
-                    className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-                  >
-                    {h.produto.nome}
-                  </Link>
-                  <span className="shrink-0 text-fluid-2xs text-kyron-silver">
-                    {rotuloTipo(h.tipo)} · {h.quantidade} un. · {data(h.criadoEm)}
-                  </span>
-                </div>
+          {timeline.map((e, i) => (
+            <li
+              key={i}
+              className="rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span
+                  className={`text-fluid-sm ${
+                    e.tipo === "venda"
+                      ? "text-kyron-blue"
+                      : "text-kyron-white"
+                  }`}
+                >
+                  {e.titulo}
+                </span>
+                <span className="shrink-0 text-fluid-2xs text-kyron-silver">
+                  {data(e.data)}
+                </span>
+              </div>
+              {(e.detalhe || e.autor) && (
                 <p className="text-fluid-2xs text-kyron-silver/60">
-                  {h.usuario ? `${h.usuario.nome}` : ""}
-                  {h.documento ? ` · ${h.documento}` : ""}
-                  {h.garantiaAte && (
-                    <span className={vencida ? "" : "text-kyron-blue"}>
-                      {h.usuario || h.documento ? " · " : ""}
-                      garantia {vencida ? "venceu" : "até"} {data(h.garantiaAte)}
-                    </span>
-                  )}
+                  {[e.detalhe, e.autor].filter(Boolean).join(" · ")}
                 </p>
-              </li>
-            );
-          })}
+              )}
+            </li>
+          ))}
         </ol>
       )}
     </>

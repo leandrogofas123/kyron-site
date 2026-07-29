@@ -55,6 +55,30 @@ model Marca {
   @@index([ativo])
 }
 
+/// Aparelho individual (módulo ERP — IMEI/Número de Série).
+/// Uma linha por UNIDADE física. Enquanto MovimentacaoEstoque conta quantidade,
+/// aqui cada aparelho é rastreado por IMEI/serial: qual unidade foi vendida a
+/// quem, garantia e status. Essencial para Apple (novos e seminovos).
+model Aparelho {
+  id            Int      @id @default(autoincrement())
+  produtoId     Int
+  produto       Produto  @relation(fields: [produtoId], references: [id])
+  imei          String?  @unique
+  serial        String?  @unique
+  status        String   @default("estoque") // estoque | vendido | assistencia | devolvido | perdido
+  clienteId     Int?
+  cliente       ClienteErp? @relation(fields: [clienteId], references: [id])
+  garantiaAte   DateTime?
+  localizacao   String?
+  observacoes   String?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  @@index([produtoId])
+  @@index([status])
+  @@index([clienteId])
+}
+
 model Produto {
   id               Int      @id @default(autoincrement())
   slug             String   @unique
@@ -62,6 +86,7 @@ model Produto {
   marca            String?
   marcaId          Int?
   marcaRef         Marca?   @relation(fields: [marcaId], references: [id])
+  aparelhos        Aparelho[]
   // Centavos. precoPromo, quando presente, é o preço vigente.
   preco            Int
   precoPromo       Int?
@@ -318,6 +343,7 @@ model ClienteErp {
 
   movimentacoes MovimentacaoEstoque[]
   interacoes    Interacao[]
+  aparelhos     Aparelho[]
 
   @@index([nome])
   @@index([telefone])

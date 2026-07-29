@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { GerenciarAparelhos } from "@/components/erp/GerenciarAparelhos";
 import { ProdutoErpForm } from "@/components/erp/ProdutoErpForm";
+import { aparelhosDoProduto } from "@/lib/erp/aparelhos";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { historicoProduto, rotuloTipo } from "@/lib/erp/estoque";
 import { categoriasParaSelecao, listarFornecedores, obterProduto } from "@/lib/erp/produtos";
@@ -27,13 +29,15 @@ export default async function ProdutoErpDetalhe({
   const produtoId = Number(id);
   if (!Number.isInteger(produtoId)) notFound();
 
-  const [eu, produto, categorias, fornecedores, historico] = await Promise.all([
-    colaboradorLogado(),
-    obterProduto(produtoId),
-    categoriasParaSelecao(),
-    listarFornecedores(),
-    historicoProduto(produtoId),
-  ]);
+  const [eu, produto, categorias, fornecedores, historico, aparelhos] =
+    await Promise.all([
+      colaboradorLogado(),
+      obterProduto(produtoId),
+      categoriasParaSelecao(),
+      listarFornecedores(),
+      historicoProduto(produtoId),
+      aparelhosDoProduto(produtoId),
+    ]);
 
   if (!produto) notFound();
   const podeEditar = eu ? podeFazer(eu.papel, "produtos.editar") : false;
@@ -91,6 +95,21 @@ export default async function ProdutoErpDetalhe({
               Você tem permissão apenas para consultar este produto.
             </p>
           )}
+
+          <div className="mt-fluid-xl">
+            <GerenciarAparelhos
+              produtoId={produto.id}
+              podeEditar={podeEditar}
+              aparelhos={aparelhos.map((a) => ({
+                id: a.id,
+                imei: a.imei,
+                serial: a.serial,
+                status: a.status,
+                localizacao: a.localizacao,
+                cliente: a.cliente ? { id: a.cliente.id, nome: a.cliente.nome } : null,
+              }))}
+            />
+          </div>
         </div>
 
         <aside>

@@ -29,7 +29,7 @@ export async function movimentarEstoque(dados: {
   motivo?: string | null;
   documento?: string | null;
   observacao?: string | null;
-  colaboradorId?: number | null;
+  usuarioId?: number | null;
   notaId?: number | null;
   clienteId?: number | null;
 }): Promise<ResultadoMovimentacao> {
@@ -75,7 +75,7 @@ export async function movimentarEstoque(dados: {
           motivo: dados.motivo?.trim() || null,
           documento: dados.documento?.trim() || null,
           observacao: dados.observacao?.trim() || null,
-          colaboradorId: dados.colaboradorId ?? null,
+          usuarioId: dados.usuarioId ?? null,
           notaId: dados.notaId ?? null,
           clienteId: dados.clienteId ?? null,
         },
@@ -102,7 +102,7 @@ export function historicoProduto(produtoId: number, limite = 50) {
     where: { produtoId },
     orderBy: { criadoEm: "desc" },
     take: limite,
-    include: { colaborador: { select: { nome: true } } },
+    include: { usuario: { select: { nome: true } } },
   });
 }
 
@@ -113,7 +113,7 @@ export function movimentacoesRecentes(limite = 60) {
     take: limite,
     include: {
       produto: { select: { id: true, nome: true } },
-      colaborador: { select: { nome: true } },
+      usuario: { select: { nome: true } },
     },
   });
 }

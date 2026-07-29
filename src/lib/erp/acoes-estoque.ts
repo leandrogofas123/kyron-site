@@ -144,7 +144,7 @@ export async function acaoMovimentar(_estado: Estado, form: FormData) {
     motivo: texto(form, "motivo"),
     documento: texto(form, "documento"),
     observacao: texto(form, "observacao"),
-    colaboradorId: eu.id,
+    usuarioId: eu.id,
     clienteId: clienteId && clienteId > 0 ? clienteId : null,
   });
 

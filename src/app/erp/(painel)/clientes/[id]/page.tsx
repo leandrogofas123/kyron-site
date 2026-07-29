@@ -88,11 +88,11 @@ export default async function FichaCliente({
                   </span>
                 </div>
                 <p className="text-fluid-2xs text-kyron-silver/60">
-                  {h.colaborador ? `${h.colaborador.nome}` : ""}
+                  {h.usuario ? `${h.usuario.nome}` : ""}
                   {h.documento ? ` · ${h.documento}` : ""}
                   {h.garantiaAte && (
                     <span className={vencida ? "" : "text-kyron-blue"}>
-                      {h.colaborador || h.documento ? " · " : ""}
+                      {h.usuario || h.documento ? " · " : ""}
                       garantia {vencida ? "venceu" : "até"} {data(h.garantiaAte)}
                     </span>
                   )}

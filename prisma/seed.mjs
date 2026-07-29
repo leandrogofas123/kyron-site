@@ -9,9 +9,69 @@
 // Os produtos de exemplo têm preço fictício e NÃO têm foto — servem só para o
 // dono ver o layout. Ele substitui tudo pelo painel admin.
 
+import { randomBytes, scryptSync } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
+
+function gerarHash(senha) {
+  const salt = randomBytes(16).toString("hex");
+  return `${salt}:${scryptSync(senha, salt, 64).toString("hex")}`;
+}
+
+// Papéis da plataforma (módulo auth). Idempotente.
+const PAPEIS = [
+  ["ADMIN_MASTER", "Administrador master", 0],
+  ["ADMIN", "Administrador", 10],
+  ["GERENTE", "Gerente", 20],
+  ["VENDEDOR", "Vendedor", 30],
+  ["TECNICO", "Técnico", 30],
+  ["FINANCEIRO", "Financeiro", 30],
+  ["SUPORTE", "Suporte", 40],
+  ["CLIENTE", "Cliente", 90],
+];
+
+async function semearAuth() {
+  console.log("Semeando papéis e admin master…");
+  for (const [chave, nome, nivel] of PAPEIS) {
+    await db.papel.upsert({
+      where: { chave },
+      update: { nome, nivel },
+      create: { chave, nome, nivel },
+    });
+  }
+
+  // Garante o admin master a partir das variáveis de ambiente. Nunca sobrescreve
+  // a senha de um usuário já existente (para não desfazer troca de senha).
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const senha = process.env.ADMIN_PASSWORD;
+  if (!email || !senha) {
+    console.log("  ADMIN_EMAIL/ADMIN_PASSWORD ausentes — admin master não semeado.");
+    return;
+  }
+  const master = await db.papel.findUnique({ where: { chave: "ADMIN_MASTER" } });
+  let dono = await db.usuario.findUnique({ where: { email } });
+  if (!dono) {
+    dono = await db.usuario.create({
+      data: {
+        nome: "Administrador",
+        email,
+        senhaHash: gerarHash(senha),
+        ativo: true,
+        aprovado: true,
+        emailVerificado: true,
+      },
+    });
+    console.log("  admin master criado.");
+  }
+  if (master) {
+    await db.usuarioPapel.upsert({
+      where: { usuarioId_papelId: { usuarioId: dono.id, papelId: master.id } },
+      update: {},
+      create: { usuarioId: dono.id, papelId: master.id },
+    });
+  }
+}
 
 function slug(t) {
   return t
@@ -74,6 +134,8 @@ const SERVICOS = [
 ];
 
 async function main() {
+  await semearAuth();
+
   console.log("Semeando categorias…");
   const idPorSlug = {};
 

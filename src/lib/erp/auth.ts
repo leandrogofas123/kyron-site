@@ -1,29 +1,24 @@
 import "server-only";
 
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
-
-import { db } from "../db";
+import { conferirHash, gerarHash } from "../core/security";
+import { abrirSessao, encerrarSessaoAtual } from "../auth/sessao";
+import { usuarioAtual } from "../auth/service";
 
 /**
- * Autenticação e permissões (RBAC) do ERP.
+ * Compatibilidade do ERP com o módulo AUTH unificado.
  *
- * Colaboradores têm papel: admin | gerente | vendedor | tecnico.
- * A sessão é um cookie httpOnly assinado (HMAC); o papel é sempre lido do
- * banco a cada acesso, então revogar/alterar permissão é instantâneo.
+ * Antes este arquivo tinha seu próprio cookie (kyron_erp), hash e RBAC. Agora
+ * ele apenas TRADUZ a sessão única (kyron_session / Usuario / papéis) para o
+ * formato que as telas e ações do ERP já esperam — assim nenhuma delas precisou
+ * mudar. A política de acesso do ERP (o que cada papel faz) continua definida
+ * aqui, em termos das ações internas do ERP.
  */
 
-const COOKIE = "kyron_erp";
-const DURACAO_MS = 1000 * 60 * 60 * 12; // 12 horas
-
+// Papéis do ERP no formato antigo. Mantido para os formulários/validações que
+// já existem; o mapa novo→antigo abaixo faz a ponte.
 export const PAPEIS = ["admin", "gerente", "vendedor", "tecnico"] as const;
 export type Papel = (typeof PAPEIS)[number];
 
-/**
- * O que cada papel pode fazer. Regra única, usada em telas e ações.
- * "colaboradores.*" (conceder acesso a outras pessoas) é exclusivo do admin
- * master — nenhum outro papel recebe essa ação.
- */
 const PERMISSOES: Record<Papel, string[]> = {
   admin: ["*"],
   gerente: [
@@ -56,43 +51,45 @@ export function podeFazer(papel: string, acao: string): boolean {
   return lista.includes("*") || lista.includes(acao);
 }
 
-function segredo(): string {
-  const s = process.env.ADMIN_SECRET;
-  if (!s) throw new Error("ADMIN_SECRET ausente");
-  return s;
+/** Papel unificado (ADMIN_MASTER…) → papel do ERP (admin…). */
+export function papelErpDaLista(papeis: string[]): Papel | null {
+  if (papeis.includes("ADMIN_MASTER") || papeis.includes("ADMIN")) return "admin";
+  if (papeis.includes("GERENTE")) return "gerente";
+  if (papeis.includes("VENDEDOR")) return "vendedor";
+  if (papeis.includes("TECNICO")) return "tecnico";
+  return null; // sem papel de equipe → sem acesso ao ERP
 }
 
-function assinar(payload: string): string {
-  return createHmac("sha256", segredo()).update(payload).digest("hex");
-}
+/** Papel do ERP (admin…) → chave unificada (ADMIN…) ao gravar. */
+export const CHAVE_UNIFICADA: Record<Papel, string> = {
+  admin: "ADMIN",
+  gerente: "GERENTE",
+  vendedor: "VENDEDOR",
+  tecnico: "TECNICO",
+};
 
-export function hashSenha(senha: string): string {
-  const salt = randomBytes(16).toString("hex");
-  return `${salt}:${scryptSync(senha, salt, 64).toString("hex")}`;
-}
+/** Papéis de equipe (dão acesso ao ERP) — o resto é cliente das aulas. */
+export const CHAVES_EQUIPE = [
+  "ADMIN_MASTER",
+  "ADMIN",
+  "GERENTE",
+  "VENDEDOR",
+  "TECNICO",
+  "FINANCEIRO",
+  "SUPORTE",
+];
 
-export function senhaConfere(senha: string, armazenado: string): boolean {
-  const [salt, hashHex] = armazenado.split(":");
-  if (!salt || !hashHex) return false;
-  const esperado = Buffer.from(hashHex, "hex");
-  const tentativa = scryptSync(senha, salt, 64);
-  return esperado.length === tentativa.length && timingSafeEqual(esperado, tentativa);
-}
+// Hash: delega ao core. Mantido exportado porque ações antigas ainda importam.
+export const hashSenha = gerarHash;
+export const senhaConfere = conferirHash;
 
-export async function criarSessaoErp(colaboradorId: number): Promise<void> {
-  const expira = Date.now() + DURACAO_MS;
-  const payload = `${colaboradorId}.${expira}`;
-  (await cookies()).set(COOKIE, `${payload}.${assinar(payload)}`, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: DURACAO_MS / 1000,
-  });
+/** Abre a sessão única para um usuário (id de Usuario). */
+export async function criarSessaoErp(usuarioId: number): Promise<void> {
+  await abrirSessao(usuarioId);
 }
 
 export async function encerrarSessaoErp(): Promise<void> {
-  (await cookies()).delete(COOKIE);
+  await encerrarSessaoAtual();
 }
 
 export type ColaboradorSessao = {
@@ -102,40 +99,19 @@ export type ColaboradorSessao = {
   papel: string;
 };
 
-/** Colaborador logado (lido do banco) ou null. */
+/**
+ * "Colaborador logado" no formato antigo, derivado da sessão única.
+ * Só retorna se o usuário tiver papel de equipe (não-cliente).
+ */
 export async function colaboradorLogado(): Promise<ColaboradorSessao | null> {
-  if (!process.env.ADMIN_SECRET) return null;
-  const token = (await cookies()).get(COOKIE)?.value;
-  if (!token) return null;
-
-  const partes = token.split(".");
-  if (partes.length !== 3) return null;
-  const [idStr, expiraStr, assinatura] = partes;
-
-  let esperada: string;
-  try {
-    esperada = assinar(`${idStr}.${expiraStr}`);
-  } catch {
-    return null;
-  }
-  const a = Buffer.from(assinatura);
-  const b = Buffer.from(esperada);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-
-  const expira = Number(expiraStr);
-  if (!Number.isFinite(expira) || expira < Date.now()) return null;
-
-  const id = Number(idStr);
-  if (!Number.isInteger(id)) return null;
-
-  const c = await db.colaborador.findFirst({
-    where: { id, ativo: true },
-    select: { id: true, nome: true, email: true, papel: true },
-  });
-  return c ?? null;
+  const u = await usuarioAtual();
+  if (!u) return null;
+  const papel = papelErpDaLista(u.papeis);
+  if (!papel) return null;
+  return { id: u.id, nome: u.nome, email: u.email, papel };
 }
 
-/** Garante sessão + permissão em Server Actions. Lança se não puder. */
+/** Garante sessão + permissão em Server Actions do ERP. */
 export async function exigirPermissao(acao: string): Promise<ColaboradorSessao> {
   const c = await colaboradorLogado();
   if (!c) throw new Error("Não autorizado.");

@@ -1,104 +1,38 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
+import { encerrarSessaoAtual } from "./auth/sessao";
+import { temPermissao, usuarioAtual } from "./auth/service";
 
 /**
- * Autenticação do painel admin.
+ * Compatibilidade do painel admin com o módulo AUTH unificado.
  *
- * Loja de um dono só — não precisa de tabela de usuários. Uma senha
- * (ADMIN_PASSWORD) e um segredo para assinar o cookie (ADMIN_SECRET).
- *
- * O cookie guarda um token assinado (HMAC), não a senha. httpOnly, então
- * JavaScript da página não lê. Sem ADMIN_PASSWORD configurada, o login sempre
- * falha — melhor admin desativado do que senha padrão.
+ * Antes: uma senha no .env e um cookie próprio (kyron_admin). Agora o acesso ao
+ * painel é apenas uma PERMISSÃO ("admin.painel") de um usuário da plataforma —
+ * o mesmo login do ERP e das aulas. As telas do admin não mudaram: continuam
+ * chamando `sessaoValida()`.
  */
 
-const COOKIE = "kyron_admin";
-const DURACAO_MS = 1000 * 60 * 60 * 12; // 12 horas
-
-function segredo(): string | null {
-  return process.env.ADMIN_SECRET ?? null;
+/** Há usuário logado com permissão de painel administrativo. */
+export async function sessaoValida(): Promise<boolean> {
+  return temPermissao("admin.painel");
 }
 
-function assinar(payload: string): string {
-  const s = segredo();
-  if (!s) throw new Error("ADMIN_SECRET ausente");
-  return createHmac("sha256", s).update(payload).digest("hex");
+export async function encerrarSessao(): Promise<void> {
+  await encerrarSessaoAtual();
 }
 
-/** Confere a senha em tempo constante (evita ataque de timing). */
-export function senhaConfere(tentativa: string): boolean {
-  const real = process.env.ADMIN_PASSWORD;
-  if (!real) return false;
-  const a = Buffer.from(tentativa);
-  const b = Buffer.from(real);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
-/** Confere o e-mail de login (sem diferenciar maiúsculas/espaços). */
-export function emailConfere(tentativa: string): boolean {
-  const real = process.env.ADMIN_EMAIL;
-  if (!real) return false;
-  return tentativa.trim().toLowerCase() === real.trim().toLowerCase();
-}
-
-/** E-mail cadastrado para exibir no formulário (nunca a senha). */
+/** E-mail para pré-preencher o formulário de login (nunca a senha). */
 export function emailAdmin(): string | null {
   return process.env.ADMIN_EMAIL ?? null;
 }
 
-export async function criarSessao(): Promise<void> {
-  const expira = Date.now() + DURACAO_MS;
-  const payload = `admin.${expira}`;
-  const token = `${payload}.${assinar(payload)}`;
-
-  (await cookies()).set(COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: DURACAO_MS / 1000,
-  });
-}
-
-export async function encerrarSessao(): Promise<void> {
-  (await cookies()).delete(COOKIE);
-}
-
-/** true se há sessão válida e não expirada. */
-export async function sessaoValida(): Promise<boolean> {
-  if (!segredo() || !process.env.ADMIN_PASSWORD) return false;
-
-  const token = (await cookies()).get(COOKIE)?.value;
-  if (!token) return false;
-
-  const partes = token.split(".");
-  if (partes.length !== 3) return false;
-  const [prefixo, expiraStr, assinatura] = partes;
-  const payload = `${prefixo}.${expiraStr}`;
-
-  let esperada: string;
-  try {
-    esperada = assinar(payload);
-  } catch {
-    return false;
-  }
-
-  const a = Buffer.from(assinatura);
-  const b = Buffer.from(esperada);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
-
-  const expira = Number(expiraStr);
-  return Number.isFinite(expira) && expira > Date.now();
-}
-
-/** Diz se o admin foi configurado (e-mail + senha + segredo presentes). */
+/** O cookie ainda é assinado com ADMIN_SECRET; sem ele, não há login. */
 export function adminConfigurado(): boolean {
-  return Boolean(
-    process.env.ADMIN_EMAIL &&
-      process.env.ADMIN_PASSWORD &&
-      process.env.ADMIN_SECRET,
-  );
+  return Boolean(process.env.ADMIN_SECRET);
+}
+
+/** Nome de quem está logado, para o cabeçalho do painel. */
+export async function nomeAdmin(): Promise<string | null> {
+  const u = await usuarioAtual();
+  return u?.nome ?? null;
 }

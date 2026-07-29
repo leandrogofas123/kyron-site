@@ -3,13 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import {
-  criarSessao,
-  emailConfere,
-  encerrarSessao,
-  senhaConfere,
-  sessaoValida,
-} from "./admin-auth";
+import { sessaoValida } from "./admin-auth";
+import { acaoLogout as logoutPlataforma, autenticar } from "./auth/actions";
+import { encerrarSessaoAtual } from "./auth/sessao";
 import { auditar } from "./core/audit";
 import { db } from "./db";
 import { gerarSlug, parsePreco } from "./format";
@@ -60,19 +56,18 @@ async function slugUnicoPost(titulo: string, ignorarId?: number): Promise<string
 // ─────────────────────────── Autenticação ───────────────────────────
 
 export async function acaoLogin(_estado: unknown, form: FormData) {
-  const email = String(form.get("email") ?? "");
-  const senha = String(form.get("senha") ?? "");
-  // Mensagem única para e-mail ou senha errados — não revela qual falhou.
-  if (!emailConfere(email) || !senhaConfere(senha)) {
-    return { erro: "E-mail ou senha incorretos." };
+  const r = await autenticar(form);
+  if ("erro" in r) return r;
+  // Autenticou, mas sem permissão de painel: encerra a sessão e avisa.
+  if (!(await sessaoValida())) {
+    await encerrarSessaoAtual();
+    return { erro: "Este acesso não tem permissão para o painel." };
   }
-  await criarSessao();
   redirect("/admin/produtos");
 }
 
 export async function acaoLogout() {
-  await encerrarSessao();
-  redirect("/admin/login");
+  await logoutPlataforma("/admin/login");
 }
 
 // ──────────────────────────── Produtos ──────────────────────────────

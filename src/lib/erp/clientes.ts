@@ -47,7 +47,7 @@ export async function historicoCliente(clienteId: number) {
     take: 100,
     include: {
       produto: { select: { id: true, nome: true, garantiaMeses: true, preco: true } },
-      colaborador: { select: { nome: true } },
+      usuario: { select: { nome: true } },
     },
   });
 

@@ -222,8 +222,12 @@ model MovimentacaoEstoque {
 
   produtoId     Int
   produto       Produto  @relation(fields: [produtoId], references: [id])
+  // colaboradorId: legado do auth antigo. Mantido durante a migração para o
+  // código no ar não quebrar; removido depois que tudo usar usuarioId.
   colaboradorId Int?
   colaborador   Colaborador? @relation(fields: [colaboradorId], references: [id])
+  usuarioId     Int?
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id])
   notaId        Int?
   nota          NotaFiscal?  @relation(fields: [notaId], references: [id])
   // Venda/troca/assistência podem ser atribuídas a um cliente — é o que
@@ -298,17 +302,83 @@ model ClienteErp {
   @@index([telefone])
 }
 
-// Cliente com acesso às aulas restritas do Manual de Instalação.
-// Cadastro é aberto, mas o acesso só é liberado após o admin aprovar.
+/// Usuário ÚNICO da plataforma (módulo auth).
+/// Substitui os três sistemas antigos: admin da loja (env), cliente das aulas e
+/// colaborador do ERP. Um login, um cookie, papéis definindo o que cada um vê.
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  email     String   @unique
-  senhaHash String                       // scrypt (salt:hash), nunca a senha crua
-  aprovado  Boolean  @default(false)     // admin libera antes de ver as aulas
-  criadoEm  DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  nome            String
+  email           String   @unique
+  senhaHash       String                    // scrypt (salt:hash), nunca a senha crua
+  telefone        String?
+  avatar          String?
+  ativo           Boolean  @default(true)
+  emailVerificado Boolean  @default(false)
+  /// Clientes das aulas nascem pendentes; o admin aprova.
+  aprovado        Boolean  @default(false)
+  ultimoLogin     DateTime?
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+
+  papeis          UsuarioPapel[]
+  sessoes         Sessao[]
+  movimentacoes   MovimentacaoEstoque[]
+  tokens          TokenAcesso[]
 
   @@index([aprovado])
+  @@index([ativo])
+}
+
+/// Papel (role). A hierarquia usa `nivel`: menor = mais poder.
+model Papel {
+  id       Int    @id @default(autoincrement())
+  chave    String @unique // ADMIN_MASTER, ADMIN, GERENTE, VENDEDOR, TECNICO, FINANCEIRO, CLIENTE, SUPORTE
+  nome     String
+  nivel    Int    @default(100)
+  usuarios UsuarioPapel[]
+}
+
+model UsuarioPapel {
+  usuarioId Int
+  papelId   Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  papel     Papel   @relation(fields: [papelId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, papelId])
+  @@index([papelId])
+}
+
+/// Sessão no servidor — permite REVOGAR acesso na hora (o modelo antigo, só
+/// com cookie assinado, não permitia: valia até expirar).
+model Sessao {
+  id         String    @id @default(uuid())
+  usuarioId  Int
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  /// Guarda o HASH do token, nunca o token — vazamento do banco não vira sessão.
+  tokenHash  String    @unique
+  dispositivo String?
+  navegador  String?
+  ip         String?
+  expiraEm   DateTime
+  revogadaEm DateTime?
+  criadoEm   DateTime  @default(now())
+
+  @@index([usuarioId])
+  @@index([expiraEm])
+}
+
+/// Token de uso único: recuperação de senha e convite de acesso.
+model TokenAcesso {
+  id        String   @id @default(uuid())
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  tipo      String   // recuperar-senha | convite
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  criadoEm  DateTime @default(now())
+
+  @@index([usuarioId, tipo])
 }
 
 // Conteúdo do Manual de Instalação. Um modelo cobre os dois casos:

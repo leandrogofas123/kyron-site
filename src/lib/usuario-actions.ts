@@ -31,8 +31,14 @@ export async function acaoCriarConta(_estado: Estado, form: FormData) {
   if (existente)
     return { erro: "Este e-mail já está cadastrado. Tente entrar." };
 
+  const clientePapel = await db.papel.findUnique({ where: { chave: "CLIENTE" } });
   const usuario = await db.usuario.create({
-    data: { nome, email, senhaHash: hashSenha(senha) },
+    data: {
+      nome,
+      email,
+      senhaHash: hashSenha(senha),
+      papeis: clientePapel ? { create: { papelId: clientePapel.id } } : undefined,
+    },
   });
 
   // Avisa o dono do novo cadastro (aguardando aprovação).

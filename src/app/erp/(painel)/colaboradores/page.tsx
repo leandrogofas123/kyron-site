@@ -1,6 +1,10 @@
 import { GerenciarColaboradores } from "@/components/erp/GerenciarColaboradores";
 import { db } from "@/lib/db";
-import { colaboradorLogado } from "@/lib/erp/auth";
+import {
+  CHAVES_EQUIPE,
+  colaboradorLogado,
+  papelErpDaLista,
+} from "@/lib/erp/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,17 +28,28 @@ export default async function ErpColaboradores() {
     );
   }
 
-  const colaboradores = await db.colaborador.findMany({
+  // Só a EQUIPE (quem tem papel de acesso ao sistema) — clientes das aulas não
+  // aparecem aqui.
+  const equipe = await db.usuario.findMany({
+    where: { papeis: { some: { papel: { chave: { in: CHAVES_EQUIPE } } } } },
     orderBy: [{ ativo: "desc" }, { criadoEm: "asc" }],
     select: {
       id: true,
       nome: true,
       email: true,
-      papel: true,
       ativo: true,
       criadoEm: true,
+      papeis: { select: { papel: { select: { chave: true } } } },
     },
   });
+  const colaboradores = equipe.map((u) => ({
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    ativo: u.ativo,
+    criadoEm: u.criadoEm,
+    papel: papelErpDaLista(u.papeis.map((p) => p.papel.chave)) ?? "vendedor",
+  }));
 
   return (
     <>

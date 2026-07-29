@@ -38,6 +38,14 @@ export default async function EntrarPage() {
               Criar conta
             </Link>
           </p>
+          <p className="mt-fluid-2xs text-center text-fluid-xs text-kyron-silver/70">
+            <Link
+              href="/recuperar-senha"
+              className="hover:text-kyron-white hover:underline"
+            >
+              Esqueci minha senha
+            </Link>
+          </p>
         </div>
       </Section>
     </>

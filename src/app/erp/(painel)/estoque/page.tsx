@@ -86,7 +86,7 @@ export default async function ErpEstoque() {
                   </div>
                   <p className="text-fluid-2xs text-kyron-silver/60">
                     {quando(m.criadoEm)}
-                    {m.colaborador ? ` · ${m.colaborador.nome}` : ""}
+                    {m.usuario ? ` · ${m.usuario.nome}` : ""}
                     {m.motivo ? ` · ${m.motivo}` : ""}
                   </p>
                 </li>

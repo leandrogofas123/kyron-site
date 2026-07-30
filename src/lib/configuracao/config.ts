@@ -29,9 +29,16 @@ const TTL = 30; // segundos
 /** Todas as configurações (mescladas com os padrões), em cache. */
 export async function obterConfigs(): Promise<Record<string, string>> {
   return cache.lembrar(CACHE_CHAVE, TTL, async () => {
-    const linhas = await db.configuracao.findMany();
     const mapa: Record<string, string> = { ...PADROES };
-    for (const l of linhas) mapa[l.chave] = l.valor;
+    try {
+      // Best-effort: durante o build (pré-render de páginas estáticas) o banco
+      // pode não estar acessível — nesse caso ficamos com os padrões. Em runtime
+      // lê normalmente.
+      const linhas = await db.configuracao.findMany();
+      for (const l of linhas) mapa[l.chave] = l.valor;
+    } catch {
+      /* mantém os padrões */
+    }
     return mapa;
   });
 }

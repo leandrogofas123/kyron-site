@@ -344,6 +344,7 @@ model ClienteErp {
   movimentacoes MovimentacaoEstoque[]
   interacoes    Interacao[]
   aparelhos     Aparelho[]
+  ordens        OrdemServico[]
 
   @@index([nome])
   @@index([telefone])
@@ -488,6 +489,39 @@ model Notificacao {
   criadoEm     DateTime @default(now())
 
   @@index([canal, status])
+  @@index([criadoEm])
+}
+
+/// Ordem de Serviço (módulo Orders — assistência técnica / instalação).
+/// Amarra os outros módulos: consulta cliente/IMEI (ERP), técnico (Auth) e, ao
+/// concluir, gera conta a receber (Financeiro), registro na timeline (CRM) e no
+/// histórico (Notification) — sempre pelos serviços, nunca mexendo direto neles.
+model OrdemServico {
+  id           Int      @id @default(autoincrement())
+  clienteId    Int?
+  cliente      ClienteErp? @relation(fields: [clienteId], references: [id])
+  clienteNome  String   // denormalizado: a OS sobrevive mesmo sem cadastro
+  equipamento  String
+  marca        String?
+  modelo       String?
+  serial       String?
+  imei         String?
+  defeito      String
+  diagnostico  String?
+  solucao      String?
+  valor        Int?     // centavos; null enquanto não orçado
+  garantiaMeses Int     @default(0)
+  tecnicoId    Int?
+  tecnicoNome  String?
+  status       String   @default("recebida")
+  contaId      Int?     // conta a receber gerada ao concluir
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  concluidaEm  DateTime?
+  entregueEm   DateTime?
+
+  @@index([status])
+  @@index([clienteId])
   @@index([criadoEm])
 }
 

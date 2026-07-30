@@ -17,6 +17,7 @@ const NAV = [
   { label: "Produtos", href: "/erp/produtos", acao: "produtos.ver" },
   { label: "Estoque", href: "/erp/estoque", acao: "estoque.ver" },
   { label: "Inventário", href: "/erp/inventario", acao: "estoque.movimentar" },
+  { label: "Ordens de serviço", href: "/erp/ordens", acao: "estoque.movimentar" },
   { label: "Notas fiscais", href: "/erp/notas", acao: "notas.ver" },
   { label: "Fornecedores", href: "/erp/fornecedores", acao: "fornecedores.ver" },
   { label: "Clientes", href: "/erp/clientes", acao: "clientes.ver" },

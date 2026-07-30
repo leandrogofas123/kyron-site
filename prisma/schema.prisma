@@ -551,6 +551,20 @@ model Configuracao {
   atualizadoEm DateTime @updatedAt @default(now())
 }
 
+/// Maquininha de cartão (módulo Orders/Financeiro). Taxas em BASIS POINTS
+/// (100 bps = 1%). `taxasCredito` é JSON {parcelas: bps}, ex.: {"1":349,"2":420}.
+/// Desativada some das opções de pagamento do PDV.
+model Maquininha {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  ativo        Boolean  @default(true)
+  taxaDebito   Int      @default(0)   // bps
+  taxasCredito String   @default("{}") // JSON: parcela(string) -> bps
+  criadoEm     DateTime @default(now())
+
+  @@index([ativo])
+}
+
 model Post {
   id           Int      @id @default(autoincrement())
   slug         String   @unique

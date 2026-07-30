@@ -541,6 +541,16 @@ model IntegracaoLog {
   @@index([status])
 }
 
+/// Configuração da loja (módulo Platform, projetado para um tenant só).
+/// Chave-valor simples: o que muda com frequência (aviso do site, horário) sai
+/// do código e passa a ser editável no ERP, sem deploy. Multiempresa fica para
+/// SE a Kyron virar SaaS — aí isto ganha um tenantId.
+model Configuracao {
+  chave        String   @id
+  valor        String
+  atualizadoEm DateTime @updatedAt @default(now())
+}
+
 model Post {
   id           Int      @id @default(autoincrement())
   slug         String   @unique

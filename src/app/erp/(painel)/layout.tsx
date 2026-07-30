@@ -26,6 +26,7 @@ const NAV = [
   { label: "Notificações", href: "/erp/notificacoes", acao: "clientes.ver" },
   { label: "Colaboradores", href: "/erp/colaboradores", acao: "colaboradores.ver" },
   { label: "Integrações", href: "/erp/integracoes", acao: "financeiro" },
+  { label: "Configurações", href: "/erp/configuracoes", acao: "financeiro" },
   { label: "Auditoria", href: "/erp/auditoria", acao: "auditoria.ver" },
 ];
 

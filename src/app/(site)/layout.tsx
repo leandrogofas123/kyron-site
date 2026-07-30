@@ -1,6 +1,7 @@
 import { FloatingWhatsApp } from "@/components/catalogo/FloatingWhatsApp";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Analytics } from "@/components/site/Analytics";
+import { AvisoLoja } from "@/components/site/AvisoLoja";
 import { ConsentimentoCookies } from "@/components/site/ConsentimentoCookies";
 import { ShellSite } from "@/components/site/ShellSite";
 import { KYRON_COMPANY } from "@/lib/kyron/company";
@@ -52,6 +53,7 @@ export default function SiteLayout({
         Pular para o conteúdo
       </a>
 
+      <AvisoLoja />
       <ShellSite>{children}</ShellSite>
       <FloatingWhatsApp />
       <ChatWidget />

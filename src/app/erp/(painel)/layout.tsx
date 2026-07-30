@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 const NAV = [
   { label: "Dashboard", href: "/erp", acao: "dashboard" },
+  { label: "Painel executivo", href: "/erp/analytics", acao: "financeiro" },
   { label: "Produtos", href: "/erp/produtos", acao: "produtos.ver" },
   { label: "Estoque", href: "/erp/estoque", acao: "estoque.ver" },
   { label: "Inventário", href: "/erp/inventario", acao: "estoque.movimentar" },

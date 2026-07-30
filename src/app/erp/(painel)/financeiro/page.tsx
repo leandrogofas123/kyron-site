@@ -1,5 +1,6 @@
 import { AcoesConta } from "@/components/erp/AcoesConta";
 import { FormsFinanceiro } from "@/components/erp/FormsFinanceiro";
+import { DescricaoComVenda } from "@/components/pdv/VendaLink";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import {
   listarContas,
@@ -105,7 +106,7 @@ export default async function ErpFinanceiro() {
                 className="flex items-baseline justify-between gap-2 rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
               >
                 <span className="min-w-0 truncate text-fluid-sm text-kyron-white">
-                  {l.descricao}
+                  <DescricaoComVenda texto={l.descricao} />
                   <span className="text-fluid-2xs text-kyron-silver/50">
                     {" "}
                     · {l.categoria ?? "—"} · {rotuloForma(l.forma)} · {data(l.data)}

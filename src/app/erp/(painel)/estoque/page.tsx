@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FormMovimentar } from "@/components/erp/FormMovimentar";
+import { ProdutoLink } from "@/components/erp/ProdutoLink";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { movimentacoesRecentes, rotuloTipo } from "@/lib/erp/estoque";
 import { clientesParaSelecao } from "@/lib/erp/clientes";
@@ -25,6 +26,7 @@ export default async function ErpEstoque() {
     clientesParaSelecao(),
   ]);
   const podeMovimentar = eu ? podeFazer(eu.papel, "estoque.movimentar") : false;
+  const podeEditar = eu ? podeFazer(eu.papel, "produtos.editar") : false;
 
   return (
     <>
@@ -74,12 +76,7 @@ export default async function ErpEstoque() {
                   className="rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <Link
-                      href={`/erp/produtos/${m.produto.id}`}
-                      className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-                    >
-                      {m.produto.nome}
-                    </Link>
+                    <ProdutoLink id={m.produto.id} nome={m.produto.nome} podeEditar={podeEditar} />
                     <span className="shrink-0 text-fluid-2xs text-kyron-silver">
                       {rotuloTipo(m.tipo)} · {m.saldoAntes} → {m.saldoDepois}
                     </span>

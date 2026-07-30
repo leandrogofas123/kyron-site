@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ProdutoLink } from "@/components/erp/ProdutoLink";
 import { formatarPreco } from "@/lib/format";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { listarProdutos } from "@/lib/erp/produtos";
@@ -91,12 +92,7 @@ export default async function ErpProdutos({
                     }`}
                   >
                     <Td>
-                      <Link
-                        href={`/erp/produtos/${p.id}`}
-                        className="text-kyron-white hover:text-kyron-blue"
-                      >
-                        {p.nome}
-                      </Link>
+                      <ProdutoLink id={p.id} nome={p.nome} podeEditar={podeEditar} />
                       {!p.ativo && (
                         <span className="kyron-label ml-2 text-fluid-2xs text-kyron-silver/60">
                           inativo

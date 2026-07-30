@@ -345,6 +345,7 @@ model ClienteErp {
   interacoes    Interacao[]
   aparelhos     Aparelho[]
   ordens        OrdemServico[]
+  vendas        Venda[]
 
   @@index([nome])
   @@index([telefone])
@@ -563,6 +564,49 @@ model Maquininha {
   criadoEm     DateTime @default(now())
 
   @@index([ativo])
+}
+
+/// Venda do PDV (módulo Orders). Registro consolidado da venda: itens, valores,
+/// pagamento e o vínculo para estorno. Cancelar devolve estoque e anula o
+/// financeiro. Os movimentos de estoque e o lançamento/conta continuam sendo a
+/// verdade contábil; a Venda é a visão comercial navegável.
+model Venda {
+  id           Int      @id @default(autoincrement())
+  numero       Int      @unique
+  clienteId    Int?
+  cliente      ClienteErp? @relation(fields: [clienteId], references: [id])
+  vendedorId   Int?
+  vendedorNome String?
+  subtotal     Int
+  desconto     Int      @default(0)
+  total        Int
+  forma        String
+  maquininhaId Int?
+  taxaBps      Int      @default(0)
+  liquido      Int
+  contaId      Int?     // conta a receber gerada (a prazo)
+  status       String   @default("concluida") // concluida | cancelada
+  criadoEm     DateTime @default(now())
+  canceladaEm  DateTime?
+
+  itens        VendaItem[]
+
+  @@index([numero])
+  @@index([status])
+  @@index([criadoEm])
+}
+
+model VendaItem {
+  id         Int    @id @default(autoincrement())
+  vendaId    Int
+  venda      Venda  @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produtoId  Int?
+  nome       String
+  quantidade Int
+  precoUnit  Int
+  subtotal   Int
+
+  @@index([vendaId])
 }
 
 model Post {

@@ -125,6 +125,7 @@ export function PdvClient({ vendedores, maquininhas }: { vendedores: Vendedor[];
         forma,
         maquininhaId: ehCartao ? maqId : null,
         parcelas: forma === "credito" ? parcelas : 1,
+        vendedorId,
       });
       if (!r.ok) { setErro(r.erro); return; }
       setToast(`Venda #${r.numero} registrada — ${brl(r.total)}`);

@@ -59,6 +59,7 @@ type Payload = {
   forma: string;
   maquininhaId?: number | null;
   parcelas?: number;
+  vendedorId?: number | null;
 };
 
 const CARTAO = new Set(["credito", "debito"]);
@@ -98,6 +99,7 @@ export async function finalizarVenda(
   const mapa = new Map(produtos.map((p) => [p.id, p]));
 
   let subtotal = 0;
+  const itensVenda: Array<{ produtoId: number; nome: string; quantidade: number; precoUnit: number; subtotal: number }> = [];
   for (const it of payload.itens) {
     const p = mapa.get(it.produtoId);
     if (!p) return { ok: false, erro: "Produto inválido na venda." };
@@ -106,11 +108,12 @@ export async function finalizarVenda(
     }
     const preco = p.precoPromo && p.precoPromo > 0 ? p.precoPromo : p.preco;
     subtotal += preco * it.quantidade;
+    itensVenda.push({ produtoId: p.id, nome: p.nome, quantidade: it.quantidade, precoUnit: preco, subtotal: preco * it.quantidade });
   }
 
   const desconto = Math.max(0, Math.min(payload.descontoCentavos, subtotal));
   const total = subtotal - desconto;
-  const numero = (await db.ordemServico.count()) + (await db.lancamento.count()) + 1042; // nº sequencial simples
+  const numero = (await db.venda.count()) + 1042; // nº sequencial simples
 
   const doc = `Venda #${numero}`;
 
@@ -138,10 +141,15 @@ export async function finalizarVenda(
     obsTaxa = ` (líquido, taxa ${(bps / 100).toFixed(2).replace(".", ",")}%)`;
   }
 
+  let contaId: number | null = null;
+  let taxaBps = 0;
+  if (CARTAO.has(payload.forma) && payload.maquininhaId) {
+    taxaBps = await taxaMaquininha(payload.maquininhaId, payload.forma, payload.parcelas ?? 1);
+  }
   if (A_PRAZO.has(payload.forma)) {
     const venc = new Date();
     venc.setDate(venc.getDate() + 30);
-    await db.conta.create({
+    const conta = await db.conta.create({
       data: {
         tipo: "receber",
         descricao: doc + obsTaxa,
@@ -152,6 +160,7 @@ export async function finalizarVenda(
         clienteId: payload.clienteId,
       },
     });
+    contaId = conta.id;
   } else {
     await db.lancamento.create({
       data: {
@@ -179,6 +188,30 @@ export async function finalizarVenda(
       })
       .catch(() => {});
   }
+
+  // 4) Registro comercial navegável da venda (para o popup de detalhe/estorno).
+  let vendedorNome = eu.nome;
+  if (payload.vendedorId && payload.vendedorId !== eu.id) {
+    const v = await db.usuario.findUnique({ where: { id: payload.vendedorId }, select: { nome: true } });
+    if (v) vendedorNome = v.nome;
+  }
+  await db.venda.create({
+    data: {
+      numero,
+      clienteId: payload.clienteId,
+      vendedorId: payload.vendedorId ?? eu.id,
+      vendedorNome,
+      subtotal,
+      desconto,
+      total,
+      forma: payload.forma,
+      maquininhaId: payload.maquininhaId ?? null,
+      taxaBps,
+      liquido: valorFin,
+      contaId,
+      itens: { create: itensVenda },
+    },
+  });
 
   await auditar({
     ator: { tipo: "usuario", id: eu.id, nome: eu.nome },

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { GraficoMovimentacao } from "@/components/erp/GraficoMovimentacao";
+import { ProdutoLink } from "@/components/erp/ProdutoLink";
+import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { db } from "@/lib/db";
 import { formatarPreco } from "@/lib/format";
 import {
@@ -22,8 +24,9 @@ function dataCurta(d: Date): string {
 }
 
 export default async function ErpDashboard() {
-  const [produtos, serie, vendidos, entradas, saidas, garantias] =
+  const [eu, produtos, serie, vendidos, entradas, saidas, garantias] =
     await Promise.all([
+      colaboradorLogado(),
       db.produto.findMany({
         where: { excluidoEm: null },
         select: {
@@ -41,6 +44,8 @@ export default async function ErpDashboard() {
       ultimasPorFluxo("saida"),
       garantiasAVencer(),
     ]);
+
+  const podeEditar = eu ? podeFazer(eu.papel, "produtos.editar") : false;
 
   const valorEstoque = produtos.reduce(
     (s, p) => s + (p.precoCusto ?? p.preco) * p.quantidade,
@@ -83,12 +88,7 @@ export default async function ErpDashboard() {
               {vendidos.map((v) => (
                 <li key={v.produtoId}>
                   <div className="flex items-baseline justify-between gap-fluid-sm">
-                    <Link
-                      href={`/erp/produtos/${v.produtoId}`}
-                      className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-                    >
-                      {v.nome}
-                    </Link>
+                    <ProdutoLink id={v.produtoId} nome={v.nome} podeEditar={podeEditar} />
                     <span className="shrink-0 text-fluid-2xs text-kyron-silver">
                       {v.total} un.
                     </span>
@@ -116,12 +116,7 @@ export default async function ErpDashboard() {
                   key={p.id}
                   className="flex items-center justify-between gap-fluid-sm rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
                 >
-                  <Link
-                    href={`/erp/produtos/${p.id}`}
-                    className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-                  >
-                    {p.nome}
-                  </Link>
+                  <ProdutoLink id={p.id} nome={p.nome} podeEditar={podeEditar} />
                   <span className="shrink-0 text-fluid-2xs text-kyron-blue">
                     {p.quantidade} / mín. {p.quantidadeMinima}
                   </span>
@@ -132,11 +127,11 @@ export default async function ErpDashboard() {
         </Secao>
 
         <Secao titulo="Últimas entradas" semTopo>
-          <ListaFluxo itens={entradas} />
+          <ListaFluxo itens={entradas} podeEditar={podeEditar} />
         </Secao>
 
         <Secao titulo="Últimas saídas" semTopo>
-          <ListaFluxo itens={saidas} />
+          <ListaFluxo itens={saidas} podeEditar={podeEditar} />
         </Secao>
       </div>
 
@@ -153,12 +148,7 @@ export default async function ErpDashboard() {
                 key={g.id}
                 className="flex flex-wrap items-center justify-between gap-fluid-sm rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
               >
-                <Link
-                  href={`/erp/produtos/${g.produto.id}`}
-                  className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-                >
-                  {g.produto.nome}
-                </Link>
+                <ProdutoLink id={g.produto.id} nome={g.produto.nome} podeEditar={podeEditar} />
                 <span className="shrink-0 text-fluid-2xs text-kyron-silver">
                   vence em {dataCurta(g.vence)}
                   {g.documento ? ` · ${g.documento}` : ""}
@@ -174,6 +164,7 @@ export default async function ErpDashboard() {
 
 function ListaFluxo({
   itens,
+  podeEditar,
 }: {
   itens: {
     id: number;
@@ -182,6 +173,7 @@ function ListaFluxo({
     criadoEm: Date;
     produto: { id: number; nome: string };
   }[];
+  podeEditar: boolean;
 }) {
   if (itens.length === 0) return <Vazio>Nada registrado ainda.</Vazio>;
   return (
@@ -191,12 +183,7 @@ function ListaFluxo({
           key={m.id}
           className="flex flex-wrap items-center justify-between gap-fluid-sm rounded-kyron-sm border border-[var(--kyron-hairline)] px-fluid-sm py-fluid-xs"
         >
-          <Link
-            href={`/erp/produtos/${m.produto.id}`}
-            className="min-w-0 truncate text-fluid-sm text-kyron-white hover:text-kyron-blue"
-          >
-            {m.produto.nome}
-          </Link>
+          <ProdutoLink id={m.produto.id} nome={m.produto.nome} podeEditar={podeEditar} />
           <span className="shrink-0 text-fluid-2xs text-kyron-silver">
             {rotuloTipo(m.tipo)} · {m.quantidade} un. · {dataCurta(m.criadoEm)}
           </span>

@@ -245,3 +245,10 @@ canvas {
     width: 17rem;
   }
 }
+
+/* Barra lateral do ERP: largura determinística (o JIT do Tailwind v4 não gera
+   larguras arbitrárias de forma confiável neste projeto). No celular desliza
+   como overlay; no desktop fica acoplada. */
+.erp-aside {
+  width: 15rem;
+}

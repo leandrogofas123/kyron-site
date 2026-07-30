@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import { acessoriosParaModelo, getProdutos, type OrdenarProdutos } from "@/lib/catalogo";
+import { logIntegracao } from "@/lib/integracoes/log";
 import { logger } from "@/lib/core/logger";
 import { formatarPreco, precoVigente } from "@/lib/format";
 import { KYRON_SYSTEM_PROMPT } from "@/lib/kyron/system-prompt";
@@ -270,6 +271,7 @@ export async function POST(request: Request) {
         }
       };
 
+      const inicioIA = Date.now();
       try {
         for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
           const modelStream = client.messages.stream(
@@ -386,11 +388,24 @@ export async function POST(request: Request) {
           messages.push({ role: "user", content: toolResults });
         }
 
+        void logIntegracao({
+          provider: "anthropic",
+          operacao: "chat",
+          status: "ok",
+          latenciaMs: Date.now() - inicioIA,
+        });
         send({ type: "done" });
       } catch (error) {
         if (request.signal.aborted) {
           // Navegação ou fechamento do widget. Silencioso por design.
         } else {
+          void logIntegracao({
+            provider: "anthropic",
+            operacao: "chat",
+            status: "erro",
+            latenciaMs: Date.now() - inicioIA,
+            erro: error instanceof Error ? error.message : String(error),
+          });
           logger.error("falha no assistente", { erro: error });
           send({
             type: "error",

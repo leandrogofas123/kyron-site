@@ -3,6 +3,7 @@ import "server-only";
 import { logger } from "../core/logger";
 import { enviarEmail, mailProvider } from "../core/providers/mail";
 import { db } from "../db";
+import { logIntegracao } from "../integracoes/log";
 import { renderTemplate, type Vars } from "./templates";
 
 /**
@@ -46,11 +47,22 @@ export async function notificar(entrada: Entrada): Promise<{ ok: boolean }> {
   }
 
   try {
+    const inicio = Date.now();
     const r = await enviarEmail({
       para: entrada.para,
       assunto: entrada.assunto,
       html: entrada.html,
     });
+    // Observabilidade: registra a chamada externa (só quando é o Resend real).
+    if (mailProvider().nome === "resend") {
+      void logIntegracao({
+        provider: "resend",
+        operacao: "email.enviar",
+        status: r.ok ? "ok" : "erro",
+        latenciaMs: Date.now() - inicio,
+        erro: r.ok ? undefined : r.motivo,
+      });
+    }
     if (registroId != null) {
       await db.notificacao
         .update({

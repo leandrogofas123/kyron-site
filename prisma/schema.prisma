@@ -525,6 +525,22 @@ model OrdemServico {
   @@index([criadoEm])
 }
 
+/// Log de chamadas a serviços externos (módulo Integrations). Observabilidade:
+/// quem chamou quem, quanto demorou e se falhou. É o registro que sustenta o
+/// painel de integrações — sem construir adapters para serviços que não existem.
+model IntegracaoLog {
+  id         Int      @id @default(autoincrement())
+  provider   String   // anthropic | resend | hubspot | ...
+  operacao   String   // chat | email.enviar | ...
+  status     String   // ok | erro
+  latenciaMs Int?
+  erro       String?
+  criadoEm   DateTime @default(now())
+
+  @@index([provider, criadoEm])
+  @@index([status])
+}
+
 model Post {
   id           Int      @id @default(autoincrement())
   slug         String   @unique

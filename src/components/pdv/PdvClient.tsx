@@ -36,7 +36,15 @@ const inp =
   "w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm py-fluid-xs text-fluid-base text-kyron-white placeholder:text-kyron-silver/40 focus:border-[var(--kyron-blue-line)] focus:outline-none";
 const lbl = "kyron-label mb-fluid-2xs block text-fluid-2xs text-kyron-silver/60";
 
-export function PdvClient({ vendedores, maquininhas }: { vendedores: Vendedor[]; maquininhas: Maquininha[] }) {
+export function PdvClient({
+  vendedores,
+  maquininhas,
+  onFinalizada,
+}: {
+  vendedores: Vendedor[];
+  maquininhas: Maquininha[];
+  onFinalizada?: (numero: number) => void;
+}) {
   const [itens, setItens] = useState<Item[]>([]);
   const [descTexto, setDescTexto] = useState("");
   const [descPct, setDescPct] = useState(false);
@@ -131,6 +139,7 @@ export function PdvClient({ vendedores, maquininhas }: { vendedores: Vendedor[];
       setToast(`Venda #${r.numero} registrada — ${brl(r.total)}`);
       setItens([]); setDescTexto(""); setCliente(null); setCliBusca("");
       setTimeout(() => setToast(null), 4000);
+      onFinalizada?.(r.numero);
     });
   }
 

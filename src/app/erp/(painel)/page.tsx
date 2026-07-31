@@ -1,10 +1,14 @@
 import Link from "next/link";
 
 import { GraficoMovimentacao } from "@/components/erp/GraficoMovimentacao";
+import { PainelVendasDashboard } from "@/components/erp/PainelVendasDashboard";
 import { ProdutoLink } from "@/components/erp/ProdutoLink";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { db } from "@/lib/db";
 import { formatarPreco } from "@/lib/format";
+import { listarAtivas } from "@/lib/pdv/maquininhas";
+import { vendedoresPDV } from "@/lib/pdv/pdv";
+import { listarVendas } from "@/lib/vendas/listar";
 import {
   DIAS_GRAFICO,
   garantiasAVencer,
@@ -24,7 +28,7 @@ function dataCurta(d: Date): string {
 }
 
 export default async function ErpDashboard() {
-  const [eu, produtos, serie, vendidos, entradas, saidas, garantias] =
+  const [eu, produtos, serie, vendidos, entradas, saidas, garantias, vendedores, maquininhas, vendas] =
     await Promise.all([
       colaboradorLogado(),
       db.produto.findMany({
@@ -43,6 +47,9 @@ export default async function ErpDashboard() {
       ultimasPorFluxo("entrada"),
       ultimasPorFluxo("saida"),
       garantiasAVencer(),
+      vendedoresPDV(),
+      listarAtivas(),
+      listarVendas({ limite: 300 }),
     ]);
 
   const podeEditar = eu ? podeFazer(eu.papel, "produtos.editar") : false;
@@ -74,6 +81,12 @@ export default async function ErpDashboard() {
           href="/erp/produtos?baixos=1"
         />
       </div>
+
+      <PainelVendasDashboard
+        vendedores={vendedores}
+        maquininhas={maquininhas}
+        vendas={vendas}
+      />
 
       <Secao titulo={`Movimentação — últimos ${DIAS_GRAFICO} dias`}>
         <GraficoMovimentacao dados={serie} />

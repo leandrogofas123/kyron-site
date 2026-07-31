@@ -449,6 +449,7 @@ model Lancamento {
   categoria   String?  // rótulo do plano de contas (ver financeiro/plano.ts)
   descricao   String
   forma       String?  // pix | cartao | dinheiro | boleto | transferencia
+  bancoId     Int?     // conta/carteira que recebeu ou pagou (módulo Financeiro)
   data        DateTime @default(now())
   contaId     Int?     // veio da baixa de uma Conta?
   usuarioId   Int?
@@ -472,6 +473,7 @@ model Conta {
   status       String   @default("aberto") // aberto | pago | cancelado
   pagoEm       DateTime?
   forma        String?
+  bancoId      Int?     // conta/carteira de destino (a receber) — módulo Financeiro
   fornecedorId Int?     // vínculo leve (sem FK) — origem opcional
   clienteId    Int?
   criadoEm     DateTime @default(now())
@@ -635,6 +637,21 @@ model Banner {
   criadoEm        DateTime @default(now())
 
   @@index([posicao, ativo])
+}
+
+/// Banco = conta/carteira financeira onde o dinheiro entra (módulo Financeiro).
+/// Dinheiro→caixa, PIX→uma conta, cada adquirente credita numa conta. O saldo é
+/// DERIVADO dos lançamentos vinculados (nunca um número solto). Banco com
+/// movimentação não pode ser excluído.
+model Banco {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  tipo     String   @default("conta") // caixa | conta | adquirente | carteira
+  ativo    Boolean  @default(true)
+  ordem    Int      @default(0)
+  criadoEm DateTime @default(now())
+
+  @@index([ativo])
 }
 
 model Post {

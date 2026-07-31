@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { NAV_PRINCIPAL } from "@/lib/kyron/site";
+
 const DEPARTAMENTOS = [
   {
     titulo: "Apple",
@@ -72,6 +74,12 @@ export function SidebarDepartamentos({
     };
   }, [aberta, onFechar]);
 
+  // No desktop o menu é FIXO: clicar num link não o fecha. No celular (overlay),
+  // fecha para liberar a tela.
+  const fecharSeMobile = () => {
+    if (window.matchMedia("(max-width: 1023px)").matches) onFechar();
+  };
+
   return (
     <>
       {/* Fundo escurecido — só no celular, onde a barra fica sobreposta. */}
@@ -117,7 +125,24 @@ export function SidebarDepartamentos({
             </button>
           </div>
 
-          <nav aria-label="Categorias de produtos" className="space-y-fluid-md">
+          <nav aria-label="Navegação do site" className="space-y-fluid-md">
+            <section>
+              <h3 className="kyron-label text-fluid-2xs text-kyron-silver/55">Navegar</h3>
+              <ul className="mt-1.5 space-y-0.5">
+                {NAV_PRINCIPAL.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={fecharSeMobile}
+                      className="group flex min-h-10 items-center gap-2 rounded-kyron-sm px-2 text-fluid-sm text-kyron-white transition-colors hover:bg-kyron-graphite"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
             {DEPARTAMENTOS.map((departamento) => (
               <section key={departamento.titulo}>
                 <h3 className="kyron-label text-fluid-2xs text-kyron-silver/55">
@@ -128,7 +153,7 @@ export function SidebarDepartamentos({
                     <li key={item.href + item.label}>
                       <Link
                         href={item.href}
-                        onClick={onFechar}
+                        onClick={fecharSeMobile}
                         className="group flex min-h-10 items-center gap-2 rounded-kyron-sm px-2 text-fluid-sm text-kyron-silver transition-colors hover:bg-kyron-graphite hover:text-kyron-white"
                       >
                         <span className="min-w-0 flex-1 truncate">{item.label}</span>

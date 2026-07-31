@@ -6,6 +6,7 @@ import { auditar } from "../core/audit";
 import { db } from "../db";
 import { exigirPermissao } from "../erp/auth";
 import { parsePreco } from "../format";
+import { bancoDaForma } from "./bancos";
 
 type Estado = { erro?: string; ok?: boolean } | null;
 
@@ -26,8 +27,14 @@ export async function acaoLancar(_estado: Estado, form: FormData): Promise<Estad
   if (valor == null || valor <= 0) return { erro: "Informe um valor válido." };
   if (descricao.length < 2) return { erro: "Descreva o lançamento." };
 
+  // Banco: o escolhido no form, ou o padrão da forma de pagamento (Fase A).
+  const bancoManual = Number(form.get("bancoId"));
+  const bancoId = Number.isInteger(bancoManual) && bancoManual > 0
+    ? bancoManual
+    : forma ? await bancoDaForma(forma) : null;
+
   const criado = await db.lancamento.create({
-    data: { tipo, valor, descricao, categoria, forma, usuarioId: eu.id, usuarioNome: eu.nome },
+    data: { tipo, valor, descricao, categoria, forma, bancoId, usuarioId: eu.id, usuarioNome: eu.nome },
   });
 
   await auditar({
@@ -90,11 +97,14 @@ export async function acaoBaixarConta(contaId: number, forma?: string): Promise<
   if (conta.status !== "aberto") return { erro: "Conta já baixada ou cancelada." };
 
   const tipoLanc = conta.tipo === "receber" ? "entrada" : "saida";
+  const formaFinal = forma ?? conta.forma ?? null;
+  // Ao dar baixa, o dinheiro entra/sai do banco da conta (ou o padrão da forma).
+  const bancoId = conta.bancoId ?? (formaFinal ? await bancoDaForma(formaFinal) : null);
 
   await db.$transaction([
     db.conta.update({
       where: { id: contaId },
-      data: { status: "pago", pagoEm: new Date(), forma: forma ?? conta.forma ?? null },
+      data: { status: "pago", pagoEm: new Date(), forma: formaFinal },
     }),
     db.lancamento.create({
       data: {
@@ -102,7 +112,8 @@ export async function acaoBaixarConta(contaId: number, forma?: string): Promise<
         valor: conta.valor,
         descricao: conta.descricao,
         categoria: conta.categoria,
-        forma: forma ?? conta.forma ?? null,
+        forma: formaFinal,
+        bancoId,
         contaId: conta.id,
         usuarioId: eu.id,
         usuarioNome: eu.nome,

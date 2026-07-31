@@ -38,6 +38,35 @@ export async function saldoBanco(bancoId: number): Promise<number> {
   return (ent._sum.valor ?? 0) - (sai._sum.valor ?? 0);
 }
 
+/**
+ * Saldos de TODOS os bancos numa consulta (corrige o N+1 da listagem) +
+ * o total "a receber" pendente por banco (contas a receber ainda em aberto).
+ */
+export async function saldosTodos(): Promise<Record<number, { saldo: number; aReceber: number }>> {
+  const [porTipo, aReceber] = await Promise.all([
+    db.lancamento.groupBy({ by: ["bancoId", "tipo"], _sum: { valor: true }, where: { bancoId: { not: null } } }),
+    db.conta.groupBy({ by: ["bancoId"], _sum: { valor: true }, where: { tipo: "receber", status: "aberto", bancoId: { not: null } } }),
+  ]);
+  const mapa: Record<number, { saldo: number; aReceber: number }> = {};
+  for (const l of porTipo) {
+    if (l.bancoId == null) continue;
+    mapa[l.bancoId] ??= { saldo: 0, aReceber: 0 };
+    mapa[l.bancoId].saldo += (l._sum.valor ?? 0) * (l.tipo === "entrada" ? 1 : -1);
+  }
+  for (const c of aReceber) {
+    if (c.bancoId == null) continue;
+    mapa[c.bancoId] ??= { saldo: 0, aReceber: 0 };
+    mapa[c.bancoId].aReceber += c._sum.valor ?? 0;
+  }
+  return mapa;
+}
+
+/** Banco padrão de uma forma de pagamento (do mapa), ou null. */
+export async function bancoDaForma(forma: string): Promise<number | null> {
+  const mapa = await mapaFormaBanco();
+  return mapa[forma] ?? null;
+}
+
 /** Um banco pode ser excluído? Não, se tiver qualquer movimentação vinculada. */
 export async function bancoTemMovimento(bancoId: number): Promise<boolean> {
   const [lanc, conta] = await Promise.all([

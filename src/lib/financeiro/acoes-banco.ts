@@ -6,6 +6,7 @@ import { auditar } from "../core/audit";
 import { cache } from "../core/cache";
 import { db } from "../db";
 import { exigirPermissao } from "../erp/auth";
+import { parsePreco } from "../format";
 import { bancoTemMovimento, TIPOS_BANCO } from "./bancos";
 
 type Estado = { erro?: string; ok?: boolean } | null;
@@ -68,6 +69,59 @@ export async function acaoExcluirBanco(id: number): Promise<{ ok: boolean; erro?
     entidadeId: id,
   });
   revalidatePath("/erp/configuracoes/bancos");
+  return { ok: true };
+}
+
+const TIPOS_MOV = new Set(["transferencia", "deposito", "saque", "ajuste"]);
+
+/**
+ * Movimentação entre/nos bancos: transferência (saída origem + entrada destino),
+ * depósito (entrada), saque (saída) ou ajuste (entrada/saída). Tudo vira
+ * lançamento, então o saldo derivado continua sendo a verdade.
+ */
+export async function acaoMovimentarBanco(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("financeiro");
+
+  const tipo = String(form.get("tipo") ?? "");
+  const bancoId = Number(form.get("bancoId"));
+  const destinoId = Number(form.get("bancoDestinoId"));
+  const valor = parsePreco(String(form.get("valor") ?? ""));
+  const descricao = String(form.get("descricao") ?? "").trim() || null;
+  const direcao = String(form.get("direcao") ?? "entrada"); // só para ajuste
+
+  if (!TIPOS_MOV.has(tipo)) return { erro: "Tipo inválido." };
+  if (!Number.isInteger(bancoId)) return { erro: "Escolha o banco." };
+  if (valor == null || valor <= 0) return { erro: "Informe um valor válido." };
+  if (tipo === "transferencia" && (!Number.isInteger(destinoId) || destinoId === bancoId)) {
+    return { erro: "Escolha um banco de destino diferente." };
+  }
+
+  const usuario = { usuarioId: eu.id, usuarioNome: eu.nome };
+  const ops = [];
+  if (tipo === "transferencia") {
+    ops.push(
+      db.lancamento.create({ data: { tipo: "saida", valor, categoria: "Transferência entre bancos", descricao: descricao ?? "Transferência", bancoId, ...usuario } }),
+      db.lancamento.create({ data: { tipo: "entrada", valor, categoria: "Transferência entre bancos", descricao: descricao ?? "Transferência", bancoId: destinoId, ...usuario } }),
+    );
+  } else if (tipo === "deposito") {
+    ops.push(db.lancamento.create({ data: { tipo: "entrada", valor, categoria: "Depósito", descricao: descricao ?? "Depósito", bancoId, ...usuario } }));
+  } else if (tipo === "saque") {
+    ops.push(db.lancamento.create({ data: { tipo: "saida", valor, categoria: "Saque", descricao: descricao ?? "Saque", bancoId, ...usuario } }));
+  } else {
+    ops.push(db.lancamento.create({ data: { tipo: direcao === "saida" ? "saida" : "entrada", valor, categoria: "Ajuste de banco", descricao: descricao ?? "Ajuste", bancoId, ...usuario } }));
+  }
+  await db.$transaction(ops);
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp",
+    acao: `banco-${tipo}`,
+    entidade: "Banco",
+    entidadeId: bancoId,
+    depois: { tipo, valor, destinoId: tipo === "transferencia" ? destinoId : undefined },
+  });
+
+  revalidatePath("/erp/financeiro");
   return { ok: true };
 }
 

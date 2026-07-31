@@ -1,7 +1,9 @@
 import { AcoesConta } from "@/components/erp/AcoesConta";
+import { BancosFinanceiro } from "@/components/erp/BancosFinanceiro";
 import { FormsFinanceiro } from "@/components/erp/FormsFinanceiro";
 import { DescricaoComVenda } from "@/components/pdv/VendaLink";
 import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
+import { bancosAtivos, saldosTodos } from "@/lib/financeiro/bancos";
 import {
   listarContas,
   listarLancamentos,
@@ -39,7 +41,7 @@ export default async function ErpFinanceiro() {
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
   const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59);
 
-  const [saldo, resumo, aPagar, aReceber, totPagar, totReceber, lancamentos] =
+  const [saldo, resumo, aPagar, aReceber, totPagar, totReceber, lancamentos, bancos, saldos] =
     await Promise.all([
       saldoAtual(),
       resumoPeriodo(inicioMes, fimMes),
@@ -48,7 +50,17 @@ export default async function ErpFinanceiro() {
       totaisContas("pagar"),
       totaisContas("receber"),
       listarLancamentos(40),
+      bancosAtivos(),
+      saldosTodos(),
     ]);
+
+  const bancosComSaldo = bancos.map((b) => ({
+    id: b.id,
+    nome: b.nome,
+    tipo: b.tipo,
+    saldo: saldos[b.id]?.saldo ?? 0,
+    aReceber: saldos[b.id]?.aReceber ?? 0,
+  }));
 
   return (
     <>
@@ -70,6 +82,12 @@ export default async function ErpFinanceiro() {
           destaque={resumo.lucro >= 0}
         />
       </div>
+
+      {bancosComSaldo.length > 0 && (
+        <div className="mb-fluid-xl rounded-kyron-md border border-[var(--kyron-hairline)] p-fluid-md">
+          <BancosFinanceiro bancos={bancosComSaldo} />
+        </div>
+      )}
 
       <FormsFinanceiro />
 

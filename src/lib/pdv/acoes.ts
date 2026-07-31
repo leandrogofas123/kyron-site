@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auditar } from "../core/audit";
 import { db } from "../db";
 import { exigirPermissao } from "../erp/auth";
+import { bancoDaForma } from "../financeiro/bancos";
 import { movimentarEstoque } from "../erp/estoque";
 import { liquido } from "./maquininhas";
 import { buscarClientesPDV, buscarProdutosPDV } from "./pdv";
@@ -146,6 +147,8 @@ export async function finalizarVenda(
   if (CARTAO.has(payload.forma) && payload.maquininhaId) {
     taxaBps = await taxaMaquininha(payload.maquininhaId, payload.forma, payload.parcelas ?? 1);
   }
+  // Roteamento forma→banco (Fase A): o dinheiro credita no banco configurado.
+  const bancoId = await bancoDaForma(payload.forma);
   if (A_PRAZO.has(payload.forma)) {
     const venc = new Date();
     venc.setDate(venc.getDate() + 30);
@@ -157,6 +160,7 @@ export async function finalizarVenda(
         categoria: "Venda de produtos",
         vencimento: venc,
         forma: payload.forma,
+        bancoId,
         clienteId: payload.clienteId,
       },
     });
@@ -169,6 +173,7 @@ export async function finalizarVenda(
         categoria: "Venda de produtos",
         descricao: doc + obsTaxa,
         forma: payload.forma,
+        bancoId,
         usuarioId: eu.id,
         usuarioNome: eu.nome,
       },

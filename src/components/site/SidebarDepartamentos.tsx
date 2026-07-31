@@ -104,27 +104,6 @@ export function SidebarDepartamentos({
         style={{ top: TOPO, height: `calc(100dvh - ${TOPO})` }}
       >
         <div className="kyron-sidebar-conteudo h-full overflow-y-auto px-fluid-sm py-fluid-md">
-          <div className="mb-fluid-md flex items-center justify-between gap-2">
-            <p className="kyron-label text-fluid-2xs text-kyron-blue">
-              Departamentos
-            </p>
-            <button
-              type="button"
-              onClick={onFechar}
-              aria-label="Ocultar departamentos"
-              className="flex h-9 w-9 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors hover:text-kyron-white"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="m6 6 12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-
           <nav aria-label="Navegação do site" className="space-y-fluid-md">
             <section>
               <h3 className="kyron-label text-fluid-2xs text-kyron-silver/55">Navegar</h3>

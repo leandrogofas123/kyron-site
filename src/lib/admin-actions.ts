@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 
 import { vincularMarca } from "./catalogo-marca";
 import { sessaoValida } from "./admin-auth";
-import { acaoLogout as logoutPlataforma, autenticar } from "./auth/actions";
-import { encerrarSessaoAtual } from "./auth/sessao";
+import { acaoLogout as logoutPlataforma } from "./auth/actions";
 import { auditar } from "./core/audit";
 import { db } from "./db";
 import { gerarSlug, parsePreco } from "./format";
@@ -55,20 +54,10 @@ async function slugUnicoPost(titulo: string, ignorarId?: number): Promise<string
 }
 
 // ─────────────────────────── Autenticação ───────────────────────────
-
-export async function acaoLogin(_estado: unknown, form: FormData) {
-  const r = await autenticar(form);
-  if ("erro" in r) return r;
-  // Autenticou, mas sem permissão de painel: encerra a sessão e avisa.
-  if (!(await sessaoValida())) {
-    await encerrarSessaoAtual();
-    return { erro: "Este acesso não tem permissão para o painel." };
-  }
-  redirect("/admin/produtos");
-}
+// O login é único (ERP). O painel /admin usa a mesma sessão; sem login próprio.
 
 export async function acaoLogout() {
-  await logoutPlataforma("/admin/login");
+  await logoutPlataforma("/erp/entrar");
 }
 
 // ──────────────────────────── Produtos ──────────────────────────────

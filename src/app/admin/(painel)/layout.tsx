@@ -25,7 +25,7 @@ const NAV = [
 export default async function PainelLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  if (!(await sessaoValida())) redirect("/admin/login");
+  if (!(await sessaoValida())) redirect("/erp/entrar");
 
   const [leadsNovos, clientesPendentes] = await Promise.all([
     db.lead.count({ where: { status: "novo" } }),

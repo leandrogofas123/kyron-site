@@ -34,6 +34,12 @@ export type ProdutoErp = {
   categoriaId: number;
   fornecedorId: number | null;
   ativo: boolean;
+  destaque: boolean;
+  ordem: number;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  palavrasChave: string | null;
+  descricaoSite: string | null;
 };
 
 type Opcao = { id: number; nome: string };
@@ -176,16 +182,31 @@ export function ProdutoErpForm({
         </Campo>
       </Bloco>
 
-      <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
-        <input
-          type="checkbox"
-          name="ativo"
-          value="on"
-          defaultChecked={produto ? produto.ativo : true}
-          className="h-4 w-4 accent-[#1e6bff]"
-        />
-        Ativo (visível na loja)
-      </label>
+      <Bloco titulo="Publicação no site (SEO)">
+        <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
+          <input type="checkbox" name="ativo" value="on" defaultChecked={produto ? produto.ativo : true} className="h-4 w-4 accent-[#1e6bff]" />
+          Publicar na loja
+        </label>
+        <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
+          <input type="checkbox" name="destaque" value="on" defaultChecked={produto ? produto.destaque : false} className="h-4 w-4 accent-[#1e6bff]" />
+          Destaque na home
+        </label>
+        <Campo id="ordem" label="Ordem de exibição">
+          <input id="ordem" name="ordem" inputMode="numeric" defaultValue={produto?.ordem ?? 0} className={campo} />
+        </Campo>
+        <Campo id="metaTitle" label="Meta title (título no Google)" span2>
+          <input id="metaTitle" name="metaTitle" defaultValue={produto?.metaTitle ?? ""} placeholder="Deixe em branco para usar o nome + preço" className={campo} />
+        </Campo>
+        <Campo id="metaDescription" label="Meta description (resumo no Google)" span2>
+          <textarea id="metaDescription" name="metaDescription" rows={2} defaultValue={produto?.metaDescription ?? ""} className={`${campo} resize-y`} />
+        </Campo>
+        <Campo id="palavrasChave" label="Palavras-chave (vírgula)" span2>
+          <input id="palavrasChave" name="palavrasChave" defaultValue={produto?.palavrasChave ?? ""} placeholder="iphone, seminovo, santa cruz do sul" className={campo} />
+        </Campo>
+        <Campo id="descricaoSite" label="Descrição específica do site (opcional)" span2>
+          <textarea id="descricaoSite" name="descricaoSite" rows={3} defaultValue={produto?.descricaoSite ?? ""} className={`${campo} resize-y`} />
+        </Campo>
+      </Bloco>
 
       {estado?.erro && (
         <p role="alert" className="text-fluid-sm text-kyron-blue">

@@ -86,6 +86,12 @@ export default async function ProdutoErpDetalhe({
                 categoriaId: produto.categoriaId,
                 fornecedorId: produto.fornecedorId,
                 ativo: produto.ativo,
+                destaque: produto.destaque,
+                ordem: produto.ordem,
+                metaTitle: produto.metaTitle,
+                metaDescription: produto.metaDescription,
+                palavrasChave: produto.palavrasChave,
+                descricaoSite: produto.descricaoSite,
               }}
               categorias={categorias}
               fornecedores={fornecedores.map((f) => ({ id: f.id, nome: f.nome }))}

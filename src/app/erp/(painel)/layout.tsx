@@ -26,6 +26,7 @@ const NAV = [
   { label: "Notificações", href: "/erp/notificacoes", acao: "clientes.ver", icone: "notificacoes" },
   { label: "Colaboradores", href: "/erp/colaboradores", acao: "colaboradores.ver", icone: "colaboradores" },
   { label: "Integrações", href: "/erp/integracoes", acao: "financeiro", icone: "integracoes" },
+  { label: "Site · Banners", href: "/erp/site/banners", acao: "produtos.editar", icone: "produtos" },
   { label: "Maquininhas & taxas", href: "/erp/maquininhas", acao: "financeiro", icone: "maquininhas" },
   { label: "Configurações", href: "/erp/configuracoes", acao: "financeiro", icone: "configuracoes" },
   { label: "Auditoria", href: "/erp/auditoria", acao: "auditoria.ver", icone: "auditoria" },

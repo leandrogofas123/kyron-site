@@ -76,6 +76,13 @@ export async function acaoSalvarProdutoErp(_estado: Estado, form: FormData) {
     quantidadeMinima: inteiro(form, "quantidadeMinima") ?? 0,
     fornecedorId: fornecedorId && fornecedorId > 0 ? fornecedorId : null,
     ativo: form.get("ativo") === "on",
+    // ─── Publicação no site (módulo SITE) ───
+    destaque: form.get("destaque") === "on",
+    ordem: inteiro(form, "ordem") ?? 0,
+    metaTitle: texto(form, "metaTitle"),
+    metaDescription: texto(form, "metaDescription"),
+    palavrasChave: texto(form, "palavrasChave"),
+    descricaoSite: texto(form, "descricaoSite"),
   };
 
   try {

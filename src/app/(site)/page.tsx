@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
+import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getSeminovos, getServicos } from "@/lib/catalogo";
+import { bannersVisiveis } from "@/lib/site/banners";
 
 // Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
 // não no build — o banco só existe quando o site liga, não durante a montagem.
@@ -18,9 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [seminovos, servicos] = await Promise.all([
+  const [seminovos, servicos, bannersHero] = await Promise.all([
     getSeminovos(),
     getServicos(),
+    bannersVisiveis("hero"),
   ]);
 
   // Home é vitrine de entrada, não o catálogo inteiro: só uma amostra.
@@ -32,6 +35,15 @@ export default async function Home() {
 
   return (
     <>
+      {/* Banners do módulo SITE (geridos no ERP), quando houver campanha ativa. */}
+      {bannersHero.length > 0 && (
+        <section className="pt-fluid-lg">
+          <div className="container-kyron">
+            <BannerCarrossel banners={bannersHero} />
+          </div>
+        </section>
+      )}
+
       {/* BANNER INICIAL — carrossel de Automação Residencial, no topo. */}
       <section className="pb-fluid-md pt-fluid-lg">
         <div className="container-kyron">

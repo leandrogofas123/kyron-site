@@ -24,11 +24,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const capa = produto.imagens.find((i) => i.principal) ?? produto.imagens[0];
   const { atual } = precoVigente(produto.preco, produto.precoPromo);
 
+  const keywords = produto.palavrasChave
+    ? produto.palavrasChave.split(",").map((k) => k.trim()).filter(Boolean)
+    : undefined;
+
   return {
-    title: `${produto.nome} — ${formatarPreco(atual)}`,
+    // SEO editável no ERP (módulo SITE); cai no padrão quando não preenchido.
+    title: produto.metaTitle ?? `${produto.nome} — ${formatarPreco(atual)}`,
     description:
+      produto.metaDescription ??
       produto.descricaoCurta ??
       `${produto.nome} na Kyron Tecnologia, em Santa Cruz do Sul. Fale no WhatsApp.`,
+    keywords,
     alternates: { canonical: `/produtos/${produto.slug}` },
     openGraph: capa ? { images: [{ url: capa.url }] } : undefined,
   };

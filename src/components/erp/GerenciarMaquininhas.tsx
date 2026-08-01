@@ -14,7 +14,11 @@ type Maq = {
   ativo: boolean;
   taxaDebito: number;
   taxasCredito: Record<string, number>;
+  bancoId: number | null;
+  prazoDias: number;
 };
+
+type BancoOpc = { id: number; nome: string };
 
 const PARCELAS = Array.from({ length: 12 }, (_, i) => i + 1);
 const bpsPct = (bps: number) => (bps ? (bps / 100).toString().replace(".", ",") : "");
@@ -23,7 +27,10 @@ const inp =
   "w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-xs py-fluid-2xs text-fluid-2xs text-kyron-white text-right focus:border-[var(--kyron-blue-line)] focus:outline-none";
 const lbl = "kyron-label mb-1 block text-fluid-2xs text-kyron-silver/60";
 
-export function GerenciarMaquininhas({ maquininhas }: { maquininhas: Maq[] }) {
+const sel =
+  "w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm py-fluid-2xs text-fluid-sm text-kyron-white focus:border-[var(--kyron-blue-line)] focus:outline-none";
+
+export function GerenciarMaquininhas({ maquininhas, bancos }: { maquininhas: Maq[]; bancos: BancoOpc[] }) {
   const [editando, setEditando] = useState<Maq | null>(null);
   const [estado, action, pend] = useActionState(acaoSalvarMaquininha, null);
   const ref = useRef<HTMLFormElement>(null);
@@ -63,6 +70,8 @@ export function GerenciarMaquininhas({ maquininhas }: { maquininhas: Maq[] }) {
                 <p className="mt-1 text-fluid-2xs text-kyron-silver/60">
                   Débito {bpsPct(m.taxaDebito) || "0"}% · Créd. 1x {bpsPct(m.taxasCredito["1"]) || "0"}%
                   {m.taxasCredito["12"] ? ` · 12x ${bpsPct(m.taxasCredito["12"])}%` : ""}
+                  {" · "}
+                  {bancos.find((b) => b.id === m.bancoId)?.nome ?? "banco padrão"} · D+{m.prazoDias}
                 </p>
               </li>
             ))}
@@ -85,6 +94,21 @@ export function GerenciarMaquininhas({ maquininhas }: { maquininhas: Maq[] }) {
           <input type="checkbox" name="ativo" defaultChecked={editando ? editando.ativo : true} className="h-4 w-4 accent-kyron-blue" />
           Ativa (aparece no PDV)
         </label>
+
+        <div className="mb-fluid-xs grid grid-cols-[minmax(0,1fr)_6rem] gap-fluid-2xs">
+          <div>
+            <span className={lbl}>Banco de liquidação</span>
+            <select key={editando?.id ?? "novo"} name="bancoId" defaultValue={editando?.bancoId ?? ""} className={sel}>
+              <option value="">— usar padrão da forma —</option>
+              {bancos.map((b) => <option key={b.id} value={b.id}>{b.nome}</option>)}
+            </select>
+          </div>
+          <div>
+            <span className={lbl}>Prazo (D+)</span>
+            <input name="prazoDias" type="number" min={0} inputMode="numeric" defaultValue={editando?.prazoDias ?? 1}
+              className="w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-xs py-fluid-2xs text-fluid-sm text-kyron-white text-right focus:border-[var(--kyron-blue-line)] focus:outline-none" />
+          </div>
+        </div>
 
         <span className={lbl}>Taxas (%)</span>
         <div className="grid grid-cols-3 gap-fluid-2xs">

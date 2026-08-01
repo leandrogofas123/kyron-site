@@ -569,6 +569,8 @@ model Maquininha {
   ativo        Boolean  @default(true)
   taxaDebito   Int      @default(0)   // bps
   taxasCredito String   @default("{}") // JSON: parcela(string) -> bps
+  bancoId      Int?     // banco adquirente onde o dinheiro liquida
+  prazoDias    Int      @default(1)   // liquidação em D+N (dias corridos)
   criadoEm     DateTime @default(now())
 
   @@index([ativo])

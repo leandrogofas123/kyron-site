@@ -16,6 +16,8 @@ export type Maquininha = {
   ativo: boolean;
   taxaDebito: number;
   taxasCredito: Record<string, number>;
+  bancoId: number | null;
+  prazoDias: number;
 };
 
 function parse(m: { taxasCredito: string }): Record<string, number> {
@@ -33,8 +35,18 @@ function mapear(m: {
   ativo: boolean;
   taxaDebito: number;
   taxasCredito: string;
+  bancoId: number | null;
+  prazoDias: number;
 }): Maquininha {
-  return { id: m.id, nome: m.nome, ativo: m.ativo, taxaDebito: m.taxaDebito, taxasCredito: parse(m) };
+  return {
+    id: m.id,
+    nome: m.nome,
+    ativo: m.ativo,
+    taxaDebito: m.taxaDebito,
+    taxasCredito: parse(m),
+    bancoId: m.bancoId,
+    prazoDias: m.prazoDias,
+  };
 }
 
 export async function listarMaquininhas(): Promise<Maquininha[]> {

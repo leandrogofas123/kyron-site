@@ -65,10 +65,8 @@ type Payload = {
 
 const CARTAO = new Set(["credito", "debito"]);
 
-/** Taxa (bps) da maquininha para a forma/parcelas escolhidas. */
-async function taxaMaquininha(id: number, forma: string, parcelas: number): Promise<number> {
-  const m = await db.maquininha.findUnique({ where: { id }, select: { taxaDebito: true, taxasCredito: true } });
-  if (!m) return 0;
+/** Taxa (bps) de uma maquininha já carregada, para a forma/parcelas escolhidas. */
+function bpsDaMaq(m: { taxaDebito: number; taxasCredito: string }, forma: string, parcelas: number): number {
   if (forma === "debito") return m.taxaDebito;
   try {
     const tab = JSON.parse(m.taxasCredito) as Record<string, number>;
@@ -132,26 +130,34 @@ export async function finalizarVenda(
     if (!r.ok) return { ok: false, erro: `${mapa.get(it.produtoId)?.nome}: ${r.erro}` };
   }
 
-  // 2) Financeiro. Se for cartão, desconta a taxa da maquininha e lança o
-  //    LÍQUIDO (o que realmente entra). À vista → caixa; a prazo → a receber.
+  // 2) Financeiro. Cartão com maquininha: desconta a taxa (lança o LÍQUIDO) e
+  //    entra como "a receber" no banco ADQUIRENTE da maquininha, vencendo em
+  //    D+prazo (é quando o dinheiro liquida de verdade). Boleto/crediário → a
+  //    receber D+30 no banco da forma. Dinheiro/PIX → caixa na hora.
+  const maq =
+    CARTAO.has(payload.forma) && payload.maquininhaId
+      ? await db.maquininha.findUnique({
+          where: { id: payload.maquininhaId },
+          select: { bancoId: true, prazoDias: true, taxaDebito: true, taxasCredito: true },
+        })
+      : null;
+
   let valorFin = total;
   let obsTaxa = "";
-  if (CARTAO.has(payload.forma) && payload.maquininhaId) {
-    const bps = await taxaMaquininha(payload.maquininhaId, payload.forma, payload.parcelas ?? 1);
-    valorFin = liquido(total, bps);
-    obsTaxa = ` (líquido, taxa ${(bps / 100).toFixed(2).replace(".", ",")}%)`;
+  let taxaBps = 0;
+  if (maq) {
+    taxaBps = bpsDaMaq(maq, payload.forma, payload.parcelas ?? 1);
+    valorFin = liquido(total, taxaBps);
+    obsTaxa = ` (líquido, taxa ${(taxaBps / 100).toFixed(2).replace(".", ",")}%)`;
   }
 
+  // Banco de destino: o adquirente da maquininha, ou o padrão da forma (Fase A).
+  const bancoId = (maq?.bancoId ?? null) ?? (await bancoDaForma(payload.forma));
+
   let contaId: number | null = null;
-  let taxaBps = 0;
-  if (CARTAO.has(payload.forma) && payload.maquininhaId) {
-    taxaBps = await taxaMaquininha(payload.maquininhaId, payload.forma, payload.parcelas ?? 1);
-  }
-  // Roteamento forma→banco (Fase A): o dinheiro credita no banco configurado.
-  const bancoId = await bancoDaForma(payload.forma);
-  if (A_PRAZO.has(payload.forma)) {
+  if (maq || A_PRAZO.has(payload.forma)) {
     const venc = new Date();
-    venc.setDate(venc.getDate() + 30);
+    venc.setDate(venc.getDate() + (maq ? maq.prazoDias : 30));
     const conta = await db.conta.create({
       data: {
         tipo: "receber",

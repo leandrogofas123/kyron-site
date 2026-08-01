@@ -25,6 +25,16 @@ export function BancosFinanceiro({ bancos }: { bancos: Banco[] }) {
 
   useEffect(() => { if (estado?.ok) ref.current?.reset(); }, [estado?.ok]);
 
+  // Transferência e saque tiram dinheiro do banco e são imutáveis — confirmar.
+  function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
+    if (tipo === "transferencia" || tipo === "saque") {
+      const ok = window.confirm(
+        "Confirmar esta movimentação? Ela é registrada como lançamento e não pode ser desfeita — só se corrige com outra movimentação.",
+      );
+      if (!ok) e.preventDefault();
+    }
+  }
+
   const total = bancos.reduce((s, b) => s + b.saldo, 0);
 
   return (
@@ -55,7 +65,7 @@ export function BancosFinanceiro({ bancos }: { bancos: Banco[] }) {
       </div>
 
       {/* Movimentar */}
-      <form ref={ref} action={action} className="rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md">
+      <form ref={ref} action={action} onSubmit={aoEnviar} className="rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-md">
         <h2 className="kyron-label mb-fluid-sm text-fluid-2xs text-kyron-silver/70">Movimentar</h2>
         <div className="mb-fluid-xs"><span className={lbl}>Tipo</span>
           <select name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className={inp}>

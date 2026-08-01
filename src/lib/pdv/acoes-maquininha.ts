@@ -30,11 +30,18 @@ export async function acaoSalvarMaquininha(_estado: Estado, form: FormData): Pro
     if (bps > 0) taxasCredito[String(p)] = bps;
   }
 
+  const bancoBruto = Number(form.get("bancoId"));
+  const bancoId = Number.isInteger(bancoBruto) && bancoBruto > 0 ? bancoBruto : null;
+  const prazoBruto = Number(form.get("prazoDias"));
+  const prazoDias = Number.isInteger(prazoBruto) && prazoBruto >= 0 ? prazoBruto : 1;
+
   const dados = {
     nome,
     ativo: form.get("ativo") !== "off",
     taxaDebito,
     taxasCredito: JSON.stringify(taxasCredito),
+    bancoId,
+    prazoDias,
   };
 
   const salva = id

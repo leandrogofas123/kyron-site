@@ -1,29 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Orbitron, Exo_2 } from "next/font/google";
 
 import { SITE_URL } from "@/lib/kyron/site";
 
 import "./globals.css";
 
 /*
- * Layout raiz — só o essencial que vale para TODAS as rotas (loja e admin):
- * <html>, <body> e as fontes auto-hospedadas. A casca visual da loja
- * (cabeçalho, rodapé, WhatsApp, robô, cookies) vive em (site)/layout.tsx, para
- * NÃO aparecer no painel admin.
+ * Layout raiz — só o essencial que vale para TODAS as rotas (loja e ERP):
+ * <html> e <body>. A tipografia é a fonte padrão do sistema (globals.css),
+ * sem webfonts. A casca visual da loja (cabeçalho, rodapé, WhatsApp, robô,
+ * cookies) vive em (site)/layout.tsx, para NÃO aparecer no ERP.
  */
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  weight: ["700"],
-  variable: "--font-orbitron",
-  display: "swap",
-});
-
-const exo2 = Exo_2({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600"],
-  variable: "--font-exo2",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -58,7 +44,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${orbitron.variable} ${exo2.variable}`}>
+    <html lang="pt-BR">
       <body>{children}</body>
     </html>
   );

@@ -296,11 +296,25 @@ export function PdvClient({
             <span className="kyron-label text-fluid-2xs text-kyron-silver/60">Desconto</span>
             <span className="text-fluid-2xs text-kyron-silver/50">{qtdItens} {qtdItens === 1 ? "item" : "itens"}</span>
           </div>
-          <div className="flex gap-fluid-2xs">
+          <div className="flex items-stretch gap-fluid-2xs">
             <input className={inp} inputMode="decimal" placeholder="0" value={descTexto} onChange={(e) => setDescTexto(e.target.value)} />
-            <div className="inline-flex overflow-hidden rounded-kyron-sm border border-[var(--kyron-hairline-strong)]">
-              <button type="button" onClick={() => setDescPct(false)} className={`px-fluid-sm text-fluid-sm font-bold ${!descPct ? "bg-kyron-blue text-white" : "bg-kyron-graphite text-kyron-silver"}`}>R$</button>
-              <button type="button" onClick={() => setDescPct(true)} className={`px-fluid-sm text-fluid-sm font-bold ${descPct ? "bg-kyron-blue text-white" : "bg-kyron-graphite text-kyron-silver"}`}>%</button>
+            <div className="inline-flex shrink-0 overflow-hidden rounded-kyron-sm border border-[var(--kyron-hairline-strong)]">
+              <button
+                type="button"
+                aria-pressed={!descPct}
+                onClick={() => setDescPct(false)}
+                className={`flex min-w-[2.75rem] items-center justify-center px-fluid-sm text-fluid-sm font-bold leading-none transition-colors ${!descPct ? "bg-kyron-blue text-white" : "bg-kyron-graphite text-kyron-silver hover:text-kyron-white"}`}
+              >
+                R$
+              </button>
+              <button
+                type="button"
+                aria-pressed={descPct}
+                onClick={() => setDescPct(true)}
+                className={`flex min-w-[2.75rem] items-center justify-center border-l border-[var(--kyron-hairline-strong)] px-fluid-sm text-fluid-sm font-bold leading-none transition-colors ${descPct ? "bg-kyron-blue text-white" : "bg-kyron-graphite text-kyron-silver hover:text-kyron-white"}`}
+              >
+                %
+              </button>
             </div>
           </div>
         </div>

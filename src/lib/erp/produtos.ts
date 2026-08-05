@@ -22,6 +22,8 @@ export async function listarProdutos(opts?: {
   q?: string;
   categoriaId?: number;
   apenasBaixos?: boolean;
+  /** "novo" = sem ficha de seminovo; "seminovo" = com ficha. */
+  tipo?: "novo" | "seminovo";
 }) {
   const termo = opts?.q?.trim();
 
@@ -29,6 +31,8 @@ export async function listarProdutos(opts?: {
     where: {
       excluidoEm: null,
       ...(opts?.categoriaId ? { categoriaId: opts.categoriaId } : {}),
+      ...(opts?.tipo === "seminovo" ? { seminovo: { isNot: null } } : {}),
+      ...(opts?.tipo === "novo" ? { seminovo: { is: null } } : {}),
       ...(termo
         ? {
             OR: BUSCA_CAMPOS.map((campo) => ({
@@ -42,6 +46,7 @@ export async function listarProdutos(opts?: {
     include: {
       categoria: { select: { nome: true } },
       fornecedor: { select: { nome: true } },
+      seminovo: true,
     },
   });
 

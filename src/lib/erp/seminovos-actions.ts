@@ -18,7 +18,7 @@ export async function acaoMarcarVendido(produtoId: number, vendido: boolean): Pr
     entidade: "Seminovo",
     entidadeId: produtoId,
   });
-  revalidatePath("/erp/seminovos");
+  revalidatePath("/erp/produtos");
   revalidatePath("/seminovos");
   revalidatePath("/");
 }

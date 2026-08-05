@@ -16,7 +16,6 @@ const NAV = [
   { label: "Vendas", href: "/erp/vendas", acao: "estoque.ver", icone: "notas" },
   { label: "Painel executivo", href: "/erp/analytics", acao: "financeiro", icone: "analytics" },
   { label: "Produtos", href: "/erp/produtos", acao: "produtos.ver", icone: "produtos" },
-  { label: "Seminovos", href: "/erp/seminovos", acao: "produtos.ver", icone: "produtos" },
   { label: "Serviços", href: "/erp/servicos", acao: "produtos.editar", icone: "ordens" },
   { label: "Estoque", href: "/erp/estoque", acao: "estoque.ver", icone: "estoque" },
   { label: "Inventário", href: "/erp/inventario", acao: "estoque.movimentar", icone: "inventario" },

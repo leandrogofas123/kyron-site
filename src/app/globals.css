@@ -155,8 +155,11 @@ canvas {
 .grid-fluida-4 {
   display: grid;
   gap: var(--gap);
+  /* auto-FILL (não auto-fit): quando há menos itens que colunas, cada card fica
+     do tamanho da coluna em vez de esticar para a linha inteira. Fim dos cards
+     gigantes com catálogo pequeno. Com a grade cheia, é idêntico ao auto-fit. */
   grid-template-columns: repeat(
-    auto-fit,
+    auto-fill,
     minmax(
       max(
         var(--min),

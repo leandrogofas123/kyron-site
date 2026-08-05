@@ -71,10 +71,10 @@ export default async function Produtos({
               : "Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a gente te ajuda a encontrar."}
           </p>
         ) : (
-          <ul className="grid-fluida-4">
+          <ul className="grid-fluida-6">
             {produtos.map((p, i) => (
               <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 4} />
+                <ProdutoCard produto={p} prioridade={i < 6} />
               </li>
             ))}
           </ul>

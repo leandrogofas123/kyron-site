@@ -37,6 +37,7 @@ export const BANNERS_AUTOMACAO: readonly BannerAutomacao[] = [
     itens: ["Alexa", "Tomadas inteligentes", "Lâmpadas inteligentes"],
     cta: { label: "Conhecer produtos", href: CATALOGO_CASA },
     icone: "casa",
+    imagem: { src: "/automacao/automacao-residencial.jpg", alt: "Painel de casa inteligente controlando iluminação e ambiente" },
   },
   {
     id: "controle-tv-ar",
@@ -51,6 +52,7 @@ export const BANNERS_AUTOMACAO: readonly BannerAutomacao[] = [
     ],
     cta: { label: "Ver solução", href: CATALOGO_CASA },
     icone: "controle",
+    imagem: { src: "/automacao/controle-clima.jpg", alt: "Termostato inteligente na parede controlando o clima do ambiente" },
   },
   {
     id: "casa-alexa",
@@ -60,6 +62,7 @@ export const BANNERS_AUTOMACAO: readonly BannerAutomacao[] = [
       "Crie rotinas, automatize iluminação, ligue aparelhos por voz e tenha mais conforto no dia a dia.",
     cta: { label: "Conhecer automação", href: CATALOGO_CASA },
     icone: "voz",
+    imagem: { src: "/automacao/casa-alexa.jpg", alt: "Assistente de voz inteligente sobre a estante de uma sala" },
   },
   {
     id: "venda-instalacao",
@@ -73,5 +76,6 @@ export const BANNERS_AUTOMACAO: readonly BannerAutomacao[] = [
         "Olá! Quero saber sobre automação residencial — venda, configuração e instalação.",
     },
     icone: "instalacao",
+    imagem: { src: "/automacao/instalacao.jpg", alt: "Interruptor inteligente instalado na parede pela equipe Kyron" },
   },
 ];

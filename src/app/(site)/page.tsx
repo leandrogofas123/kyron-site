@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
+import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getSeminovos, getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
@@ -84,6 +85,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* FAIXA DE DIFERENCIAIS — confiança e informação logo na entrada */}
+      <FaixaDiferenciais />
 
       {/* AMOSTRA DE SEMINOVOS — cada card leva ao seminovo */}
       {seminovosAmostra.length > 0 && (

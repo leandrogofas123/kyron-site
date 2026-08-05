@@ -6,6 +6,7 @@ import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
 import { SecaoCasaInteligente } from "@/components/home/SecaoCasaInteligente";
+import { VitrineCategorias } from "@/components/home/VitrineCategorias";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getSeminovos, getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
@@ -89,6 +90,9 @@ export default async function Home() {
 
       {/* FAIXA DE DIFERENCIAIS — confiança e informação logo na entrada */}
       <FaixaDiferenciais />
+
+      {/* VITRINE DE CATEGORIAS — navegação ilustrada por linha */}
+      <VitrineCategorias />
 
       {/* AMOSTRA DE SEMINOVOS — cada card leva ao seminovo */}
       {seminovosAmostra.length > 0 && (

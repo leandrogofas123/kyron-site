@@ -22,7 +22,7 @@ export function ProdutoImagem({
           src={src}
           alt={alt}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 16vw"
           priority={prioridade}
           className="object-cover transition-transform duration-[400ms] ease-in-out group-hover:scale-[1.03]"
         />

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import { acaoSalvarServico } from "@/lib/admin-actions";
+import { acaoSalvarServico } from "@/lib/erp/servicos-actions";
 
 const campo =
   "w-full rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm py-fluid-xs text-fluid-base text-kyron-white focus:border-[var(--kyron-blue-line)] focus:outline-none";
@@ -35,7 +35,7 @@ export function ServicoForm({ servico }: { servico?: ServicoEdit }) {
         <textarea id="s-desc" name="descricao" rows={3} defaultValue={servico?.descricao ?? ""} className={`${campo} resize-y`} />
       </div>
 
-      <div className="grid-fluida-2 [--gap:var(--spacing-fluid-md)]">
+      <div className="grid gap-fluid-md sm:grid-cols-2">
         <div>
           <label htmlFor="s-preco" className={rotulo}>Preço a partir de (R$)</label>
           <input
@@ -59,16 +59,16 @@ export function ServicoForm({ servico }: { servico?: ServicoEdit }) {
 
       <div className="flex flex-wrap gap-fluid-md">
         <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
-          <input type="checkbox" name="atendeEmDomicilio" defaultChecked={servico?.atendeEmDomicilio} className="h-4 w-4 accent-[#1e6bff]" />
+          <input type="checkbox" name="atendeEmDomicilio" defaultChecked={servico?.atendeEmDomicilio} className="h-4 w-4 accent-kyron-blue" />
           Atende em domicílio
         </label>
         <label className="flex items-center gap-fluid-xs text-fluid-sm text-kyron-silver">
-          <input type="checkbox" name="ativo" defaultChecked={servico ? servico.ativo : true} value="on" className="h-4 w-4 accent-[#1e6bff]" />
+          <input type="checkbox" name="ativo" defaultChecked={servico ? servico.ativo : true} value="on" className="h-4 w-4 accent-kyron-blue" />
           Ativo
         </label>
       </div>
 
-      {estado?.erro && <p role="alert" className="text-fluid-sm text-kyron-blue">{estado.erro}</p>}
+      {estado?.erro && <p role="alert" className="text-fluid-sm text-[var(--kyron-amber,#d9902f)]">{estado.erro}</p>}
 
       <button type="submit" disabled={pendente} className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px disabled:opacity-50">
         {pendente ? "Salvando…" : servico ? "Salvar alterações" : "Adicionar serviço"}

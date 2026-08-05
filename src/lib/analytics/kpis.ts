@@ -167,7 +167,7 @@ export async function alertasNegocio(agora = new Date()): Promise<Alerta[]> {
       nivel: "info",
       titulo: "Nenhum lead nos últimos 7 dias",
       detalhe: "Vale revisar divulgação e o assistente do site.",
-      href: "/admin/leads",
+      href: "/erp/leads",
     });
   }
 

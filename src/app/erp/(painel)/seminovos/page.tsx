@@ -1,12 +1,25 @@
 import Link from "next/link";
 
-import { BotaoVendido } from "@/components/admin/LinhaAcoes";
+import { BotaoVendido } from "@/components/erp/BotaoVendido";
+import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { db } from "@/lib/db";
 import { formatarPreco, precoVigente } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminSeminovos() {
+export default async function ErpSeminovos() {
+  const eu = await colaboradorLogado();
+  if (!eu || !podeFazer(eu.papel, "produtos.ver")) {
+    return (
+      <div className="mx-auto max-w-[40rem] rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg text-center">
+        <h1 className="kyron-display text-fluid-lg text-kyron-white">Acesso restrito</h1>
+        <p className="mt-fluid-sm text-fluid-base text-kyron-silver">
+          Os seminovos são visíveis para a equipe.
+        </p>
+      </div>
+    );
+  }
+
   const seminovos = await db.produto.findMany({
     where: { seminovo: { isNot: null } },
     orderBy: [{ seminovo: { vendido: "asc" } }, { criadoEm: "desc" }],
@@ -15,6 +28,7 @@ export default async function AdminSeminovos() {
       seminovo: true,
     },
   });
+  const podeEditar = podeFazer(eu.papel, "produtos.editar");
 
   return (
     <>
@@ -30,7 +44,7 @@ export default async function AdminSeminovos() {
         <p className="text-fluid-sm text-kyron-silver">
           Nenhum seminovo cadastrado. Crie um produto e marque a opção{" "}
           <em>É um seminovo</em>.{" "}
-          <Link href="/admin/produtos/novo" className="text-kyron-blue underline">
+          <Link href="/erp/produtos/novo" className="text-kyron-blue underline">
             Novo produto
           </Link>
         </p>
@@ -61,10 +75,10 @@ export default async function AdminSeminovos() {
                   </p>
                 </div>
                 <div className="flex items-center gap-fluid-sm">
-                  <Link href={`/admin/produtos/${p.id}/editar`} className="text-fluid-2xs text-kyron-blue hover:underline">
+                  <Link href={`/erp/produtos/${p.id}`} className="text-fluid-2xs text-kyron-blue hover:underline">
                     Editar
                   </Link>
-                  <BotaoVendido produtoId={p.id} vendido={vendido} />
+                  {podeEditar && <BotaoVendido produtoId={p.id} vendido={vendido} />}
                 </div>
               </li>
             );

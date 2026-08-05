@@ -1,4 +1,5 @@
-import { QuadroLeads, type LeadKanban } from "@/components/admin/QuadroLeads";
+import { QuadroLeads, type LeadKanban } from "@/components/erp/QuadroLeads";
+import { colaboradorLogado, podeFazer } from "@/lib/erp/auth";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,19 @@ function quando(d: Date): string {
   }).format(d);
 }
 
-export default async function AdminLeads() {
+export default async function ErpLeads() {
+  const eu = await colaboradorLogado();
+  if (!eu || !podeFazer(eu.papel, "clientes.ver")) {
+    return (
+      <div className="mx-auto max-w-[40rem] rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg text-center">
+        <h1 className="kyron-display text-fluid-lg text-kyron-white">Acesso restrito</h1>
+        <p className="mt-fluid-sm text-fluid-base text-kyron-silver">
+          Os leads são visíveis para a equipe de vendas.
+        </p>
+      </div>
+    );
+  }
+
   const leads = await db.lead.findMany({ orderBy: { criadoEm: "desc" }, take: 300 });
   const novos = leads.filter((l) => l.status === "novo").length;
 

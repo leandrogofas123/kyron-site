@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { acaoStatusLead } from "@/lib/admin-actions";
+import { acaoStatusLead } from "@/lib/erp/leads-actions";
 
 export type LeadKanban = {
   id: number;

@@ -54,7 +54,7 @@ const TEMPLATES: Record<string, (v: Vars) => Renderizado> = {
       "<h2>Novo cliente aguardando aprovação</h2>",
       linhaEmail("Nome", v.nome),
       linhaEmail("E-mail", v.email),
-      "<p>Aprove em /admin/clientes para liberar o acesso às aulas.</p>",
+      "<p>Aprove em /erp/alunos para liberar o acesso às aulas.</p>",
     ].join(""),
   }),
 };

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
+import { HeroHome } from "@/components/home/HeroHome";
 import { SecaoCasaInteligente } from "@/components/home/SecaoCasaInteligente";
 import { VitrineCategorias } from "@/components/home/VitrineCategorias";
 import { Section, SectionHeader } from "@/components/site/Section";
-import { getSeminovos, getServicos } from "@/lib/catalogo";
+import { getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
 
 // Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
@@ -23,17 +23,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [seminovos, servicos, bannersHero] = await Promise.all([
-    getSeminovos(),
+  const [servicos, bannersHero] = await Promise.all([
     getServicos(),
     bannersVisiveis("hero"),
   ]);
 
-  // Home é vitrine de entrada, não o catálogo inteiro: só uma amostra.
-  // A ordem vem do campo "ordem" (curado no admin) — os que o dono destaca
-  // aparecem primeiro. Medição real de "mais vistos" exige rastrear cliques,
-  // uma evolução futura; por enquanto, a curadoria faz esse papel.
-  const seminovosAmostra = seminovos.slice(0, 4);
   const servicosAmostra = servicos.slice(0, 4);
 
   return (
@@ -54,70 +48,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* HERO APPLE — o foco principal segue sendo iPhone/seminovos */}
-      <section className="relative overflow-hidden pb-fluid-lg pt-fluid-md">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 -top-[16vw] aspect-square w-[min(30rem,75vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.12),transparent_68%)]"
-        />
-        <div className="container-kyron relative flex flex-col items-center text-center">
-          <p className="kyron-label text-fluid-2xs tracking-[0.18em] text-kyron-silver/70">
-            Santa Cruz do Sul · RS
-          </p>
-          <h1 className="kyron-display mt-fluid-xs max-w-[20ch] text-fluid-3xl text-kyron-white">
-            Tecnologia premium, <span className="text-kyron-blue">perto</span> de você.
-          </h1>
-          <p className="mt-fluid-sm max-w-[48ch] text-fluid-base text-kyron-silver">
-            Apple novos e seminovos, casa inteligente, áudio e instalação em
-            domicílio. Atendimento consultivo, conversa direta no WhatsApp.
-          </p>
-          <div className="mt-fluid-md flex flex-wrap justify-center gap-fluid-xs">
-            <Link
-              href="/produtos"
-              className="kyron-label rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-sm text-fluid-xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)]"
-            >
-              Ver produtos
-            </Link>
-            <Link
-              href="/seminovos"
-              className="kyron-label rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-fluid-md py-fluid-sm text-fluid-xs text-kyron-silver transition-colors duration-300 hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
-            >
-              iPhone seminovos
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* HERO — duas colunas: mensagem + CTAs e visual do produto */}
+      <HeroHome />
 
       {/* FAIXA DE DIFERENCIAIS — confiança e informação logo na entrada */}
       <FaixaDiferenciais />
 
       {/* VITRINE DE CATEGORIAS — navegação ilustrada por linha */}
       <VitrineCategorias />
-
-      {/* AMOSTRA DE SEMINOVOS — cada card leva ao seminovo */}
-      {seminovosAmostra.length > 0 && (
-        <Section>
-          <SectionHeader
-            eyebrow="iPhone seminovos"
-            titulo="Os mais procurados."
-          />
-          <ul className="grid-fluida-4">
-            {seminovosAmostra.map((p, i) => (
-              <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 2} />
-              </li>
-            ))}
-          </ul>
-          <div className="mt-fluid-lg text-center">
-            <Link
-              href="/seminovos"
-              className="kyron-label text-fluid-xs text-kyron-blue hover:underline"
-            >
-              Ver todos os seminovos →
-            </Link>
-          </div>
-        </Section>
-      )}
 
       {/* CASA INTELIGENTE — seção editorial com fotos reais e soluções */}
       <SecaoCasaInteligente />

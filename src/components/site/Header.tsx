@@ -10,7 +10,6 @@ import { CTA_PRIMARIO } from "@/lib/kyron/site";
 /** Acesso rápido — módulos principais unidos, no topo. */
 const RAPIDO = [
   { label: "Início", href: "/" },
-  { label: "Produtos", href: "/produtos" },
   { label: "Seminovos", href: "/seminovos" },
   { label: "Casa Inteligente", href: "/produtos?categoria=casa-inteligente" },
   { label: "Áudio", href: "/produtos?categoria=audio" },

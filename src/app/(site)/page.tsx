@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
@@ -8,7 +9,7 @@ import { HeroHome } from "@/components/home/HeroHome";
 import { SecaoCasaInteligente } from "@/components/home/SecaoCasaInteligente";
 import { VitrineCategorias } from "@/components/home/VitrineCategorias";
 import { Section, SectionHeader } from "@/components/site/Section";
-import { getServicos } from "@/lib/catalogo";
+import { getProdutos, getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
 
 // Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
@@ -23,7 +24,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [servicos, bannersHero] = await Promise.all([
+  const [{ produtos }, servicos, bannersHero] = await Promise.all([
+    getProdutos({}),
     getServicos(),
     bannersVisiveis("hero"),
   ]);
@@ -56,6 +58,28 @@ export default async function Home() {
 
       {/* VITRINE DE CATEGORIAS — navegação ilustrada por linha */}
       <VitrineCategorias />
+
+      {/* TODOS OS PRODUTOS — catálogo completo na própria home */}
+      {produtos.length > 0 && (
+        <Section>
+          <SectionHeader eyebrow="Catálogo" titulo="Todos os produtos." />
+          <ul className="grid-fluida-6">
+            {produtos.map((p, i) => (
+              <li key={p.id}>
+                <ProdutoCard produto={p} prioridade={i < 6} />
+              </li>
+            ))}
+          </ul>
+          <div className="mt-fluid-lg text-center">
+            <Link
+              href="/produtos"
+              className="kyron-label text-fluid-xs text-kyron-blue hover:underline"
+            >
+              Buscar e filtrar por categoria →
+            </Link>
+          </div>
+        </Section>
+      )}
 
       {/* CASA INTELIGENTE — seção editorial com fotos reais e soluções */}
       <SecaoCasaInteligente />

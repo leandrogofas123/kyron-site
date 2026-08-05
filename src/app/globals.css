@@ -181,6 +181,23 @@ canvas {
   --cols: 4;
   --gap: var(--spacing-fluid-sm);
 }
+/* Grade densa e DETERMINÍSTICA: nº de colunas fixo por faixa de tela, então um
+   card sozinho não estica para a linha inteira (auto-fit fazia isso). 6 colunas
+   no desktop; degrada para 4 / 3 / 2 conforme estreita. */
+.grid-fluida-6 {
+  display: grid;
+  gap: var(--spacing-fluid-xs);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 520px) {
+  .grid-fluida-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .grid-fluida-6 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .grid-fluida-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 
 .kyron-display {
   font-family: var(--font-display);

@@ -41,10 +41,10 @@ export default async function Seminovos() {
             gente te avisa quando chegar o próximo.
           </p>
         ) : (
-          <ul className="grid-fluida-4">
+          <ul className="grid-fluida-6">
             {produtos.map((p, i) => (
               <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 4} />
+                <ProdutoCard produto={p} prioridade={i < 6} />
               </li>
             ))}
           </ul>

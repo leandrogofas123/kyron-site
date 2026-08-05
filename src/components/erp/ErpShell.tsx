@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { acaoSairErp } from "@/lib/erp/actions";
 
 type Item = { label: string; href: string; icone: string };
+type Grupo = { label: string; icone: string; itens: Item[] };
 
 /** Ícones de linha (stroke). Um por seção do ERP. */
 const I: Record<string, ReactNode> = {
@@ -24,25 +25,27 @@ const I: Record<string, ReactNode> = {
   notificacoes: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></>,
   colaboradores: <><circle cx="9" cy="8" r="3" /><path d="M3 21a6 6 0 0 1 12 0" /><path d="M16 3.5a3 3 0 0 1 0 5.8M18 21a5 5 0 0 0-3-4.6" /></>,
   integracoes: <><path d="M9 2v6M15 2v6" /><path d="M6 8h12v4a6 6 0 0 1-12 0z" /><path d="M12 18v4" /></>,
-  maquininhas: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>,
+  aulas: <><path d="M2 7l10-4 10 4-10 4z" /><path d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" /></>,
   configuracoes: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.1a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.4 1z" /></>,
   auditoria: <><path d="M3 3v5h5" /><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" /><path d="M12 7v5l3 2" /></>,
 };
 
-function Icone({ nome }: { nome: string }) {
+function Icone({ nome, tamanho = 18 }: { nome: string; tamanho?: number }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px] shrink-0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: tamanho, height: tamanho }} className="shrink-0">
       {I[nome] ?? I.dashboard}
     </svg>
   );
 }
 
 export function ErpShell({
-  itens,
+  atalhos,
+  grupos,
   usuario,
   children,
 }: {
-  itens: Item[];
+  atalhos: Item[];
+  grupos: Grupo[];
   usuario: { nome: string; papel: string };
   children: ReactNode;
 }) {
@@ -50,6 +53,21 @@ export function ErpShell({
   const [mobile, setMobile] = useState(false);
 
   const ehAtivo = (href: string) => (href === "/erp" ? pathname === "/erp" : pathname.startsWith(href));
+
+  // Grupo que contém a rota atual começa aberto; os demais, fechados.
+  const grupoAtivo = useMemo(
+    () => grupos.find((g) => g.itens.some((i) => ehAtivo(i.href)))?.label ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pathname, grupos],
+  );
+  const [abertos, setAbertos] = useState<Set<string>>(() => new Set(grupoAtivo ? [grupoAtivo] : []));
+  const alternar = (label: string) =>
+    setAbertos((prev) => {
+      const n = new Set(prev);
+      n.has(label) ? n.delete(label) : n.add(label);
+      return n;
+    });
+
   const iniciais = usuario.nome.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
   return (
@@ -83,23 +101,77 @@ export function ErpShell({
           </button>
         </div>
 
-        <nav className="kyron-scroll flex-1 space-y-0.5 overflow-y-auto px-fluid-xs pb-fluid-md">
-          {itens.map((item) => {
-            const ativo = ehAtivo(item.href);
+        <nav className="kyron-scroll flex-1 space-y-fluid-sm overflow-y-auto px-fluid-xs pb-fluid-md">
+          {/* Atalhos rápidos — módulos mais importantes */}
+          {atalhos.length > 0 && (
+            <div>
+              <p className="kyron-label px-fluid-sm pb-1 text-[0.6rem] text-kyron-silver/40">Atalhos</p>
+              <div className="grid grid-cols-2 gap-fluid-2xs">
+                {atalhos.map((a) => {
+                  const ativo = ehAtivo(a.href);
+                  return (
+                    <Link
+                      key={a.href}
+                      href={a.href}
+                      onClick={() => setMobile(false)}
+                      className={`flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
+                        ativo
+                          ? "border-[var(--kyron-blue-line)] bg-kyron-blue/12 text-kyron-white"
+                          : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
+                      }`}
+                    >
+                      <span className={ativo ? "text-kyron-blue" : "text-kyron-silver/80"}><Icone nome={a.icone} tamanho={16} /></span>
+                      <span className="whitespace-nowrap">{a.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Grupos principais (expansíveis) */}
+          {grupos.map((g) => {
+            const aberto = abertos.has(g.label);
+            const contémAtivo = g.itens.some((i) => ehAtivo(i.href));
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobile(false)}
-                className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
-                  ativo
-                    ? "bg-kyron-blue/12 text-kyron-white"
-                    : "text-kyron-silver hover:bg-white/[0.04] hover:text-kyron-white"
-                }`}
-              >
-                <span className={ativo ? "text-kyron-blue" : ""}><Icone nome={item.icone} /></span>
-                <span className="whitespace-nowrap">{item.label}</span>
-              </Link>
+              <div key={g.label}>
+                <button
+                  type="button"
+                  onClick={() => alternar(g.label)}
+                  aria-expanded={aberto}
+                  className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
+                    contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"
+                  }`}
+                >
+                  <span className={contémAtivo ? "text-kyron-blue" : ""}><Icone nome={g.icone} /></span>
+                  <span className="kyron-label whitespace-nowrap">{g.label}</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`ml-auto transition-transform ${aberto ? "rotate-90" : ""}`}>
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                </button>
+                {aberto && (
+                  <div className="mt-0.5 space-y-0.5 border-l border-[var(--kyron-hairline)] pl-fluid-xs">
+                    {g.itens.map((item) => {
+                      const ativo = ehAtivo(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMobile(false)}
+                          className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
+                            ativo
+                              ? "bg-kyron-blue/12 text-kyron-white"
+                              : "text-kyron-silver hover:bg-white/[0.04] hover:text-kyron-white"
+                          }`}
+                        >
+                          <span className={ativo ? "text-kyron-blue" : "text-kyron-silver/70"}><Icone nome={item.icone} tamanho={16} /></span>
+                          <span className="whitespace-nowrap">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

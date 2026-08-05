@@ -23,6 +23,8 @@ const NAV = [
   { label: "Notas fiscais", href: "/erp/notas", acao: "notas.ver", icone: "notas" },
   { label: "Fornecedores", href: "/erp/fornecedores", acao: "fornecedores.ver", icone: "fornecedores" },
   { label: "Clientes", href: "/erp/clientes", acao: "clientes.ver", icone: "clientes" },
+  { label: "Alunos", href: "/erp/alunos", acao: "alunos", icone: "clientes" },
+  { label: "Aulas · Manual", href: "/erp/aulas", acao: "aulas", icone: "notas" },
   { label: "Financeiro", href: "/erp/financeiro", acao: "financeiro", icone: "financeiro" },
   { label: "Notificações", href: "/erp/notificacoes", acao: "clientes.ver", icone: "notificacoes" },
   { label: "Colaboradores", href: "/erp/colaboradores", acao: "colaboradores.ver", icone: "colaboradores" },

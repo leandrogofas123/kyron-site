@@ -13,10 +13,10 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden pb-fluid-xl pt-fluid-xl">
+    <section className="relative overflow-hidden pb-fluid-md pt-fluid-lg">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 -top-[25vw] aspect-square w-[min(38rem,85vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.1),transparent_68%)]"
+        className="pointer-events-none absolute left-1/2 -top-[18vw] aspect-square w-[min(34rem,80vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(30,107,255,0.1),transparent_68%)]"
       />
 
       <div className="container-kyron relative flex flex-col items-center text-center">
@@ -24,12 +24,12 @@ export function PageHero({
           {eyebrow}
         </p>
 
-        <h1 className="kyron-display mt-fluid-sm max-w-[18ch] text-fluid-hero text-kyron-white">
+        <h1 className="kyron-display mt-fluid-xs max-w-[30ch] text-fluid-2xl leading-[1.05] text-kyron-white">
           {titulo}
         </h1>
 
         {lede && (
-          <p className="mt-fluid-md max-w-[52ch] text-fluid-lg text-kyron-silver">
+          <p className="mt-fluid-sm max-w-[68ch] text-fluid-base text-kyron-silver">
             {lede}
           </p>
         )}

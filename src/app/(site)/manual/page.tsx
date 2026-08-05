@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 export default async function ManualPage() {
   const [posts, usuario] = await Promise.all([getPosts(), usuarioLogado()]);
   const liberado = Boolean(usuario?.aprovado);
+  const aulas = posts.filter((p) => p.youtubeId).length;
+  const artigos = posts.length - aulas;
 
   return (
     <>
@@ -30,9 +32,24 @@ export default async function ManualPage() {
             <span className="text-kyron-blue">configurar</span>.
           </>
         }
-        lede="Novidades e artigos abertos a todos. As aulas em vídeo são exclusivas para clientes com acesso aprovado."
+        lede="Tutoriais passo a passo, novidades e aulas em vídeo de instalação e configuração — de automação residencial a produtos Apple. Artigos abertos a todos; as aulas em vídeo são exclusivas para clientes com acesso aprovado."
       >
-        <div className="mt-fluid-lg">
+        <ul className="mt-fluid-md flex flex-wrap items-center justify-center gap-x-fluid-md gap-y-fluid-2xs text-fluid-2xs text-kyron-silver/80">
+          {[
+            aulas > 0 ? `${aulas} ${aulas === 1 ? "aula em vídeo" : "aulas em vídeo"}` : "Aulas em vídeo",
+            artigos > 0 ? `${artigos} ${artigos === 1 ? "artigo" : "artigos"}` : "Artigos e novidades",
+            "Passo a passo",
+            "Atualizado sempre",
+          ].map((t) => (
+            <li key={t} className="inline-flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="text-kyron-blue">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              {t}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-fluid-md">
           <BarraConta usuario={usuario} liberado={liberado} />
         </div>
       </PageHero>

@@ -1,10 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Logo } from "./Logo";
 import { CTA_PRIMARIO } from "@/lib/kyron/site";
+
+/** Acesso rápido — módulos principais unidos, no topo. */
+const RAPIDO = [
+  { label: "Início", href: "/" },
+  { label: "Produtos", href: "/produtos" },
+  { label: "Seminovos", href: "/seminovos" },
+  { label: "Casa Inteligente", href: "/produtos?categoria=casa-inteligente" },
+  { label: "Áudio", href: "/produtos?categoria=audio" },
+  { label: "Acessórios", href: "/produtos?categoria=acessorios" },
+  { label: "Serviços", href: "/servicos" },
+  { label: "Manual & Aulas", href: "/manual" },
+  { label: "Contato", href: "/contato" },
+];
 
 /**
  * Cabeçalho da loja: logo, busca e o botão que oculta/mostra o MENU LATERAL —
@@ -18,6 +32,15 @@ export function Header({
   onAlternarSidebar?: () => void;
 }) {
   const [rolou, setRolou] = useState(false);
+  const pathname = usePathname();
+
+  // Link ativo por rota (categorias, que compartilham /produtos, ficam só com
+  // o hover azul — sem depender de useSearchParams, que exigiria Suspense).
+  const ehAtivo = (href: string) => {
+    if (href.includes("?")) return false;
+    if (href === "/") return pathname === "/";
+    return pathname === href;
+  };
 
   useEffect(() => {
     const onScroll = () => setRolou(window.scrollY > 40);
@@ -76,6 +99,28 @@ export function Header({
           {CTA_PRIMARIO.label}
         </Link>
       </div>
+
+      {/* Acesso rápido aos módulos principais — botões com hover azul */}
+      <nav aria-label="Acesso rápido" className="border-t border-[var(--kyron-hairline)]">
+        <div className="kyron-scroll container-kyron flex gap-1 overflow-x-auto py-1.5">
+          {RAPIDO.map((l) => {
+            const ativo = ehAtivo(l.href);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`kyron-label whitespace-nowrap rounded-kyron-sm px-fluid-sm py-fluid-2xs text-fluid-2xs transition-colors ${
+                  ativo
+                    ? "bg-kyron-blue text-white"
+                    : "text-kyron-silver hover:bg-kyron-blue hover:text-white"
+                }`}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 }

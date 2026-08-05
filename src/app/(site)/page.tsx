@@ -5,6 +5,7 @@ import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
+import { SecaoCasaInteligente } from "@/components/home/SecaoCasaInteligente";
 import { Section, SectionHeader } from "@/components/site/Section";
 import { getSeminovos, getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
@@ -113,6 +114,9 @@ export default async function Home() {
           </div>
         </Section>
       )}
+
+      {/* CASA INTELIGENTE — seção editorial com fotos reais e soluções */}
+      <SecaoCasaInteligente />
 
       {/* SERVIÇOS — caixas com explicação básica; clicar leva ao serviço */}
       {servicosAmostra.length > 0 && (

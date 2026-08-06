@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
+import { CatalogoHome } from "@/components/catalogo/CatalogoHome";
 import { BannerAutomacao } from "@/components/home/BannerAutomacao";
 import { BannerCarrossel } from "@/components/home/BannerCarrossel";
 import { FaixaDiferenciais } from "@/components/home/FaixaDiferenciais";
@@ -59,23 +59,17 @@ export default async function Home() {
       {/* VITRINE DE CATEGORIAS — navegação ilustrada por linha */}
       <VitrineCategorias />
 
-      {/* TODOS OS PRODUTOS — catálogo completo na própria home */}
+      {/* TODOS OS PRODUTOS — catálogo completo na própria home, com busca */}
       {produtos.length > 0 && (
         <Section>
           <SectionHeader eyebrow="Catálogo" titulo="Todos os produtos." />
-          <ul className="grid-fluida-6">
-            {produtos.map((p, i) => (
-              <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 6} />
-              </li>
-            ))}
-          </ul>
+          <CatalogoHome produtos={produtos} />
           <div className="mt-fluid-lg text-center">
             <Link
               href="/produtos"
               className="kyron-label text-fluid-xs text-kyron-blue hover:underline"
             >
-              Buscar e filtrar por categoria →
+              Filtrar por categoria e ordenar →
             </Link>
           </div>
         </Section>

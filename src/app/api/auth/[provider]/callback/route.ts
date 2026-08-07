@@ -8,6 +8,7 @@ import {
   OAUTH_STATE_COOKIE,
   OAuthError,
   providerValido,
+  urlPublica,
 } from "@/lib/auth/oauth";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export async function GET(
   try {
     const perfil = await buscarPerfil(request, value, code);
     await entrarComOAuth(value, perfil);
-    const resposta = NextResponse.redirect(new URL(estado.redirectTo, request.url));
+    const resposta = NextResponse.redirect(urlPublica(request, estado.redirectTo));
     resposta.cookies.delete(OAUTH_STATE_COOKIE);
     return resposta;
   } catch (erro) {
@@ -47,7 +48,7 @@ export async function GET(
 }
 
 function redirecionarErro(request: Request, code: string) {
-  const destino = new URL(`/login?erro=${encodeURIComponent(code)}`, request.url);
+  const destino = urlPublica(request, `/login?erro=${encodeURIComponent(code)}`);
   const resposta = NextResponse.redirect(destino);
   resposta.cookies.delete(OAUTH_STATE_COOKIE);
   return resposta;

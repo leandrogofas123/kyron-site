@@ -44,7 +44,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {/* Aplica o tema salvo antes da pintura, evitando "flash" de tema. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('kyron-tema');if(t)document.documentElement.setAttribute('data-tema',t);}catch(e){}",
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

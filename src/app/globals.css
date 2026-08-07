@@ -71,6 +71,27 @@
   color-scheme: dark;
 }
 
+/*
+ * TEMA CLARO (fundo branco). As cores da marca são semânticas: kyron-white é
+ * "texto", kyron-black é "fundo", etc. Então basta inverter os VALORES das
+ * variáveis sob este seletor — nenhum componente precisa mudar. O azul da
+ * marca permanece igual nos dois temas.
+ */
+:root[data-tema="claro"] {
+  --color-kyron-black: #f6f7f9; /* fundo da página */
+  --color-kyron-graphite: #ffffff; /* fundo de cards */
+  --color-kyron-surface: #eceef2;
+  --color-kyron-silver: #55606e; /* texto secundário */
+  --color-kyron-white: #14161b; /* texto principal */
+
+  --kyron-hairline: rgba(20, 22, 27, 0.12);
+  --kyron-hairline-strong: rgba(20, 22, 27, 0.24);
+  --kyron-blue-line: rgba(30, 107, 255, 0.45);
+  --kyron-blue-soft: rgba(30, 107, 255, 0.1);
+
+  color-scheme: light;
+}
+
 *,
 *::before,
 *::after {

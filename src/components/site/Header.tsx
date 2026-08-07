@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Logo } from "./Logo";
+import { TemaToggle } from "./TemaToggle";
 import { CTA_PRIMARIO } from "@/lib/kyron/site";
 
 /**
@@ -68,6 +69,8 @@ export function Header({
             />
           </div>
         </form>
+
+        <TemaToggle />
 
         <Link
           href={CTA_PRIMARIO.href}

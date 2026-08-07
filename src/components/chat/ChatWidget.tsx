@@ -258,7 +258,7 @@ export function ChatWidget() {
               <textarea
                 id={`${panelId}-input`}
                 ref={inputRef}
-                rows={1}
+                rows={3}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={(event) => {
@@ -268,7 +268,7 @@ export function ChatWidget() {
                   }
                 }}
                 placeholder="Escreva sua mensagem"
-                className="kyron-scroll max-h-28 min-h-[44px] flex-1 resize-none rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-3 py-2.5 text-fluid-sm text-kyron-white placeholder:text-kyron-silver/45 focus:border-[var(--kyron-blue-line)] focus:outline-none"
+                className="kyron-scroll max-h-48 min-h-[5.25rem] flex-1 resize-none rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-graphite px-3 py-2.5 text-fluid-sm leading-relaxed text-kyron-white placeholder:text-kyron-silver/45 focus:border-[var(--kyron-blue-line)] focus:outline-none"
               />
 
               {isStreaming ? (

@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // O lint roda em CI/local; nunca deve derrubar o build de produção (Railway).
+  // A checagem de tipos do TypeScript continua ativa neste mesmo passo.
+  eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [
       {

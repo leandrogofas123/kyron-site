@@ -6,7 +6,7 @@ import {
   OAUTH_STATE_MAX_AGE,
   providerValido,
   OAuthError,
-  urlPublica,
+  urlLoginApp,
 } from "@/lib/auth/oauth";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export async function GET(
     return resposta;
   } catch (erro) {
     const code = erro instanceof OAuthError ? erro.code : "oauth-start";
-    const destino = urlPublica(request, `/login?erro=${encodeURIComponent(code)}`);
+    const destino = urlLoginApp(request, code);
     return NextResponse.redirect(destino);
   }
 }

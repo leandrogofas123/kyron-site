@@ -31,7 +31,7 @@ export function TemaToggle() {
       onClick={alternar}
       aria-label={claro ? "Mudar para tema escuro" : "Mudar para tema claro (fundo branco)"}
       title={claro ? "Tema escuro" : "Tema claro"}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors hover:bg-kyron-blue/10 hover:text-kyron-white"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-kyron-sm border border-[var(--kyron-blue-line)] bg-kyron-blue/12 text-kyron-blue shadow-[0_0_0_3px_rgba(30,107,255,0.08)] transition-all hover:-translate-y-px hover:bg-kyron-blue hover:text-white"
     >
       {claro ? (
         // Lua (indica que ao clicar vai para o escuro)

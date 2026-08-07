@@ -115,6 +115,17 @@ body {
   overflow-x: hidden;
 }
 
+/* Chat aberto: no desktop o assistente vira um dock de altura total à direita e
+   o site RECUA (não sobrepõe). No celular o chat fica flutuante, sem recuo. */
+.site-recua {
+  transition: padding-right 0.3s ease;
+}
+@media (min-width: 1024px) {
+  :root[data-chat="aberto"] .site-recua {
+    padding-right: 23rem;
+  }
+}
+
 /* Mídia nunca estoura o contêiner, em nenhum tamanho de tela. */
 img,
 svg,

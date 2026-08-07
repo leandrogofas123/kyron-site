@@ -43,7 +43,7 @@ export function Header({
           aria-label={sidebarAberta ? "Ocultar menu" : "Mostrar menu"}
           aria-expanded={sidebarAberta}
           aria-controls="departamentos-kyron"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors hover:bg-kyron-blue/10 hover:text-kyron-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-kyron-sm text-kyron-silver transition-colors hover:bg-kyron-blue/10 hover:text-kyron-white lg:hidden"
         >
           {sidebarAberta ? <FecharIcon /> : <MenuIcon />}
         </button>

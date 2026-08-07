@@ -20,8 +20,8 @@ const OPCOES_INICIAIS = [
 ];
 
 export function ChatWidget() {
-  // Abre já aberto: o assistente é o principal canal de atendimento do site.
-  const [open, setOpen] = useState(true);
+  // Fechado por padrão: ao abrir, vira um dock lateral (desktop) e o site recua.
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   // O banner de cookies ocupa a base da tela e cobriria o launcher no celular.
   const [cookiesAbertos, setCookiesAbertos] = useState(false);
@@ -69,6 +69,16 @@ export function ChatWidget() {
     window.addEventListener("kyron:painel-cookies", aoMudar);
     return () => window.removeEventListener("kyron:painel-cookies", aoMudar);
   }, []);
+
+  // Sinaliza ao layout (via <html data-chat>) que o dock está aberto — o CSS faz
+  // o site recuar no desktop.
+  useEffect(() => {
+    const ativo = open && !cookiesAbertos;
+    document.documentElement.dataset.chat = ativo ? "aberto" : "";
+    return () => {
+      document.documentElement.dataset.chat = "";
+    };
+  }, [open, cookiesAbertos]);
 
   function submit() {
     const text = draft;
@@ -120,9 +130,11 @@ export function ChatWidget() {
           /* Canto DIREITO. Compacto (altura automática) até a conversa começar;
              aí cresce até a altura máxima. dvh (não vh) para não brigar com a
              barra do navegador móvel, que aparece e some ao rolar. */
-          className={`fixed bottom-[clamp(1rem,3vw,1.5rem)] right-[clamp(1rem,3vw,1.5rem)] z-50 flex w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-kyron-md border border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)] ${
-            expandido ? "h-[min(34rem,calc(100dvh-4rem))]" : ""
-          }`}
+          className={`fixed z-50 flex flex-col overflow-hidden border-[var(--kyron-hairline)] bg-kyron-black shadow-[0_24px_64px_rgba(0,0,0,0.6)]
+            bottom-[clamp(1rem,3vw,1.5rem)] right-[clamp(1rem,3vw,1.5rem)] w-[min(24rem,calc(100vw-2rem))] rounded-kyron-md border ${
+              expandido ? "h-[min(34rem,calc(100dvh-4rem))]" : ""
+            }
+            lg:inset-y-0 lg:bottom-auto lg:right-0 lg:h-dvh lg:w-[23rem] lg:rounded-none lg:border-y-0 lg:border-l`}
         >
           <header className="flex items-center justify-between gap-4 border-b border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-md py-fluid-sm">
             <div className="flex items-center gap-2">

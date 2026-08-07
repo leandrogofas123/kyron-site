@@ -33,12 +33,26 @@ export function ShellSite({ children }: { children: ReactNode }) {
     }
   };
 
+  const alternar = () => setAberta((v) => { gravar(!v); return !v; });
+
   return (
-    <>
-      <Header
-        sidebarAberta={aberta}
-        onAlternarSidebar={() => setAberta((v) => { gravar(!v); return !v; })}
-      />
+    <div className="site-recua">
+      <Header sidebarAberta={aberta} onAlternarSidebar={alternar} />
+
+      {/* "Orelhinha" azul ao lado da lateral — abrir/fechar no desktop. */}
+      <button
+        type="button"
+        onClick={alternar}
+        aria-label={aberta ? "Fechar menu lateral" : "Abrir menu lateral"}
+        aria-controls="departamentos-kyron"
+        aria-expanded={aberta}
+        style={{ left: aberta ? "17rem" : "0" }}
+        className="fixed top-1/2 z-40 hidden h-14 w-6 -translate-y-1/2 items-center justify-center rounded-r-kyron-sm bg-kyron-blue text-white shadow-[0_4px_16px_rgba(30,107,255,0.45)] transition-[left,width] duration-300 hover:w-7 lg:flex"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d={aberta ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+        </svg>
+      </button>
 
       <div className="flex">
         <SidebarDepartamentos aberta={aberta} onFechar={() => { gravar(false); setAberta(false); }} />
@@ -48,6 +62,6 @@ export function ShellSite({ children }: { children: ReactNode }) {
           <Footer />
         </div>
       </div>
-    </>
+    </div>
   );
 }

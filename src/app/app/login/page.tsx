@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -20,67 +21,52 @@ const MENSAGENS: Record<string, string> = {
   "oauth-state": "A sessão de login expirou. Tente novamente.",
 };
 
-export default async function AppLoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ erro?: string }>;
-}) {
+export default async function AppLoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const { erro } = await searchParams;
   const mensagem = erro ? MENSAGENS[erro] ?? "Não foi possível concluir o login." : null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-fluid-md py-fluid-xl">
-      <div className="w-full max-w-[28rem]">
-        <Link href="/" className="kyron-label text-fluid-xs text-kyron-blue hover:underline">
-          KYRON ACADEMY
-        </Link>
+    <main className="academy-login">
+      <section className="academy-login-brand">
+        <div className="academy-login-grid" />
+        <span className="academy-login-orbit one" />
+        <span className="academy-login-orbit two" />
+        <span className="academy-login-orbit three" />
+        <div className="academy-login-brand-content">
+          <Link href="/" className="academy-logo"><span>K</span><div><b>KYRON</b><small>ACADEMY</small></div></Link>
+          <div>
+            <p className="academy-eyebrow blue"><i /> APRENDA. PRATIQUE. EVOLUA.</p>
+            <h1>Conhecimento que vira <span>performance.</span></h1>
+            <p>Trilhas práticas para equipes comerciais que querem atender melhor, vender com método e evoluir continuamente.</p>
+            <ul>
+              <li><CheckCircle2 size={16} /> Conteúdo direto e aplicável</li>
+              <li><CheckCircle2 size={16} /> Evolução acompanhada pela liderança</li>
+              <li><CheckCircle2 size={16} /> Certificação por competência</li>
+            </ul>
+          </div>
+          <small>KYRON COMPANY · CAPACITAÇÃO COMERCIAL</small>
+        </div>
+      </section>
 
-        <div className="mt-fluid-md rounded-kyron-lg border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-          <p className="kyron-label text-fluid-2xs tracking-[0.16em] text-kyron-silver/60">ÁREA DE TREINAMENTOS</p>
-          <h1 className="kyron-display mt-fluid-xs text-fluid-xl text-kyron-white">Entre para aprender.</h1>
-          <p className="mt-fluid-sm text-fluid-sm leading-relaxed text-kyron-silver">
-            Acesse aulas, manuais e orientações práticas para aproveitar melhor as soluções da Kyron.
-          </p>
+      <section className="academy-login-panel">
+        <div className="academy-login-card">
+          <Link href="/" className="academy-login-back"><ArrowLeft size={15} /> Voltar ao site</Link>
+          <span className="academy-login-icon"><Sparkles size={22} /></span>
+          <p className="academy-eyebrow blue"><i /> ÁREA EXCLUSIVA</p>
+          <h2>Entre na Kyron Academy</h2>
+          <p className="academy-login-lead">Use sua conta profissional. Novos acessos passam por uma aprovação rápida da equipe Kyron.</p>
 
-          {mensagem && (
-            <p role="alert" className="mt-fluid-md rounded-kyron-sm border border-[rgba(217,144,47,0.35)] bg-[rgba(217,144,47,0.08)] px-fluid-sm py-fluid-xs text-fluid-xs text-[var(--kyron-amber,#d9902f)]">
-              {mensagem}
-            </p>
-          )}
+          {mensagem && <p role="alert" className="academy-login-alert">{mensagem}</p>}
 
-          <div className="mt-fluid-lg space-y-fluid-xs">
-            <a
-              href="/api/auth/google"
-              className="flex min-h-12 items-center justify-center gap-2 rounded-kyron-sm bg-white px-fluid-md text-fluid-sm font-semibold text-[#202124] transition-transform hover:-translate-y-px"
-            >
-              <GoogleIcon />
-              Continuar com Google
-            </a>
-            <a
-              href="/api/auth/linkedin"
-              className="flex min-h-12 items-center justify-center gap-2 rounded-kyron-sm bg-[#0A66C2] px-fluid-md text-fluid-sm font-semibold text-white transition-transform hover:-translate-y-px"
-            >
-              <LinkedInIcon />
-              Continuar com LinkedIn
-            </a>
+          <div className="academy-login-actions">
+            <Link href="/api/auth/google?redirect=/app" className="academy-oauth google"><span>G</span> Continuar com Google</Link>
+            <Link href="/api/auth/linkedin?redirect=/app" className="academy-oauth linkedin"><span>in</span> Continuar com LinkedIn</Link>
           </div>
 
-          <p className="mt-fluid-md text-center text-fluid-2xs leading-relaxed text-kyron-silver/60">
-            Sua conta será criada como aluno e ficará aguardando a aprovação da Kyron.
-          </p>
-          <Link href="/" className="mt-fluid-md block text-center text-fluid-xs text-kyron-silver hover:text-kyron-white">
-            Voltar para a área de treinamentos
-          </Link>
+          <div className="academy-login-security"><ShieldCheck size={18} /><p><b>Acesso protegido</b><span>Sua conta será vinculada ao perfil de treinamento adequado.</span></p></div>
+          <p className="academy-login-terms">Ao continuar, você concorda com os <Link href="/termos-de-uso">Termos de Uso</Link> e a <Link href="/politica-de-privacidade">Política de Privacidade</Link>.</p>
         </div>
-      </div>
+      </section>
     </main>
   );
-}
-
-function GoogleIcon() {
-  return <span aria-hidden className="text-base font-bold">G</span>;
-}
-
-function LinkedInIcon() {
-  return <span aria-hidden className="text-base font-bold">in</span>;
 }

@@ -20,7 +20,7 @@ export default async function ConteudoPage({ params }: Props) {
   if (area !== "treinamentos" && area !== "manuais") notFound();
 
   const usuario = await usuarioLogado();
-  if (!usuario) redirect("/login");
+  if (!usuario) redirect("/app/login");
   if (!usuario.aprovado) return <Aguardando />;
 
   const post = await getPost(slug);
@@ -32,8 +32,8 @@ export default async function ConteudoPage({ params }: Props) {
     <main className="min-h-screen">
       <header className="border-b border-[var(--kyron-hairline)] bg-kyron-black/85 backdrop-blur">
         <div className="container-kyron flex min-h-16 items-center justify-between">
-          <Link href="/" className="kyron-label text-fluid-xs tracking-[0.14em] text-kyron-blue">KYRON ACADEMY</Link>
-          <Link href="/" className="text-fluid-2xs text-kyron-silver/70 hover:text-kyron-white">← Todos os conteúdos</Link>
+          <Link href="/app" className="kyron-label text-fluid-xs tracking-[0.14em] text-kyron-blue">KYRON ACADEMY</Link>
+          <Link href="/app" className="text-fluid-2xs text-kyron-silver/70 hover:text-kyron-white">← Todos os conteúdos</Link>
         </div>
       </header>
       <div className="container-kyron py-fluid-xl">
@@ -66,7 +66,7 @@ function Aguardando() {
       <div className="max-w-[34rem] rounded-kyron-lg border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg text-center">
         <h1 className="kyron-display text-fluid-xl text-kyron-white">Acesso em análise.</h1>
         <p className="mt-fluid-sm text-fluid-base text-kyron-silver">Seu cadastro ainda aguarda aprovação da Kyron.</p>
-        <Link href="/" className="mt-fluid-lg inline-flex text-fluid-xs text-kyron-blue hover:underline">Voltar</Link>
+        <Link href="/app" className="mt-fluid-lg inline-flex text-fluid-xs text-kyron-blue hover:underline">Voltar</Link>
       </div>
     </main>
   );

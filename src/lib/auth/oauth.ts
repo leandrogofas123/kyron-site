@@ -89,8 +89,67 @@ export function destinoSeguro(value: string | null | undefined): string {
   return value;
 }
 
+function origemConfigurada(): URL | null {
+  const valor = process.env.APP_PUBLIC_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
+  if (!valor) return null;
+
+  try {
+    const url = new URL(valor);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return new URL(url.origin);
+  } catch {
+    return null;
+  }
+}
+
+function hostSeguro(host: string | null): string | null {
+  if (!host) return null;
+  const valor = host.split(",")[0]?.trim().toLowerCase();
+  if (!valor || valor.includes("@")) return null;
+
+  try {
+    const url = new URL(`https://${valor}`);
+    if (url.port && !["443", "80"].includes(url.port)) return null;
+    return url.hostname;
+  } catch {
+    return null;
+  }
+}
+
+export function origemPublica(request: Request): string {
+  const configurada = origemConfigurada();
+  const hostsPermitidos = new Set(
+    [
+      configurada?.hostname,
+      process.env.APP_HOST,
+      "kyroncompany.com",
+      "www.kyroncompany.com",
+      "app.kyrontecnologia.com",
+    ]
+      .map((host) => host?.trim().toLowerCase())
+      .filter((host): host is string => Boolean(host)),
+  );
+
+  const host = hostSeguro(
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
+  );
+  if (host && hostsPermitidos.has(host)) {
+    const protocolo =
+      request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() === "http"
+        ? "http"
+        : "https";
+    return `${protocolo}://${host}`;
+  }
+
+  return configurada?.origin ?? "https://www.kyroncompany.com";
+}
+
+export function urlPublica(request: Request, path: string): URL {
+  return new URL(path, `${origemPublica(request)}/`);
+}
+
 export function callbackUrl(request: Request, provider: OAuthProvider): string {
-  return new URL(`/api/auth/${provider}/callback`, request.url).toString();
+  return urlPublica(request, `/api/auth/${provider}/callback`).toString();
 }
 
 export function criarAutorizacao(

@@ -18,7 +18,7 @@ export const NAV_PRINCIPAL = [
   { label: "Produtos", href: "/produtos" },
   { label: "Monte seu kit", href: "/monte-seu-kit" },
   { label: "Seminovos", href: "/seminovos" },
-  { label: "Serviços", href: "/servicos" },
+  { label: "Assistência", href: "/servicos" },
   { label: "Manual de Instalação", href: "/manual" },
   { label: "Sobre", href: "/sobre" },
   { label: "Contato", href: "/contato" },

@@ -110,6 +110,17 @@ canvas {
   border-radius: 4px;
 }
 
+/* Campos de texto sinalizam o foco pela BORDA do próprio container (borda azul),
+   não por um contorno interno — que ficava duplicado e feio. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+}
+
 /* Nenhum conteúdo depende de animação para ser lido — WCAG 2.3.3. */
 @media (prefers-reduced-motion: reduce) {
   html {

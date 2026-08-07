@@ -9,7 +9,7 @@ import { HeroHome } from "@/components/home/HeroHome";
 import { SecaoCasaInteligente } from "@/components/home/SecaoCasaInteligente";
 import { VitrineCategorias } from "@/components/home/VitrineCategorias";
 import { Section, SectionHeader } from "@/components/site/Section";
-import { getProdutos, getServicos } from "@/lib/catalogo";
+import { getCategoriasArvore, getProdutos, getServicos } from "@/lib/catalogo";
 import { bannersVisiveis } from "@/lib/site/banners";
 
 // Catálogo é dado vivo (muda pelo admin) e lê o banco. Renderiza a cada acesso,
@@ -24,13 +24,42 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [{ produtos }, servicos, bannersHero] = await Promise.all([
+  const [{ produtos }, arvore, servicos, bannersHero] = await Promise.all([
     getProdutos({}),
+    getCategoriasArvore(),
     getServicos(),
     bannersVisiveis("hero"),
   ]);
 
   const servicosAmostra = servicos.slice(0, 4);
+
+  // Categoria-raiz de cada produto (a árvore tem 2 níveis: pai → filhas), para
+  // o filtro de chips na home.
+  const raizPorCat = new Map<number, string>();
+  for (const pai of arvore) {
+    raizPorCat.set(pai.id, pai.slug);
+    for (const filha of pai.filhas) raizPorCat.set(filha.id, pai.slug);
+  }
+  const produtosHome = produtos.map((p) => ({
+    slug: p.slug,
+    nome: p.nome,
+    marca: p.marca,
+    preco: p.preco,
+    precoPromo: p.precoPromo,
+    imagens: p.imagens.map((im) => ({ url: im.url, principal: im.principal })),
+    seminovo: p.seminovo
+      ? {
+          saudeBateria: p.seminovo.saudeBateria,
+          condicaoEstetica: p.seminovo.condicaoEstetica,
+          garantiaMeses: p.seminovo.garantiaMeses,
+        }
+      : null,
+    catSlug: raizPorCat.get(p.categoriaId) ?? null,
+  }));
+  const slugsPresentes = new Set(produtosHome.map((p) => p.catSlug));
+  const categoriasChips = arvore
+    .filter((pai) => slugsPresentes.has(pai.slug))
+    .map((pai) => ({ slug: pai.slug, nome: pai.nome }));
 
   return (
     <>
@@ -60,10 +89,10 @@ export default async function Home() {
       <VitrineCategorias />
 
       {/* TODOS OS PRODUTOS — catálogo completo na própria home, com busca */}
-      {produtos.length > 0 && (
+      {produtosHome.length > 0 && (
         <Section>
           <SectionHeader eyebrow="Catálogo" titulo="Todos os produtos." />
-          <CatalogoHome produtos={produtos} />
+          <CatalogoHome produtos={produtosHome} categorias={categoriasChips} />
           <div className="mt-fluid-lg text-center">
             <Link
               href="/produtos"

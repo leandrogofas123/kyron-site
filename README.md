@@ -150,13 +150,17 @@ foco visível, `prefers-reduced-motion` respeitado, consentimento de cookies
 antes de qualquer medição.
 ## Area de treinamentos
 
-O subdominio `app.kyrontecnologia.com` pode apontar para o mesmo servico Railway e e roteado para a Kyron Academy.
+Hoje a Kyron Academy e publicada em `https://www.kyroncompany.com/app`. O subdominio
+`app.kyrontecnologia.com` tambem pode apontar para o mesmo servico Railway e ser
+roteado para a Academy sem o prefixo `/app`.
 
-Configure `APP_HOST`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `LINKEDIN_CLIENT_ID` e `LINKEDIN_CLIENT_SECRET`. Os callbacks sao:
+Configure `APP_PUBLIC_URL=https://www.kyroncompany.com`, `APP_HOST`,
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `LINKEDIN_CLIENT_ID` e
+`LINKEDIN_CLIENT_SECRET`. Os callbacks atuais sao:
 
 ```text
-https://app.kyrontecnologia.com/api/auth/google/callback
-https://app.kyrontecnologia.com/api/auth/linkedin/callback
+https://www.kyroncompany.com/api/auth/google/callback
+https://www.kyroncompany.com/api/auth/linkedin/callback
 ```
 
 Novas contas entram como `CLIENTE` pendente e sao aprovadas no ERP em `/erp/alunos`.

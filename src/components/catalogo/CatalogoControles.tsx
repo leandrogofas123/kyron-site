@@ -57,8 +57,8 @@ export function CatalogoControles({ total }: { total: number }) {
   const ordenarAtual = params.get("ordenar") ?? "relevancia";
 
   return (
-    <div className="mt-fluid-lg flex flex-col items-center gap-fluid-sm">
-      <label className="group flex w-full max-w-[26rem] items-center gap-fluid-xs rounded-kyron-sm border border-[var(--kyron-hairline-strong)] bg-kyron-graphite px-fluid-sm transition-colors duration-300 focus-within:border-[var(--kyron-blue-line)]">
+    <div className="flex flex-wrap items-center gap-fluid-sm">
+      <label className="group flex min-w-0 flex-1 items-center gap-fluid-xs rounded-kyron-sm border-2 border-[var(--kyron-hairline)] bg-kyron-graphite px-fluid-sm transition-colors duration-300 focus-within:border-kyron-blue sm:max-w-[24rem]">
         <svg
           width="17"
           height="17"
@@ -84,7 +84,7 @@ export function CatalogoControles({ total }: { total: number }) {
         />
       </label>
 
-      <div className="flex flex-wrap items-center justify-center gap-x-fluid-sm gap-y-fluid-2xs">
+      <div className="flex flex-wrap items-center gap-x-fluid-sm gap-y-fluid-2xs">
         <label className="inline-flex items-center gap-fluid-xs text-fluid-2xs text-kyron-silver">
           <span className="kyron-label">Ordenar</span>
           <select

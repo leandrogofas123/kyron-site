@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import { CatalogoControles } from "@/components/catalogo/CatalogoControles";
 import { CategoriaFiltro } from "@/components/catalogo/CategoriaFiltro";
 import { ProdutoCard } from "@/components/catalogo/ProdutoCard";
-import { PageHero } from "@/components/site/PageHero";
-import { Section } from "@/components/site/Section";
 import {
   getCategoriasArvore,
   getProdutos,
@@ -38,48 +36,40 @@ export default async function Produtos({
   const buscando = Boolean(q?.trim());
 
   return (
-    <>
-      <PageHero
-        eyebrow="Catálogo"
-        titulo={
-          catAtiva ? (
-            catAtiva.nome
-          ) : (
-            <>
-              Tecnologia que você leva{" "}
-              <span className="text-kyron-blue">hoje</span>.
-            </>
-          )
-        }
-        lede={
-          catAtiva
-            ? undefined
-            : "Apple novos e seminovos, casa inteligente, áudio e acessórios. Escolha o seu e fale com a gente no WhatsApp."
-        }
-      >
-        <div className="mt-fluid-lg">
-          <CategoriaFiltro categorias={arvore} ativa={categoria} />
-        </div>
-        <CatalogoControles total={produtos.length} />
-      </PageHero>
+    <div className="container-kyron pb-fluid-xl pt-fluid-md">
+      {/* Cabeçalho compacto — produtos aparecem logo abaixo */}
+      <div className="mb-fluid-sm">
+        <p className="kyron-label text-fluid-2xs tracking-[0.16em] text-kyron-silver/55">
+          Catálogo
+        </p>
+        <h1 className="kyron-display text-fluid-xl text-kyron-white">
+          {catAtiva ? catAtiva.nome : "Todos os produtos"}
+        </h1>
+      </div>
 
-      <Section semBorda>
-        {produtos.length === 0 ? (
-          <p className="mx-auto max-w-[48ch] text-center text-fluid-base text-kyron-silver">
-            {buscando
-              ? "Nada encontrado para a sua busca. Tente outro termo ou fale no WhatsApp que a gente encontra para você."
-              : "Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a gente te ajuda a encontrar."}
-          </p>
-        ) : (
-          <ul className="grid-fluida-6">
-            {produtos.map((p, i) => (
-              <li key={p.id}>
-                <ProdutoCard produto={p} prioridade={i < 6} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-    </>
+      {/* Toolbar enxuta e larga: categorias + busca/ordenação */}
+      <div className="kyron-scroll mb-fluid-xs overflow-x-auto pb-1">
+        <CategoriaFiltro categorias={arvore} ativa={categoria} />
+      </div>
+      <div className="mb-fluid-md">
+        <CatalogoControles total={produtos.length} />
+      </div>
+
+      {produtos.length === 0 ? (
+        <p className="max-w-[52ch] text-fluid-base text-kyron-silver">
+          {buscando
+            ? "Nada encontrado para a sua busca. Tente outro termo ou fale no WhatsApp que a gente encontra para você."
+            : "Nenhum produto nesta categoria por enquanto. Fale no WhatsApp que a gente te ajuda a encontrar."}
+        </p>
+      ) : (
+        <ul className="grid-fluida-6">
+          {produtos.map((p, i) => (
+            <li key={p.id}>
+              <ProdutoCard produto={p} prioridade={i < 6} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

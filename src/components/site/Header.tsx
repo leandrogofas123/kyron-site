@@ -47,7 +47,7 @@ export function Header({
           {sidebarAberta ? <FecharIcon /> : <MenuIcon />}
         </button>
 
-        <Logo altura={30} prioridade />
+        <Logo variante="simbolo" altura={40} prioridade />
 
         <form
           action="/produtos"

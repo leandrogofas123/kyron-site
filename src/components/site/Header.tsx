@@ -57,7 +57,7 @@ export function Header({
           <label htmlFor="busca-topo" className="sr-only">
             Buscar produtos
           </label>
-          <div className="flex min-w-0 items-center rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-black/50 transition-colors focus-within:border-[var(--kyron-blue-line)]">
+          <div className="flex min-w-0 items-center rounded-kyron-sm border-2 border-[var(--kyron-hairline)] bg-kyron-black/50 transition-colors focus-within:border-kyron-blue">
             <SearchIcon className="ml-2.5 shrink-0 text-kyron-silver/55" />
             <input
               id="busca-topo"
@@ -71,8 +71,12 @@ export function Header({
 
         <Link
           href={CTA_PRIMARIO.href}
-          className="kyron-label hidden shrink-0 whitespace-nowrap rounded-kyron-sm bg-kyron-blue px-fluid-sm py-fluid-2xs text-fluid-2xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)] sm:block"
+          className="kyron-label hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-kyron-sm bg-kyron-blue px-fluid-md py-fluid-xs text-fluid-2xs text-white transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(30,107,255,0.28)] sm:inline-flex"
         >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          </span>
           {CTA_PRIMARIO.label}
         </Link>
       </div>

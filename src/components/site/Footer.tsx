@@ -8,7 +8,7 @@ import { CONTATO, linkWhatsApp } from "@/lib/kyron/site";
 const CATALOGO = [
   { label: "Produtos", href: "/produtos" },
   { label: "iPhone seminovos", href: "/seminovos" },
-  { label: "Serviços", href: "/servicos" },
+  { label: "Assistência", href: "/servicos" },
 ];
 
 const EMPRESA = [

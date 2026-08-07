@@ -4,10 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { NAV_PRINCIPAL } from "@/lib/kyron/site";
-
 type Item = { label: string; href: string };
 type Departamento = { titulo: string; icone: string; itens: Item[] };
+
+// Navegação principal — o que a loja mais vende vem primeiro (hierarquia).
+const PRINCIPAIS = [
+  { label: "Início", href: "/", icone: "home" },
+  { label: "Todos os produtos", href: "/produtos", icone: "produtos" },
+  { label: "iPhone seminovos", href: "/seminovos", icone: "seminovos", destaque: true },
+] as const;
 
 const DEPARTAMENTOS: Departamento[] = [
   {
@@ -57,6 +62,8 @@ const ICONES: Record<string, ReactNode> = {
   casa: <><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
   kyron: <path d="M13 2 3 14h7l-1 8 10-12h-7z" />,
   home: <><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></>,
+  produtos: <><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></>,
+  seminovos: <><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></>,
 };
 
 function Icone({ nome }: { nome: string }) {
@@ -168,25 +175,39 @@ export function SidebarDepartamentos({
           </div>
 
           <nav aria-label="Navegação do site" className="space-y-fluid-xs">
-            {/* Navegação principal */}
+            {/* Navegação principal — os campeões de venda primeiro */}
             <section>
               <ul className="space-y-0.5">
-                {NAV_PRINCIPAL.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={fecharSeMobile}
-                      aria-current={ehAtivo(item.href) ? "page" : undefined}
-                      className={`group flex min-h-9 items-center gap-2 rounded-kyron-sm border-l-2 px-2.5 text-fluid-sm transition-all ${
-                        ehAtivo(item.href)
-                          ? "border-kyron-blue bg-kyron-blue/12 text-kyron-white"
-                          : "border-transparent text-kyron-white hover:border-[var(--kyron-blue-line)] hover:bg-kyron-graphite"
-                      }`}
-                    >
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                    </Link>
-                  </li>
-                ))}
+                {PRINCIPAIS.map((item) => {
+                  const ativo = ehAtivo(item.href);
+                  const destaque = "destaque" in item && item.destaque;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={fecharSeMobile}
+                        aria-current={ativo ? "page" : undefined}
+                        className={`group flex min-h-9 items-center gap-2 rounded-kyron-sm px-2.5 text-fluid-sm transition-all ${
+                          destaque
+                            ? "border border-[var(--kyron-blue-line)] bg-kyron-blue/10 text-kyron-white"
+                            : ativo
+                              ? "border-l-2 border-kyron-blue bg-kyron-blue/12 text-kyron-white"
+                              : "border-l-2 border-transparent text-kyron-white hover:border-[var(--kyron-blue-line)] hover:bg-kyron-graphite"
+                        }`}
+                      >
+                        <span className={ativo || destaque ? "text-kyron-blue" : "text-kyron-silver/60"}>
+                          <Icone nome={item.icone} />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                        {destaque && (
+                          <span className="kyron-label shrink-0 rounded-full bg-kyron-blue px-1.5 py-0.5 text-[0.6rem] text-white">
+                            garantia
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
 

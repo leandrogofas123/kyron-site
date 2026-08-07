@@ -8,6 +8,7 @@ import {
   OAUTH_STATE_COOKIE,
   OAuthError,
   providerValido,
+  urlLoginApp,
   urlPublica,
 } from "@/lib/auth/oauth";
 
@@ -48,7 +49,7 @@ export async function GET(
 }
 
 function redirecionarErro(request: Request, code: string) {
-  const destino = urlPublica(request, `/login?erro=${encodeURIComponent(code)}`);
+  const destino = urlLoginApp(request, code);
   const resposta = NextResponse.redirect(destino);
   resposta.cookies.delete(OAUTH_STATE_COOKIE);
   return resposta;

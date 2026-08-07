@@ -109,6 +109,7 @@ function hostSeguro(host: string | null): string | null {
 
   try {
     const url = new URL(`https://${valor}`);
+    if (["0.0.0.0", "127.0.0.1", "localhost"].includes(url.hostname)) return null;
     if (url.port && !["443", "80"].includes(url.port)) return null;
     return url.hostname;
   } catch {
@@ -116,12 +117,23 @@ function hostSeguro(host: string | null): string | null {
   }
 }
 
-export function origemPublica(request: Request): string {
+function hostDaAplicacao(): string {
+  return hostSeguro(process.env.APP_HOST ?? null) ?? "app.kyrontecnologia.com";
+}
+
+function candidatoHostPublico(request: Request): string | null {
+  return hostSeguro(
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
+  );
+}
+
+export function hostPublico(request: Request): string | null {
   const configurada = origemConfigurada();
+  const candidato = candidatoHostPublico(request);
   const hostsPermitidos = new Set(
     [
       configurada?.hostname,
-      process.env.APP_HOST,
+      hostDaAplicacao(),
       "kyroncompany.com",
       "www.kyroncompany.com",
       "app.kyrontecnologia.com",
@@ -130,10 +142,15 @@ export function origemPublica(request: Request): string {
       .filter((host): host is string => Boolean(host)),
   );
 
-  const host = hostSeguro(
-    request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
-  );
-  if (host && hostsPermitidos.has(host)) {
+  return candidato && hostsPermitidos.has(candidato)
+    ? candidato
+    : configurada?.hostname ?? null;
+}
+
+export function origemPublica(request: Request): string {
+  const configurada = origemConfigurada();
+  const host = candidatoHostPublico(request);
+  if (host && hostPublico(request) === host) {
     const protocolo =
       request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() === "http"
         ? "http"
@@ -142,6 +159,21 @@ export function origemPublica(request: Request): string {
   }
 
   return configurada?.origin ?? "https://www.kyroncompany.com";
+}
+
+export function caminhoAppPublico(request: Request, path: string): string {
+  const normalizado = path.startsWith("/") ? path : `/${path}`;
+  if (hostPublico(request) === hostDaAplicacao()) return normalizado;
+  if (normalizado === "/") return "/app";
+  return normalizado === "/app" || normalizado.startsWith("/app/")
+    ? normalizado
+    : `/app${normalizado}`;
+}
+
+export function urlLoginApp(request: Request, code: string): URL {
+  const destino = urlPublica(request, caminhoAppPublico(request, "/login"));
+  destino.searchParams.set("erro", code);
+  return destino;
 }
 
 export function urlPublica(request: Request, path: string): URL {
@@ -162,7 +194,7 @@ export function criarAutorizacao(
   const payload: OAuthState = {
     state,
     provider,
-    redirectTo: destinoSeguro(redirectTo),
+    redirectTo: caminhoAppPublico(request, destinoSeguro(redirectTo)),
   };
   const cookieValue = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   const redirectUri = callbackUrl(request, provider);

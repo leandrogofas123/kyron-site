@@ -165,9 +165,13 @@ export function caminhoAppPublico(request: Request, path: string): string {
   const normalizado = path.startsWith("/") ? path : `/${path}`;
   if (hostPublico(request) === hostDaAplicacao()) return normalizado;
   if (normalizado === "/") return "/app";
-  return normalizado === "/app" || normalizado.startsWith("/app/")
-    ? normalizado
-    : `/app${normalizado}`;
+  // Rotas absolutas já conhecidas da plataforma passam intactas — inclusive o
+  // ERP (gestão), para que o login social da liderança caia direto em /erp.
+  const intactas = ["/app", "/erp", "/aulas", "/erp/entrar"];
+  if (intactas.includes(normalizado) || normalizado.startsWith("/app/") || normalizado.startsWith("/erp/")) {
+    return normalizado;
+  }
+  return `/app${normalizado}`;
 }
 
 export function urlLoginApp(request: Request, code: string): URL {

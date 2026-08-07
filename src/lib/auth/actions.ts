@@ -108,6 +108,10 @@ export async function acaoCadastrar(_estado: Estado, form: FormData): Promise<Es
   const nome = String(form.get("nome") ?? "").trim();
   const email = normalizar(String(form.get("email") ?? ""));
   const senha = String(form.get("senha") ?? "");
+  // Para onde ir após o cadastro. Áreas diferentes reaproveitam a mesma ação:
+  // a loja manda para /aulas; a Academy manda para /app.
+  const destinoRaw = String(form.get("destino") ?? "/aulas");
+  const destino = destinoRaw.startsWith("/") && !destinoRaw.startsWith("//") ? destinoRaw : "/aulas";
 
   if (!nome || !email || senha.length < 6) {
     return { erro: "Preencha nome, e-mail e uma senha de ao menos 6 caracteres." };
@@ -139,7 +143,7 @@ export async function acaoCadastrar(_estado: Estado, form: FormData): Promise<Es
   // Avisa a loja que há um cadastro para aprovar.
   void enviarTemplate("novo-cliente", undefined, { nome, email });
 
-  redirect("/aulas");
+  redirect(destino);
 }
 
 /**

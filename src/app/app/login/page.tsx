@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+
+import { AcademyAuth } from "./AcademyAuth";
+import { CerebroKyron } from "./CerebroKyron";
 
 export const dynamic = "force-dynamic";
 
@@ -23,48 +26,44 @@ const MENSAGENS: Record<string, string> = {
 
 export default async function AppLoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const { erro } = await searchParams;
-  const mensagem = erro ? MENSAGENS[erro] ?? "Não foi possível concluir o login." : null;
+  const erroOAuth = erro ? MENSAGENS[erro] ?? "Não foi possível concluir o login." : null;
 
   return (
     <main className="academy-login">
       <section className="academy-login-brand">
+        <div className="academy-login-aura" />
         <div className="academy-login-grid" />
-        <span className="academy-login-orbit one" />
-        <span className="academy-login-orbit two" />
-        <span className="academy-login-orbit three" />
         <div className="academy-login-brand-content">
-          <Link href="/" className="academy-logo"><span>K</span><div><b>KYRON</b><small>ACADEMY</small></div></Link>
-          <div>
+          <Link href="/" className="academy-brandmark">
+            <img src="/marca/kyron-simbolo.png" alt="Kyron" />
+            <div><b>KYRON</b><small>ACADEMY</small></div>
+          </Link>
+
+          <div className="academy-login-hero">
             <p className="academy-eyebrow blue"><i /> APRENDA. PRATIQUE. EVOLUA.</p>
-            <h1>Conhecimento que vira <span>performance.</span></h1>
-            <p>Trilhas práticas para equipes comerciais que querem atender melhor, vender com método e evoluir continuamente.</p>
-            <ul>
-              <li><CheckCircle2 size={16} /> Conteúdo direto e aplicável</li>
-              <li><CheckCircle2 size={16} /> Evolução acompanhada pela liderança</li>
-              <li><CheckCircle2 size={16} /> Certificação por competência</li>
-            </ul>
+            <h1>Um mapa vivo das suas <span>competências.</span></h1>
+            <p className="academy-login-sub">
+              Cada competência é um território do conhecimento comercial. A Academy
+              guia sua equipe a dominar um de cada vez — com método e evolução visível.
+            </p>
           </div>
-          <small>KYRON COMPANY · CAPACITAÇÃO COMERCIAL</small>
+
+          <div className="academy-cerebro">
+            <CerebroKyron />
+          </div>
+
+          <ul className="academy-login-bullets">
+            <li><CheckCircle2 size={17} /> Conteúdo direto e aplicável</li>
+            <li><CheckCircle2 size={17} /> Evolução acompanhada pela liderança</li>
+            <li><CheckCircle2 size={17} /> Certificação por competência</li>
+          </ul>
         </div>
       </section>
 
       <section className="academy-login-panel">
         <div className="academy-login-card">
-          <Link href="/" className="academy-login-back"><ArrowLeft size={15} /> Voltar ao site</Link>
-          <span className="academy-login-icon"><Sparkles size={22} /></span>
-          <p className="academy-eyebrow blue"><i /> ÁREA EXCLUSIVA</p>
-          <h2>Entre na Kyron Academy</h2>
-          <p className="academy-login-lead">Use sua conta profissional. Novos acessos passam por uma aprovação rápida da equipe Kyron.</p>
-
-          {mensagem && <p role="alert" className="academy-login-alert">{mensagem}</p>}
-
-          <div className="academy-login-actions">
-            <Link href="/api/auth/google?redirect=/app" className="academy-oauth google"><span>G</span> Continuar com Google</Link>
-            <Link href="/api/auth/linkedin?redirect=/app" className="academy-oauth linkedin"><span>in</span> Continuar com LinkedIn</Link>
-          </div>
-
-          <div className="academy-login-security"><ShieldCheck size={18} /><p><b>Acesso protegido</b><span>Sua conta será vinculada ao perfil de treinamento adequado.</span></p></div>
-          <p className="academy-login-terms">Ao continuar, você concorda com os <Link href="/termos-de-uso">Termos de Uso</Link> e a <Link href="/politica-de-privacidade">Política de Privacidade</Link>.</p>
+          <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
+          <AcademyAuth erroOAuth={erroOAuth} />
         </div>
       </section>
     </main>

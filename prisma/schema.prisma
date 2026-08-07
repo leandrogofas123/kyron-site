@@ -22,18 +22,18 @@ datasource db {
 }
 
 model Categoria {
-  id        Int    @id @default(autoincrement())
-  slug      String @unique
-  nome      String
-  icone     String?
-  ordem     Int    @default(0)
+  id    Int     @id @default(autoincrement())
+  slug  String  @unique
+  nome  String
+  icone String?
+  ordem Int     @default(0)
 
   // Auto-relação: subcategoria aponta para a categoria pai.
-  parentId  Int?
-  parent    Categoria?  @relation("Subcategorias", fields: [parentId], references: [id])
-  filhas    Categoria[] @relation("Subcategorias")
+  parentId Int?
+  parent   Categoria?  @relation("Subcategorias", fields: [parentId], references: [id])
+  filhas   Categoria[] @relation("Subcategorias")
 
-  produtos  Produto[]
+  produtos Produto[]
 
   @@index([parentId])
 }
@@ -43,14 +43,14 @@ model Categoria {
 /// ("Apple" e "apple" deixam de ser marcas diferentes). O texto `marca` de
 /// Produto continua existindo como rótulo de exibição/fallback.
 model Marca {
-  id        Int      @id @default(autoincrement())
-  slug      String   @unique
-  nome      String
-  logo      String?
-  ordem     Int      @default(0)
-  ativo     Boolean  @default(true)
-  criadoEm  DateTime @default(now())
-  produtos  Produto[]
+  id       Int       @id @default(autoincrement())
+  slug     String    @unique
+  nome     String
+  logo     String?
+  ordem    Int       @default(0)
+  ativo    Boolean   @default(true)
+  criadoEm DateTime  @default(now())
+  produtos Produto[]
 
   @@index([ativo])
 }
@@ -60,19 +60,19 @@ model Marca {
 /// aqui cada aparelho é rastreado por IMEI/serial: qual unidade foi vendida a
 /// quem, garantia e status. Essencial para Apple (novos e seminovos).
 model Aparelho {
-  id            Int      @id @default(autoincrement())
-  produtoId     Int
-  produto       Produto  @relation(fields: [produtoId], references: [id])
-  imei          String?  @unique
-  serial        String?  @unique
-  status        String   @default("estoque") // estoque | vendido | assistencia | devolvido | perdido
-  clienteId     Int?
-  cliente       ClienteErp? @relation(fields: [clienteId], references: [id])
-  garantiaAte   DateTime?
-  localizacao   String?
-  observacoes   String?
-  criadoEm      DateTime @default(now())
-  atualizadoEm  DateTime @updatedAt
+  id           Int         @id @default(autoincrement())
+  produtoId    Int
+  produto      Produto     @relation(fields: [produtoId], references: [id])
+  imei         String?     @unique
+  serial       String?     @unique
+  status       String      @default("estoque") // estoque | vendido | assistencia | devolvido | perdido
+  clienteId    Int?
+  cliente      ClienteErp? @relation(fields: [clienteId], references: [id])
+  garantiaAte  DateTime?
+  localizacao  String?
+  observacoes  String?
+  criadoEm     DateTime    @default(now())
+  atualizadoEm DateTime    @updatedAt
 
   @@index([produtoId])
   @@index([status])
@@ -80,63 +80,63 @@ model Aparelho {
 }
 
 model Produto {
-  id               Int      @id @default(autoincrement())
-  slug             String   @unique
-  nome             String
-  marca            String?
-  marcaId          Int?
-  marcaRef         Marca?   @relation(fields: [marcaId], references: [id])
-  aparelhos        Aparelho[]
+  id             Int        @id @default(autoincrement())
+  slug           String     @unique
+  nome           String
+  marca          String?
+  marcaId        Int?
+  marcaRef       Marca?     @relation(fields: [marcaId], references: [id])
+  aparelhos      Aparelho[]
   // Centavos. precoPromo, quando presente, é o preço vigente.
-  preco            Int
-  precoPromo       Int?
-  descricaoCurta   String?
-  descricaoLonga   String?
+  preco          Int
+  precoPromo     Int?
+  descricaoCurta String?
+  descricaoLonga String?
 
   // ─── Campos do ERP (fonte única de verdade: loja + estoque) ───
-  codigoInterno    String?  @unique
-  sku              String?  @unique
-  ean              String?  // código de barras
+  codigoInterno    String?   @unique
+  sku              String?   @unique
+  ean              String? // código de barras
   ncm              String?
   modelo           String?
   cor              String?
   capacidade       String?
   voltagem         String?
-  precoCusto       Int?     // centavos
-  precoMinimo      Int?     // centavos
-  quantidade       Int      @default(0)   // saldo atual (mantido por transação)
-  quantidadeMinima Int      @default(0)   // alerta de estoque baixo
-  localizacao      String?  // prateleira/gaveta
+  precoCusto       Int? // centavos
+  precoMinimo      Int? // centavos
+  quantidade       Int       @default(0) // saldo atual (mantido por transação)
+  quantidadeMinima Int       @default(0) // alerta de estoque baixo
+  localizacao      String? // prateleira/gaveta
   garantiaMeses    Int?
   observacoes      String?
-  excluidoEm       DateTime?               // exclusão lógica: nunca apagar
+  excluidoEm       DateTime? // exclusão lógica: nunca apagar
 
-  fornecedorId     Int?
-  fornecedor       Fornecedor? @relation(fields: [fornecedorId], references: [id])
+  fornecedorId Int?
+  fornecedor   Fornecedor? @relation(fields: [fornecedorId], references: [id])
 
-  movimentacoes    MovimentacaoEstoque[]
-  itensNota        NotaItem[]
+  movimentacoes   MovimentacaoEstoque[]
+  itensNota       NotaItem[]
   // Modelos compatíveis, separados por vírgula. Ex.: "iPhone 15, iPhone 14".
   // "Universal" mantém acessórios que funcionam com qualquer celular visíveis
   // no configurador Monte seu Kit Celular.
-  compatibilidade  String?
-  destaque         Boolean  @default(false)  // aparece na home
-  ativo            Boolean  @default(true)    // inativo some do site, fica no banco
-  ordem            Int      @default(0)
+  compatibilidade String?
+  destaque        Boolean               @default(false) // aparece na home
+  ativo           Boolean               @default(true) // inativo some do site, fica no banco
+  ordem           Int                   @default(0)
 
   // ─── SEO / publicação no site (módulo SITE) ───
-  metaTitle        String?
-  metaDescription  String?
-  palavrasChave    String?  // separadas por vírgula
-  descricaoSite    String?  // descrição específica do site (opcional)
-  criadoEm         DateTime @default(now())
-  atualizadoEm     DateTime @updatedAt
+  metaTitle       String?
+  metaDescription String?
+  palavrasChave   String? // separadas por vírgula
+  descricaoSite   String? // descrição específica do site (opcional)
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
 
-  categoriaId      Int
-  categoria        Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId Int
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
 
-  imagens          ProdutoImagem[]
-  seminovo         Seminovo?
+  imagens  ProdutoImagem[]
+  seminovo Seminovo?
 
   @@index([categoriaId])
   @@index([ativo, destaque])
@@ -148,13 +148,13 @@ model Produto {
 }
 
 model ProdutoImagem {
-  id         Int     @id @default(autoincrement())
-  url        String
-  principal  Boolean @default(false)
-  ordem      Int     @default(0)
+  id        Int     @id @default(autoincrement())
+  url       String
+  principal Boolean @default(false)
+  ordem     Int     @default(0)
 
-  produtoId  Int
-  produto    Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId Int
+  produto   Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
   @@index([produtoId])
 }
@@ -162,10 +162,10 @@ model ProdutoImagem {
 // Estende Produto (1:1). Os campos são exatamente as objeções de quem compra
 // iPhone usado — publicá-los permite vender acima do preço de marketplace.
 model Seminovo {
-  produtoId        Int     @id
-  produto          Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId Int     @id
+  produto   Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
-  saudeBateria     Int?    // %
+  saudeBateria     Int? // %
   condicaoEstetica String  @default("bom") // impecável | ótimo | bom (validado no app)
   cor              String?
   capacidade       String?
@@ -176,16 +176,16 @@ model Seminovo {
 }
 
 model Servico {
-  id              Int      @id @default(autoincrement())
-  slug            String   @unique
-  nome            String
-  descricao       String?
-  precoAPartirDe  Int?     // centavos; null = "sob orçamento"
+  id                Int     @id @default(autoincrement())
+  slug              String  @unique
+  nome              String
+  descricao         String?
+  precoAPartirDe    Int? // centavos; null = "sob orçamento"
   atendeEmDomicilio Boolean @default(false)
-  tempoMedio      String?
-  imagemCapa      String?
-  ativo           Boolean  @default(true)
-  ordem           Int      @default(0)
+  tempoMedio        String?
+  imagemCapa        String?
+  ativo             Boolean @default(true)
+  ordem             Int     @default(0)
 }
 
 // ────────────────────────── CORE ───────────────────────────
@@ -195,25 +195,25 @@ model Servico {
 /// o ledger de estoque não cobre: preço alterado, acesso concedido, cliente
 /// aprovado, login. Nomes em português para casar com o resto do schema.
 model AuditLog {
-  id          Int      @id @default(autoincrement())
-  criadoEm    DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  criadoEm DateTime @default(now())
 
   // Quem: admin | colaborador | usuario | sistema
-  atorTipo    String   @default("sistema")
-  atorId      Int?
-  atorNome    String?
+  atorTipo String  @default("sistema")
+  atorId   Int?
+  atorNome String?
 
-  modulo      String   // erp | admin | loja | auth
-  acao        String   // criar | atualizar | excluir | aprovar | login | ...
-  entidade    String?  // Produto, Colaborador, ClienteErp…
-  entidadeId  String?
+  modulo     String // erp | admin | loja | auth
+  acao       String // criar | atualizar | excluir | aprovar | login | ...
+  entidade   String? // Produto, Colaborador, ClienteErp…
+  entidadeId String?
 
-  valorAntes  String?  // JSON serializado (só os campos que mudaram)
+  valorAntes  String? // JSON serializado (só os campos que mudaram)
   valorDepois String?
 
-  ip          String?
-  userAgent   String?
-  metadata    String?  // JSON livre
+  ip        String?
+  userAgent String?
+  metadata  String? // JSON livre
 
   @@index([criadoEm])
   @@index([modulo, acao])
@@ -224,9 +224,9 @@ model AuditLog {
 // ─────────────────────────── ERP ───────────────────────────
 
 model Fornecedor {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   nome        String
-  cnpj        String?  @unique
+  cnpj        String?   @unique
   contato     String?
   telefone    String?
   email       String?
@@ -234,10 +234,10 @@ model Fornecedor {
   estado      String?
   observacoes String?
   excluidoEm  DateTime?
-  criadoEm    DateTime @default(now())
+  criadoEm    DateTime  @default(now())
 
-  produtos    Produto[]
-  notas       NotaFiscal[]
+  produtos Produto[]
+  notas    NotaFiscal[]
 
   @@index([nome])
 }
@@ -259,20 +259,20 @@ model Colaborador {
 
 /// Ledger imutável: toda alteração de saldo passa por aqui.
 model MovimentacaoEstoque {
-  id            Int      @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   // entrada | saida | ajuste | transferencia | venda | troca | assistencia |
   // devolucao | perda
-  tipo          String
-  quantidade    Int      // positivo; o tipo define o sinal
-  saldoAntes    Int
-  saldoDepois   Int
-  motivo        String?
-  documento     String?  // nº da NF, OS, pedido…
-  observacao    String?
-  criadoEm      DateTime @default(now())
+  tipo        String
+  quantidade  Int // positivo; o tipo define o sinal
+  saldoAntes  Int
+  saldoDepois Int
+  motivo      String?
+  documento   String? // nº da NF, OS, pedido…
+  observacao  String?
+  criadoEm    DateTime @default(now())
 
   produtoId     Int
-  produto       Produto  @relation(fields: [produtoId], references: [id])
+  produto       Produto      @relation(fields: [produtoId], references: [id])
   // colaboradorId: legado do auth antigo. Mantido durante a migração para o
   // código no ar não quebrar; removido depois que tudo usar usuarioId.
   colaboradorId Int?
@@ -294,20 +294,20 @@ model MovimentacaoEstoque {
 
 /// Nota fiscal de entrada (XML da NF-e importado).
 model NotaFiscal {
-  id           Int      @id @default(autoincrement())
-  chave        String?  @unique
-  numero       String?
-  serie        String?
-  emitidaEm    DateTime?
-  valorTotal   Int?     // centavos
-  xml          String?  // XML bruto, para auditoria
-  status       String   @default("importada") // importada | conferida | finalizada
-  criadoEm     DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  chave      String?   @unique
+  numero     String?
+  serie      String?
+  emitidaEm  DateTime?
+  valorTotal Int? // centavos
+  xml        String? // XML bruto, para auditoria
+  status     String    @default("importada") // importada | conferida | finalizada
+  criadoEm   DateTime  @default(now())
 
   fornecedorId Int?
   fornecedor   Fornecedor? @relation(fields: [fornecedorId], references: [id])
 
-  itens        NotaItem[]
+  itens         NotaItem[]
   movimentacoes MovimentacaoEstoque[]
 
   @@index([status])
@@ -316,20 +316,20 @@ model NotaFiscal {
 
 /// Item da nota: fica com a descrição original até ser vinculado a um Produto.
 model NotaItem {
-  id           Int      @id @default(autoincrement())
-  descricao    String
-  ean          String?
-  ncm          String?
-  cfop         String?
-  quantidade   Int
-  valorUnitario Int     // centavos
-  acao         String   @default("pendente") // pendente | criar | vincular
-  processado   Boolean  @default(false)
+  id            Int     @id @default(autoincrement())
+  descricao     String
+  ean           String?
+  ncm           String?
+  cfop          String?
+  quantidade    Int
+  valorUnitario Int // centavos
+  acao          String  @default("pendente") // pendente | criar | vincular
+  processado    Boolean @default(false)
 
-  notaId       Int
-  nota         NotaFiscal @relation(fields: [notaId], references: [id], onDelete: Cascade)
-  produtoId    Int?
-  produto      Produto?   @relation(fields: [produtoId], references: [id])
+  notaId    Int
+  nota      NotaFiscal @relation(fields: [notaId], references: [id], onDelete: Cascade)
+  produtoId Int?
+  produto   Produto?   @relation(fields: [produtoId], references: [id])
 
   @@index([notaId])
   @@index([ean])
@@ -337,7 +337,7 @@ model NotaItem {
 
 /// Cliente do ERP (histórico de compras e assistência).
 model ClienteErp {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   nome        String
   telefone    String?
   email       String?
@@ -345,7 +345,7 @@ model ClienteErp {
   cidade      String?
   observacoes String?
   excluidoEm  DateTime?
-  criadoEm    DateTime @default(now())
+  criadoEm    DateTime  @default(now())
 
   movimentacoes MovimentacaoEstoque[]
   interacoes    Interacao[]
@@ -361,24 +361,25 @@ model ClienteErp {
 /// Substitui os três sistemas antigos: admin da loja (env), cliente das aulas e
 /// colaborador do ERP. Um login, um cookie, papéis definindo o que cada um vê.
 model Usuario {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   nome            String
-  email           String   @unique
-  senhaHash       String                    // scrypt (salt:hash), nunca a senha crua
+  email           String    @unique
+  senhaHash       String // scrypt (salt:hash), nunca a senha crua
   telefone        String?
   avatar          String?
-  ativo           Boolean  @default(true)
-  emailVerificado Boolean  @default(false)
+  ativo           Boolean   @default(true)
+  emailVerificado Boolean   @default(false)
   /// Clientes das aulas nascem pendentes; o admin aprova.
-  aprovado        Boolean  @default(false)
+  aprovado        Boolean   @default(false)
   ultimoLogin     DateTime?
-  criadoEm        DateTime @default(now())
-  atualizadoEm    DateTime @updatedAt
+  criadoEm        DateTime  @default(now())
+  atualizadoEm    DateTime  @updatedAt
 
-  papeis          UsuarioPapel[]
-  sessoes         Sessao[]
-  movimentacoes   MovimentacaoEstoque[]
-  tokens          TokenAcesso[]
+  papeis           UsuarioPapel[]
+  sessoes          Sessao[]
+  movimentacoes    MovimentacaoEstoque[]
+  tokens           TokenAcesso[]
+  identidadesOAuth IdentidadeOAuth[]
 
   @@index([aprovado])
   @@index([ativo])
@@ -386,10 +387,10 @@ model Usuario {
 
 /// Papel (role). A hierarquia usa `nivel`: menor = mais poder.
 model Papel {
-  id       Int    @id @default(autoincrement())
-  chave    String @unique // ADMIN_MASTER, ADMIN, GERENTE, VENDEDOR, TECNICO, FINANCEIRO, CLIENTE, SUPORTE
+  id       Int            @id @default(autoincrement())
+  chave    String         @unique // ADMIN_MASTER, ADMIN, GERENTE, VENDEDOR, TECNICO, FINANCEIRO, CLIENTE, SUPORTE
   nome     String
-  nivel    Int    @default(100)
+  nivel    Int            @default(100)
   usuarios UsuarioPapel[]
 }
 
@@ -406,32 +407,50 @@ model UsuarioPapel {
 /// Sessão no servidor — permite REVOGAR acesso na hora (o modelo antigo, só
 /// com cookie assinado, não permitia: valia até expirar).
 model Sessao {
-  id         String    @id @default(uuid())
-  usuarioId  Int
-  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  usuarioId   Int
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   /// Guarda o HASH do token, nunca o token — vazamento do banco não vira sessão.
-  tokenHash  String    @unique
+  tokenHash   String    @unique
   dispositivo String?
-  navegador  String?
-  ip         String?
-  expiraEm   DateTime
-  revogadaEm DateTime?
-  criadoEm   DateTime  @default(now())
+  navegador   String?
+  ip          String?
+  expiraEm    DateTime
+  revogadaEm  DateTime?
+  criadoEm    DateTime  @default(now())
 
   @@index([usuarioId])
   @@index([expiraEm])
 }
 
+model IdentidadeOAuth {
+  id          Int       @id @default(autoincrement())
+  provedor    String
+  provedorId  String
+  usuarioId   Int
+  email       String?
+  nome        String?
+  avatar      String?
+  criadoEm    DateTime  @default(now())
+  ultimoLogin DateTime?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([provedor, provedorId])
+  @@unique([usuarioId, provedor])
+  @@index([email])
+}
+
 /// Token de uso único: recuperação de senha e convite de acesso.
 model TokenAcesso {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   usuarioId Int
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
-  tipo      String   // recuperar-senha | convite
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  tipo      String // recuperar-senha | convite
   expiraEm  DateTime
   usadoEm   DateTime?
-  criadoEm  DateTime @default(now())
+  criadoEm  DateTime  @default(now())
 
   @@index([usuarioId, tipo])
 }
@@ -444,14 +463,14 @@ model TokenAcesso {
 /// derivado da soma (entrada − saída).
 model Lancamento {
   id          Int      @id @default(autoincrement())
-  tipo        String   // entrada | saida
-  valor       Int      // centavos, sempre positivo
-  categoria   String?  // rótulo do plano de contas (ver financeiro/plano.ts)
+  tipo        String // entrada | saida
+  valor       Int // centavos, sempre positivo
+  categoria   String? // rótulo do plano de contas (ver financeiro/plano.ts)
   descricao   String
-  forma       String?  // pix | cartao | dinheiro | boleto | transferencia
-  bancoId     Int?     // conta/carteira que recebeu ou pagou (módulo Financeiro)
+  forma       String? // pix | cartao | dinheiro | boleto | transferencia
+  bancoId     Int? // conta/carteira que recebeu ou pagou (módulo Financeiro)
   data        DateTime @default(now())
-  contaId     Int?     // veio da baixa de uma Conta?
+  contaId     Int? // veio da baixa de uma Conta?
   usuarioId   Int?
   usuarioNome String?
   criadoEm    DateTime @default(now())
@@ -464,19 +483,19 @@ model Lancamento {
 /// Conta a pagar ou a receber (módulo Financeiro). Ao dar baixa (status pago),
 /// gera um Lançamento no caixa — o ledger continua sendo a verdade do saldo.
 model Conta {
-  id           Int      @id @default(autoincrement())
-  tipo         String   // pagar | receber
+  id           Int       @id @default(autoincrement())
+  tipo         String // pagar | receber
   descricao    String
-  valor        Int      // centavos
+  valor        Int // centavos
   categoria    String?
   vencimento   DateTime
-  status       String   @default("aberto") // aberto | pago | cancelado
+  status       String    @default("aberto") // aberto | pago | cancelado
   pagoEm       DateTime?
   forma        String?
-  bancoId      Int?     // conta/carteira de destino (a receber) — módulo Financeiro
-  fornecedorId Int?     // vínculo leve (sem FK) — origem opcional
+  bancoId      Int? // conta/carteira de destino (a receber) — módulo Financeiro
+  fornecedorId Int? // vínculo leve (sem FK) — origem opcional
   clienteId    Int?
-  criadoEm     DateTime @default(now())
+  criadoEm     DateTime  @default(now())
 
   @@index([tipo, status])
   @@index([vencimento])
@@ -488,11 +507,11 @@ model Conta {
 model Notificacao {
   id           Int      @id @default(autoincrement())
   canal        String   @default("email") // email | whatsapp | sms | push | interno
-  template     String?  // id do template usado (ver notificacao/templates.ts)
+  template     String? // id do template usado (ver notificacao/templates.ts)
   destinatario String
   assunto      String?
   status       String   @default("pendente") // pendente | enviado | falhou
-  provider     String?  // resend | log | ...
+  provider     String? // resend | log | ...
   tentativas   Int      @default(0)
   erro         String?
   criadoEm     DateTime @default(now())
@@ -506,28 +525,28 @@ model Notificacao {
 /// concluir, gera conta a receber (Financeiro), registro na timeline (CRM) e no
 /// histórico (Notification) — sempre pelos serviços, nunca mexendo direto neles.
 model OrdemServico {
-  id           Int      @id @default(autoincrement())
-  clienteId    Int?
-  cliente      ClienteErp? @relation(fields: [clienteId], references: [id])
-  clienteNome  String   // denormalizado: a OS sobrevive mesmo sem cadastro
-  equipamento  String
-  marca        String?
-  modelo       String?
-  serial       String?
-  imei         String?
-  defeito      String
-  diagnostico  String?
-  solucao      String?
-  valor        Int?     // centavos; null enquanto não orçado
-  garantiaMeses Int     @default(0)
-  tecnicoId    Int?
-  tecnicoNome  String?
-  status       String   @default("recebida")
-  contaId      Int?     // conta a receber gerada ao concluir
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-  concluidaEm  DateTime?
-  entregueEm   DateTime?
+  id            Int         @id @default(autoincrement())
+  clienteId     Int?
+  cliente       ClienteErp? @relation(fields: [clienteId], references: [id])
+  clienteNome   String // denormalizado: a OS sobrevive mesmo sem cadastro
+  equipamento   String
+  marca         String?
+  modelo        String?
+  serial        String?
+  imei          String?
+  defeito       String
+  diagnostico   String?
+  solucao       String?
+  valor         Int? // centavos; null enquanto não orçado
+  garantiaMeses Int         @default(0)
+  tecnicoId     Int?
+  tecnicoNome   String?
+  status        String      @default("recebida")
+  contaId       Int? // conta a receber gerada ao concluir
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @updatedAt
+  concluidaEm   DateTime?
+  entregueEm    DateTime?
 
   @@index([status])
   @@index([clienteId])
@@ -539,9 +558,9 @@ model OrdemServico {
 /// painel de integrações — sem construir adapters para serviços que não existem.
 model IntegracaoLog {
   id         Int      @id @default(autoincrement())
-  provider   String   // anthropic | resend | hubspot | ...
-  operacao   String   // chat | email.enviar | ...
-  status     String   // ok | erro
+  provider   String // anthropic | resend | hubspot | ...
+  operacao   String // chat | email.enviar | ...
+  status     String // ok | erro
   latenciaMs Int?
   erro       String?
   criadoEm   DateTime @default(now())
@@ -557,7 +576,7 @@ model IntegracaoLog {
 model Configuracao {
   chave        String   @id
   valor        String
-  atualizadoEm DateTime @updatedAt @default(now())
+  atualizadoEm DateTime @default(now()) @updatedAt
 }
 
 /// Maquininha de cartão (módulo Orders/Financeiro). Taxas em BASIS POINTS
@@ -567,10 +586,10 @@ model Maquininha {
   id           Int      @id @default(autoincrement())
   nome         String
   ativo        Boolean  @default(true)
-  taxaDebito   Int      @default(0)   // bps
+  taxaDebito   Int      @default(0) // bps
   taxasCredito String   @default("{}") // JSON: parcela(string) -> bps
-  bancoId      Int?     // banco adquirente onde o dinheiro liquida
-  prazoDias    Int      @default(1)   // liquidação em D+N (dias corridos)
+  bancoId      Int? // banco adquirente onde o dinheiro liquida
+  prazoDias    Int      @default(1) // liquidação em D+N (dias corridos)
   criadoEm     DateTime @default(now())
 
   @@index([ativo])
@@ -581,25 +600,25 @@ model Maquininha {
 /// financeiro. Os movimentos de estoque e o lançamento/conta continuam sendo a
 /// verdade contábil; a Venda é a visão comercial navegável.
 model Venda {
-  id           Int      @id @default(autoincrement())
-  numero       Int      @unique
+  id           Int         @id @default(autoincrement())
+  numero       Int         @unique
   clienteId    Int?
   cliente      ClienteErp? @relation(fields: [clienteId], references: [id])
   vendedorId   Int?
   vendedorNome String?
   subtotal     Int
-  desconto     Int      @default(0)
+  desconto     Int         @default(0)
   total        Int
   forma        String
   maquininhaId Int?
-  taxaBps      Int      @default(0)
+  taxaBps      Int         @default(0)
   liquido      Int
-  contaId      Int?     // conta a receber gerada (a prazo)
-  status       String   @default("concluida") // concluida | cancelada
-  criadoEm     DateTime @default(now())
+  contaId      Int? // conta a receber gerada (a prazo)
+  status       String      @default("concluida") // concluida | cancelada
+  criadoEm     DateTime    @default(now())
   canceladaEm  DateTime?
 
-  itens        VendaItem[]
+  itens VendaItem[]
 
   @@index([numero])
   @@index([status])
@@ -624,19 +643,19 @@ model VendaItem {
 /// na mesma posição = carrossel (rotação por `rotacaoSegundos`). Período
 /// opcional (inicioEm/fimEm) agenda campanhas.
 model Banner {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   titulo          String
-  posicao         String   // hero | meio | rodape (ver site/banners.ts)
+  posicao         String // hero | meio | rodape (ver site/banners.ts)
   imagemDesktop   String
   imagemMobile    String?
   link            String?
   botaoTexto      String?
-  ordem           Int      @default(0)
-  ativo           Boolean  @default(true)
-  rotacaoSegundos Int      @default(6)
+  ordem           Int       @default(0)
+  ativo           Boolean   @default(true)
+  rotacaoSegundos Int       @default(6)
   inicioEm        DateTime?
   fimEm           DateTime?
-  criadoEm        DateTime @default(now())
+  criadoEm        DateTime  @default(now())
 
   @@index([posicao, ativo])
 }
@@ -661,9 +680,9 @@ model Post {
   slug         String   @unique
   titulo       String
   resumo       String?
-  conteudo     String?                    // texto (novidades/instruções)
-  youtubeId    String?                    // preenchido = é uma AULA em vídeo
-  restrito     Boolean  @default(false)   // true = só clientes aprovados
+  conteudo     String? // texto (novidades/instruções)
+  youtubeId    String? // preenchido = é uma AULA em vídeo
+  restrito     Boolean  @default(false) // true = só clientes aprovados
   publicado    Boolean  @default(true)
   ordem        Int      @default(0)
   criadoEm     DateTime @default(now())
@@ -678,17 +697,17 @@ model Lead {
   telefone     String?
   email        String?
   origem       String   @default("geral") // produto | servico | geral | chat
-  referenciaId Int?     // id do produto ou serviço de origem
-  interesse    String?  // categoria da loja (quando veio do chat)
+  referenciaId Int? // id do produto ou serviço de origem
+  interesse    String? // categoria da loja (quando veio do chat)
   urgencia     String?
   perfil       String?
   mensagem     String?
-  transcricao  String?  // conversa do chat, quando houver
-  status       String   @default("novo")  // novo | respondido | vendido | perdido
-  score        Int      @default(0)        // 0-100, triagem automática (ver crm.ts)
+  transcricao  String? // conversa do chat, quando houver
+  status       String   @default("novo") // novo | respondido | vendido | perdido
+  score        Int      @default(0) // 0-100, triagem automática (ver crm.ts)
   criadoEm     DateTime @default(now())
 
-  interacoes   Interacao[]
+  interacoes Interacao[]
 
   @@index([status])
   @@index([criadoEm])
@@ -699,16 +718,16 @@ model Lead {
 /// WhatsApp enviado, ligação, visita, observação. Vendas e garantias já vivem no
 /// ledger de estoque; a timeline unifica os dois na hora de exibir.
 model Interacao {
-  id         Int      @id @default(autoincrement())
-  tipo       String   // whatsapp | ligacao | visita | email | chat_ia | loja | suporte | observacao
-  conteudo   String?
-  leadId     Int?
-  lead       Lead?       @relation(fields: [leadId], references: [id])
-  clienteId  Int?
-  cliente    ClienteErp? @relation(fields: [clienteId], references: [id])
-  autorId    Int?     // Usuario que registrou
-  autorNome  String?
-  criadoEm   DateTime @default(now())
+  id        Int         @id @default(autoincrement())
+  tipo      String // whatsapp | ligacao | visita | email | chat_ia | loja | suporte | observacao
+  conteudo  String?
+  leadId    Int?
+  lead      Lead?       @relation(fields: [leadId], references: [id])
+  clienteId Int?
+  cliente   ClienteErp? @relation(fields: [clienteId], references: [id])
+  autorId   Int? // Usuario que registrou
+  autorNome String?
+  criadoEm  DateTime    @default(now())
 
   @@index([leadId])
   @@index([clienteId])

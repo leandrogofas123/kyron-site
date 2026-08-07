@@ -148,3 +148,15 @@ Mantidos da base anterior: medidas em `clamp()` (nada fixo), grades que se
 reorganizam sem media query, testado de 320px a 2560px, alvo de toque ≥ 24px,
 foco visível, `prefers-reduced-motion` respeitado, consentimento de cookies
 antes de qualquer medição.
+## Area de treinamentos
+
+O subdominio `app.kyrontecnologia.com` pode apontar para o mesmo servico Railway e e roteado para a Kyron Academy.
+
+Configure `APP_HOST`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `LINKEDIN_CLIENT_ID` e `LINKEDIN_CLIENT_SECRET`. Os callbacks sao:
+
+```text
+https://app.kyrontecnologia.com/api/auth/google/callback
+https://app.kyrontecnologia.com/api/auth/linkedin/callback
+```
+
+Novas contas entram como `CLIENTE` pendente e sao aprovadas no ERP em `/erp/alunos`.

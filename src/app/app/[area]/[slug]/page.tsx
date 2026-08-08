@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { guardaAcademy } from "@/lib/auth/areas";
 import { getPost } from "@/lib/manual";
-import { usuarioLogado } from "@/lib/usuario-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +19,7 @@ export default async function ConteudoPage({ params }: Props) {
   const { area, slug } = await params;
   if (area !== "treinamentos" && area !== "manuais") notFound();
 
-  const usuario = await usuarioLogado();
-  if (!usuario) redirect("/app/login");
+  const usuario = await guardaAcademy();
   if (!usuario.aprovado) return <Aguardando />;
 
   const post = await getPost(slug);

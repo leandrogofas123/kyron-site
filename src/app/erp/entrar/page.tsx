@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { FormEntrarErp } from "@/components/erp/FormEntrarErp";
@@ -70,13 +69,6 @@ export default async function EntrarErpPage({
             </a>
           </div>
         </div>
-
-        <p className="mt-fluid-sm text-center text-fluid-2xs text-kyron-silver/50">
-          É aluno?{" "}
-          <Link href="/app/login" className="text-kyron-silver underline underline-offset-2 hover:text-kyron-white">
-            Entrar na Kyron Academy
-          </Link>
-        </p>
       </div>
     </main>
   );

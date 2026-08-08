@@ -54,7 +54,7 @@ export async function acaoEntrarErp(_estado: Estado, form: FormData) {
       const master = await db.papel.findUnique({ where: { chave: "ADMIN_MASTER" } });
       const admin = await db.usuario.create({
         data: {
-          nome: "Administrador",
+          nome: process.env.ADMIN_NOME?.trim() || "Administrador",
           email: donoEmail,
           senhaHash: gerarHash(donoSenha),
           ativo: true,

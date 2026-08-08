@@ -22,6 +22,7 @@ const MENSAGENS: Record<string, string> = {
   inactive: "Esta conta está desativada. Fale com a Kyron.",
   "provider-linked": "Este provedor já está vinculado a outra conta.",
   "oauth-state": "A sessão de login expirou. Tente novamente.",
+  "somente-alunos": "Esta área é exclusiva de alunos da Academy. Contas de gestão devem acessar o ERP.",
 };
 
 export default async function AppLoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {

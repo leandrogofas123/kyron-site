@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowRight, Building2, KeyRound, Lock, Mail, User,
+  ArrowRight, KeyRound, Lock, Mail, User,
 } from "lucide-react";
 
 import { acaoCadastrar, acaoLogin } from "@/lib/auth/actions";
@@ -44,12 +44,6 @@ export function AcademyAuth({ erroOAuth }: { erroOAuth: string | null }) {
         <a href="/api/auth/google?redirect=/app" className="academy-oauth google"><span>G</span> Google</a>
         <a href="/api/auth/linkedin?redirect=/app" className="academy-oauth linkedin"><span>in</span> LinkedIn</a>
       </div>
-
-      <Link href="/erp/entrar" className="academy-gestao">
-        <span><Building2 size={17} /></span>
-        <div><b>Acesso da gestão</b><small>Entrar no ERP (equipe e liderança)</small></div>
-        <ArrowRight size={16} />
-      </Link>
 
       <p className="academy-login-terms">
         Ao continuar, você concorda com os <Link href="/termos-de-uso">Termos de Uso</Link> e a <Link href="/politica-de-privacidade">Política de Privacidade</Link>.

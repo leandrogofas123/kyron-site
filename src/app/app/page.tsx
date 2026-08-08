@@ -7,8 +7,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { acaoLogout } from "@/lib/auth/actions";
+import { guardaAcademy } from "@/lib/auth/areas";
 import { getPosts } from "@/lib/manual";
-import { usuarioLogado } from "@/lib/usuario-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +28,7 @@ const trilhas = [
 ];
 
 export default async function AcademyPage() {
-  const usuario = await usuarioLogado();
-  if (!usuario) redirect("/app/login");
+  const usuario = await guardaAcademy();
   if (!usuario.aprovado) return <Aguardando nome={usuario.nome} />;
 
   const posts = await getPosts();

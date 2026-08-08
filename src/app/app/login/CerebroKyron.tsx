@@ -3,134 +3,96 @@
 import { useEffect, useState } from "react";
 
 /**
- * Cérebro-mapa de competências da Kyron Academy.
+ * Cérebro-mapa de competências da Kyron Academy (hero da tela de login).
  *
- * Um cérebro (visão superior) desenhado como um "mapa" dividido em células
- * ("estados"), ~30% preenchidas. A cada 5s destaca uma competência do lado
- * direito, em azul, com uma seta para fora e um rótulo em formato de botão.
- * Toda a geometria é determinística — mesma saída no servidor e no cliente,
- * sem risco de hydration mismatch. Puramente decorativo (aria-hidden).
+ * Um cérebro ÚNICO e liso (sem tronco/cerebelo pendurados, sem curvas
+ * drásticas), dividido em 7 regiões de competência. As regiões acendem em azul
+ * conforme o domínio (ilustrativo aqui, pré-login) e, a cada ~4s, uma região é
+ * destacada com o nome flutuando como um botão com sombra.
+ *
+ * Geometria 100% determinística (mesma saída no servidor e no cliente → sem
+ * hydration mismatch). Puramente decorativo (aria oculto do conteúdo).
  */
 
 const VB_W = 1000;
-const VB_H = 720;
-
+const VB_H = 620;
 const AZUL = "#2f8bff";
-const AZUL_CLARO = "#7cb8ff";
+const AZUL_CLARO = "#8fb4ff";
 
 // ─────────────────────────── contorno do cérebro ───────────────────────────
+const CX = 500, CY = 305, RX = 384, RY = 214;
 
-function contornoCerebro(): string {
-  const cx = 372;
-  const cy = 356;
-  const rx = 250;
-  const ry = 298;
-  const N = 132;
-  const pts: Array<[number, number]> = [];
-
-  for (let i = 0; i < N; i++) {
-    const a = (i / N) * Math.PI * 2; // 0=direita, π/2=baixo, π=esq, 3π/2=topo
-    const m =
-      1 +
-      0.05 * Math.sin(6 * a + 0.7) +
-      0.03 * Math.sin(10 * a + 2.1) +
-      0.018 * Math.sin(15 * a);
-
-    const baixo = Math.max(0, Math.sin(a));
-    const topo = Math.max(0, -Math.sin(a));
-    const RX = rx * (1 - 0.17 * baixo * baixo) * (1 - 0.03 * topo);
-    const RY = ry * (1 - 0.04 * baixo);
-
-    let px = cx + RX * m * Math.cos(a);
-    let py = cy + RY * m * Math.sin(a);
-
-    // Fenda frontal (entre hemisférios) no topo-centro.
-    let d = Math.abs(a - (3 * Math.PI) / 2);
-    d = Math.min(d, Math.abs(d - Math.PI * 2));
-    if (d < 0.36) py += 34 * Math.exp(-Math.pow(d / 0.17, 2));
-
-    pts.push([px, py]);
-  }
-
-  // Catmull-Rom fechado → cúbicas de Bézier (contorno orgânico e suave).
+function smoothClosed(pts: Array<[number, number]>): string {
+  const n = pts.length;
   let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < N; i++) {
-    const p0 = pts[(i - 1 + N) % N];
-    const p1 = pts[i];
-    const p2 = pts[(i + 1) % N];
-    const p3 = pts[(i + 2) % N];
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
     d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
   }
   return d + " Z";
 }
 
-const BRAIN_D = contornoCerebro();
-
-// ────────────────────────── células ("estados") ──────────────────────────
-
-function hexPontos(cx: number, cy: number, r: number): string {
-  const p: string[] = [];
-  for (let k = 0; k < 6; k++) {
-    const ang = (Math.PI / 180) * (60 * k);
-    p.push(`${(cx + r * Math.cos(ang)).toFixed(1)},${(cy + r * Math.sin(ang)).toFixed(1)}`);
+function contorno(): string {
+  const N = 132, pts: Array<[number, number]> = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const up = Math.max(0, -Math.sin(a));
+    const down = Math.max(0, Math.sin(a));
+    const bump = 1 + up * (0.022 * Math.sin(6 * a + 0.6) + 0.014 * Math.sin(9 * a + 1.4));
+    const rx = RX * (1 - 0.02 * down);
+    const ry = RY * (1 - 0.05 * down);
+    pts.push([CX + rx * Math.cos(a) * bump, CY + ry * Math.sin(a) * bump]);
   }
-  return p.join(" ");
+  return smoothClosed(pts);
 }
+const BRAIN = contorno();
 
-type Celula = { pts: string; preenchida: boolean; key: string };
-
-function gerarCelulas(): Celula[] {
-  const R = 30;
-  const colStep = 1.5 * R;
-  const rowStep = Math.sqrt(3) * R;
-  const out: Celula[] = [];
-  let col = 0;
-  for (let x = 116; x <= 640; x += colStep, col++) {
-    const yOff = col % 2 ? rowStep / 2 : 0;
-    let row = 0;
-    for (let y = 74 + yOff; y <= 648; y += rowStep, row++) {
-      const preenchida = (col * 5 + row * 7) % 10 < 3; // ~30%
-      out.push({ pts: hexPontos(x, y, R - 2.5), preenchida, key: `${col}-${row}` });
-    }
-  }
-  return out;
-}
-
-const CELULAS = gerarCelulas();
-
-// ───────────────────────────── competências ─────────────────────────────
-
-type Skill = { label: string; ax: number; ay: number };
-
-const SKILLS: Skill[] = [
-  { label: "Técnicas de vendas", ax: 520, ay: 172 },
-  { label: "Inteligência emocional", ax: 592, ay: 272 },
-  { label: "Marketing pessoal", ax: 612, ay: 380 },
-  { label: "Negociação", ax: 582, ay: 482 },
-  { label: "Comunicação persuasiva", ax: 508, ay: 566 },
+// ─────────────────────────── 7 regiões (dentro do cérebro) ──────────────────
+const SPLIT = 305;
+type Reg = {
+  sig: string; nome: string; x0: number; x1: number; y0: number; y1: number;
+  lx: number; ly: number; pct: number;
+};
+const REGS: Reg[] = [
+  { sig: "FND", nome: "Fundamentos", x0: 116, x1: 374, y0: SPLIT, y1: 524, lx: 250, ly: 404, pct: 100 },
+  { sig: "ATD", nome: "Atendimento", x0: 116, x1: 310, y0: 88, y1: SPLIT, lx: 214, ly: 200, pct: 100 },
+  { sig: "PRD", nome: "Produtos", x0: 502, x1: 694, y0: 88, y1: SPLIT, lx: 598, ly: 192, pct: 100 },
+  { sig: "VND", nome: "Vendas e Negociação", x0: 310, x1: 502, y0: 88, y1: SPLIT, lx: 406, ly: 192, pct: 55 },
+  { sig: "AUT", nome: "Automação", x0: 374, x1: 626, y0: SPLIT, y1: 524, lx: 500, ly: 404, pct: 55 },
+  { sig: "BNC", nome: "Processos & Bancada", x0: 626, x1: 884, y0: SPLIT, y1: 524, lx: 762, ly: 400, pct: 0 },
+  { sig: "MRC", nome: "Marca & Conteúdo", x0: 694, x1: 884, y0: 88, y1: SPLIT, lx: 786, ly: 206, pct: 0 },
 ];
 
-const HEX_ATIVO = 26; // raio do estado destacado
+const DIVISAS = [
+  `M 310 88 L 310 ${SPLIT}`, `M 502 88 L 502 ${SPLIT}`, `M 694 88 L 694 ${SPLIT}`,
+  `M 116 ${SPLIT} L 884 ${SPLIT}`, `M 374 ${SPLIT} L 374 524`, `M 626 ${SPLIT} L 626 524`,
+];
+
+// sulcos suaves determinísticos
+const SULCOS: string[] = [];
+for (let i = 0; i < 24; i++) {
+  const yy = 122 + i * 16 + (i % 2) * 6;
+  const amp = 8 + (i % 4) * 3, ph = i * 0.7;
+  let d = `M 150 ${yy}`;
+  for (let x = 150; x <= 850; x += 40) d += ` Q ${x + 20} ${(yy + Math.sin(x / 70 + ph) * amp).toFixed(1)} ${x + 40} ${yy}`;
+  SULCOS.push(d);
+}
 
 export function CerebroKyron() {
   const [i, setI] = useState(0);
-
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % SKILLS.length), 5000);
+    const t = setInterval(() => setI((v) => (v + 1) % REGS.length), 4000);
     return () => clearInterval(t);
   }, []);
 
-  const s = SKILLS[i];
-  const boxW = 300;
-  const boxH = 66;
-  const lx = 668;
-  const lcy = Math.max(70, Math.min(VB_H - 70, s.ay));
-  const ly = lcy - boxH / 2;
-  const sx = s.ax + HEX_ATIVO + 6;
+  const ativo = REGS[i];
+  // rótulo-botão flutuante do destaque
+  const nome = ativo.nome.toUpperCase();
+  const boxW = Math.max(150, nome.length * 10.5 + 46);
+  const lx = Math.max(8, Math.min(VB_W - boxW - 8, ativo.lx - boxW / 2));
+  const ly = Math.max(6, ativo.ly - (ativo.y0 < SPLIT ? 96 : 92));
 
   return (
     <svg
@@ -141,127 +103,88 @@ export function CerebroKyron() {
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
-        <radialGradient id="cerMassa" cx="42%" cy="40%" r="75%">
-          <stop offset="0%" stopColor="#12233b" />
-          <stop offset="55%" stopColor="#0c1826" />
-          <stop offset="100%" stopColor="#070f19" />
-        </radialGradient>
-        <linearGradient id="cerBorda" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4f80c0" />
-          <stop offset="100%" stopColor="#22405f" />
+        <clipPath id="cerBrain"><path d={BRAIN} /></clipPath>
+        <linearGradient id="cerAz" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stopColor="#1247b0" />
+          <stop offset="1" stopColor="#3B84FF" />
         </linearGradient>
-        <marker
-          id="cerSeta"
-          viewBox="0 0 10 10"
-          refX="8"
-          refY="5"
-          markerWidth="7"
-          markerHeight="7"
-          orient="auto-start-reverse"
-        >
-          <path d="M0 0 L10 5 L0 10 z" fill={AZUL} />
-        </marker>
-        <clipPath id="cerClip">
-          <path d={BRAIN_D} />
-        </clipPath>
-        <filter id="cerGlow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="7" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+        <radialGradient id="cerHalo" cx="46%" cy="40%" r="70%">
+          <stop offset="0" stopColor="#12233b" />
+          <stop offset="1" stopColor="#0a0f18" />
+        </radialGradient>
+        <filter id="cerGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
-      {/* halo ambiente */}
-      <ellipse cx="372" cy="352" rx="330" ry="360" fill={AZUL} opacity="0.05" />
+      <ellipse cx={CX} cy={CY} rx={RX + 40} ry={RY + 40} fill={AZUL} opacity="0.05" />
+      <path d={BRAIN} fill="url(#cerHalo)" />
 
-      {/* massa do cérebro */}
-      <path d={BRAIN_D} fill="url(#cerMassa)" />
-
-      {/* mapa: células ("estados"), ~30% preenchidas — recortadas no cérebro */}
-      <g clipPath="url(#cerClip)">
-        {CELULAS.map((c) => (
-          <polygon
-            key={c.key}
-            points={c.pts}
-            fill={c.preenchida ? "rgba(47,139,255,0.16)" : "rgba(150,175,210,0.028)"}
-            stroke={c.preenchida ? "rgba(124,184,255,0.34)" : "rgba(140,165,200,0.10)"}
-            strokeWidth="1"
-          />
+      {/* preenchimentos por região (recortados no cérebro) */}
+      <g clipPath="url(#cerBrain)">
+        {REGS.map((r) => (
+          <rect key={`b${r.sig}`} x={r.x0} y={r.y0} width={r.x1 - r.x0} height={r.y1 - r.y0}
+            fill="#2a2e37" fillOpacity="0.9" />
         ))}
-        {/* fenda inter-hemisférios */}
-        <path
-          d="M 372 96 C 366 210, 380 300, 372 430 C 368 500, 374 540, 372 560"
-          fill="none"
-          stroke="rgba(120,160,210,0.22)"
-          strokeWidth="2.5"
-        />
-        {/* alguns sulcos sutis */}
-        <path d="M 250 200 C 300 230, 300 280, 250 320" fill="none" stroke="rgba(120,160,210,0.14)" strokeWidth="2" />
-        <path d="M 470 210 C 430 250, 440 300, 495 330" fill="none" stroke="rgba(120,160,210,0.14)" strokeWidth="2" />
-        <path d="M 250 430 C 300 450, 310 500, 260 520" fill="none" stroke="rgba(120,160,210,0.12)" strokeWidth="2" />
-        <path d="M 470 440 C 430 470, 445 510, 500 520" fill="none" stroke="rgba(120,160,210,0.12)" strokeWidth="2" />
+        {REGS.map((r) => {
+          const h = (r.y1 - r.y0) * r.pct / 100;
+          return h > 0 ? (
+            <rect key={`f${r.sig}`} x={r.x0} y={r.y1 - h} width={r.x1 - r.x0} height={h}
+              fill="url(#cerAz)" fillOpacity={i === REGS.indexOf(r) ? 1 : 0.82} />
+          ) : null;
+        })}
+        {/* destaque da região ativa */}
+        <rect x={ativo.x0} y={ativo.y0} width={ativo.x1 - ativo.x0} height={ativo.y1 - ativo.y0}
+          fill={AZUL} fillOpacity="0.16" />
+        {/* sulcos */}
+        <g fill="none" stroke="#0b0f16" strokeOpacity="0.5" strokeWidth="1.3" strokeLinecap="round">
+          {SULCOS.map((d, k) => <path key={k} d={d} />)}
+        </g>
+        {/* divisas (groove) */}
+        <g fill="none" stroke="#080b11" strokeWidth="6" strokeLinecap="round">
+          {DIVISAS.map((d, k) => <path key={k} d={d} />)}
+        </g>
+        <g fill="none" stroke="#4a5262" strokeWidth="1.4">
+          {DIVISAS.map((d, k) => <path key={k} d={d} />)}
+        </g>
       </g>
 
       {/* contorno */}
-      <path d={BRAIN_D} fill="none" stroke="url(#cerBorda)" strokeWidth="2.4" opacity="0.85" />
+      <path d={BRAIN} fill="none" stroke="#6b7484" strokeWidth="2.6" />
 
-      {/* ── competência em destaque (troca a cada 5s) ── */}
+      {/* siglas */}
+      {REGS.map((r, k) => (
+        <text key={r.sig} x={r.lx} y={r.ly} textAnchor="middle"
+          fontFamily="ui-monospace, monospace" fontSize="18" fontWeight="700"
+          letterSpacing="1.6" fill={k === i ? "#ffffff" : "#8ea3c4"} opacity={r.pct > 0 || k === i ? 0.95 : 0.5}>
+          {r.sig}
+        </text>
+      ))}
+
+      {/* destaque animado: anel pulsante + rótulo-botão */}
       <g key={i} className="cerebro-callout">
-        {/* seta para fora */}
-        <path
-          d={`M ${sx} ${s.ay} C ${sx + 46} ${s.ay}, ${lx - 52} ${lcy}, ${lx - 10} ${lcy}`}
-          fill="none"
-          stroke={AZUL}
-          strokeWidth="2.4"
-          markerEnd="url(#cerSeta)"
-          opacity="0.9"
-        />
-
-        {/* estado destacado */}
         <g className="cerebro-hex" filter="url(#cerGlow)">
-          <polygon points={hexPontos(s.ax, s.ay, HEX_ATIVO)} fill={AZUL} opacity="0.9" />
-          <polygon
-            points={hexPontos(s.ax, s.ay, HEX_ATIVO)}
-            fill="none"
-            stroke={AZUL_CLARO}
-            strokeWidth="2"
-          />
+          <circle cx={ativo.lx} cy={ativo.ly - 6} r="6" fill={AZUL} />
         </g>
-        <polygon
-          className="cerebro-pulso"
-          points={hexPontos(s.ax, s.ay, HEX_ATIVO)}
-          fill="none"
-          stroke={AZUL_CLARO}
-          strokeWidth="2"
-        />
-
-        {/* rótulo em formato de botão (com sombra) */}
+        <circle className="cerebro-pulso" cx={ativo.lx} cy={ativo.ly - 6} r="10" fill="none"
+          stroke={AZUL_CLARO} strokeWidth="2" />
         <g className="cerebro-pill">
-          <rect x={lx} y={ly} width={boxW} height={boxH} rx="14" fill="#0e1826" stroke="rgba(47,139,255,0.55)" strokeWidth="1.4" />
-          <rect x={lx + 12} y={ly + 14} width="4" height={boxH - 28} rx="2" fill={AZUL} />
-          <text x={lx + 28} y={ly + 27} fill={AZUL_CLARO} fontSize="11" fontWeight="700" letterSpacing="2.2" style={{ textTransform: "uppercase" }}>
-            Competência em foco
-          </text>
-          <text x={lx + 28} y={ly + 49} fill="#ffffff" fontSize="20" fontWeight="700" letterSpacing="0.2">
-            {s.label}
-          </text>
-          <circle cx={lx + boxW - 26} cy={lcy} r="14" fill="rgba(47,139,255,0.16)" stroke="rgba(47,139,255,0.5)" strokeWidth="1.2" />
-          <path d={`M ${lx + boxW - 30} ${lcy - 6} L ${lx + boxW - 20} ${lcy} L ${lx + boxW - 30} ${lcy + 6}`} fill="none" stroke={AZUL_CLARO} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x={lx} y={ly} width={boxW} height="58" rx="13" fill="#0e1826"
+            stroke="rgba(47,139,255,0.55)" strokeWidth="1.3" />
+          <rect x={lx + 12} y={ly + 12} width="4" height="34" rx="2" fill={AZUL} />
+          <text x={lx + 26} y={ly + 24} fill={AZUL_CLARO} fontFamily="ui-monospace, monospace"
+            fontSize="10" fontWeight="700" letterSpacing="2">COMPETÊNCIA</text>
+          <text x={lx + 26} y={ly + 44} fill="#ffffff" fontFamily="ui-sans-serif, system-ui, sans-serif"
+            fontSize="17" fontWeight="700">{ativo.nome}</text>
         </g>
       </g>
 
-      {/* indicador de progresso */}
-      <g transform={`translate(${372 - (SKILLS.length - 1) * 9}, 690)`}>
-        {SKILLS.map((_, k) => (
-          <circle
-            key={k}
-            cx={k * 18}
-            cy="0"
-            r={k === i ? 4.5 : 3}
-            fill={k === i ? AZUL : "rgba(150,175,210,0.28)"}
-          />
+      {/* indicador */}
+      <g transform={`translate(${CX - (REGS.length - 1) * 9}, 574)`}>
+        {REGS.map((_, k) => (
+          <circle key={k} cx={k * 18} cy="0" r={k === i ? 4.5 : 3}
+            fill={k === i ? AZUL : "rgba(150,175,210,0.28)"} />
         ))}
       </g>
     </svg>

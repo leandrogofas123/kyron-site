@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Clock3, FileText, HelpCircle, Lock, PlayCircle, Unlock } from "lucide-react";
+import Link from "next/link";
+import { Clock3, FileText, HelpCircle, Lock, PlayCircle, Settings2, Unlock } from "lucide-react";
 
 import { AulaAcademyForm, type AulaAcademyEdit } from "./AulaAcademyForm";
 import { AcoesStatus, BadgeStatus } from "./AcoesStatus";
@@ -52,6 +53,9 @@ export function AulaLinha({
         onArquivar={onArquivar}
         confirmarArquivar="Arquivar esta aula? Some do aluno, mas o progresso de quem já assistiu é preservado."
       />
+      <Link href={`/erp/academy/aulas/${aula.id}`} className="flex items-center gap-1 text-fluid-2xs text-kyron-silver transition-colors hover:text-kyron-white" title="Pré-requisitos e quiz">
+        <Settings2 size={13} /> Avançado
+      </Link>
       <button type="button" onClick={() => setEditando(true)} className="text-fluid-2xs text-kyron-silver transition-colors hover:text-kyron-white">
         Editar
       </button>

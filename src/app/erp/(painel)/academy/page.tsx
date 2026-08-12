@@ -34,6 +34,9 @@ export default async function ErpAcademyPage() {
           <Link href="/erp/academy/materiais" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
             Biblioteca / materiais →
           </Link>
+          <Link href="/erp/academy/conquistas" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
+            Conquistas →
+          </Link>
           <Link href="/erp/academy/relatorios" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
             Ver relatórios →
           </Link>

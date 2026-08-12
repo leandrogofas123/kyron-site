@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import type { AlunoLinha } from "@/lib/erp/alunos";
 import { AcoesAluno } from "./AcoesAluno";
 import { TabelaFiltravel, type Coluna } from "./TabelaFiltravel";
@@ -11,10 +13,10 @@ export function ListaAlunos({ alunos }: { alunos: AlunoLinha[] }) {
   const colunas: Coluna<AlunoLinha>[] = [
     { chave: "nome", titulo: "Aluno", tipo: "texto", valor: (a) => a.nome,
       render: (a) => (
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-kyron-white">{a.nome}</p>
+        <Link href={`/erp/alunos/${a.id}`} className="block min-w-0 hover:opacity-80">
+          <p className="truncate font-semibold text-kyron-white underline-offset-2 hover:underline">{a.nome}</p>
           <p className="truncate text-kyron-silver/60">{a.email}</p>
-        </div>
+        </Link>
       ) },
     { chave: "telefone", titulo: "Telefone", tipo: "texto", valor: (a) => a.telefone ?? "",
       render: (a) => a.telefone ?? <span className="text-kyron-silver/40">—</span> },

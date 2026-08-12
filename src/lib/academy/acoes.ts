@@ -9,6 +9,7 @@ import { db } from "../db";
 import { gerarSlug } from "../format";
 import { empresaPadrao } from "./dados";
 import { salvarMaterialAcademy } from "./materiais";
+import { concederConquista, concederXpManual, emitirCertificado } from "./progresso";
 
 /**
  * Server Actions da Kyron Academy (V2) — administração em /erp/academy.
@@ -281,4 +282,227 @@ export async function acaoArquivarMaterial(id: number) {
     entidadeId: id,
   });
   revalidatePath("/erp/academy/materiais");
+}
+
+// ──────────────────────────── Pré-requisito ────────────────────────────
+
+/** Substitui o conjunto de pré-requisitos da aula (a lista enviada é a lista final). */
+export async function acaoDefinirPreRequisitos(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+
+  const aulaId = Number(form.get("aulaId"));
+  if (!aulaId) return { erro: "Aula inválida." };
+
+  const dependeDeIds = form.getAll("dependeDe")
+    .map((v) => Number(v))
+    .filter((n) => Number.isInteger(n) && n !== aulaId);
+
+  await db.preRequisito.deleteMany({ where: { aulaId } });
+  if (dependeDeIds.length) {
+    await db.preRequisito.createMany({
+      data: dependeDeIds.map((dependeDeId) => ({ aulaId, dependeDeId })),
+      skipDuplicates: true,
+    });
+  }
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "definir-pre-requisitos", entidade: "Aula", entidadeId: aulaId,
+    depois: { dependeDeIds },
+  });
+
+  revalidatePath(`/erp/academy/aulas/${aulaId}`);
+  return { ok: true };
+}
+
+// ──────────────────────────────── Quiz ────────────────────────────────
+
+export async function acaoCriarQuiz(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+
+  const aulaId = Number(form.get("aulaId"));
+  if (!aulaId) return { erro: "Aula inválida." };
+  const notaMinima = Math.min(100, Math.max(0, Number(form.get("notaMinima") ?? 70) || 70));
+  const tentativasDia = Math.max(1, Number(form.get("tentativasDia") ?? 3) || 3);
+
+  await db.quiz.upsert({
+    where: { aulaId },
+    update: { notaMinima, tentativasDia },
+    create: { aulaId, notaMinima, tentativasDia },
+  });
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "salvar-quiz", entidade: "Aula", entidadeId: aulaId,
+    depois: { notaMinima, tentativasDia },
+  });
+
+  revalidatePath(`/erp/academy/aulas/${aulaId}`);
+  return { ok: true };
+}
+
+export async function acaoCriarPergunta(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+
+  const quizId = Number(form.get("quizId"));
+  const aulaId = Number(form.get("aulaId"));
+  const enunciado = String(form.get("enunciado") ?? "").trim();
+  if (!quizId) return { erro: "Crie o quiz antes de adicionar perguntas." };
+  if (enunciado.length < 3) return { erro: "Informe o enunciado da pergunta." };
+
+  // Amarra "correta" ao índice ORIGINAL antes de filtrar em branco — senão uma
+  // alternativa vazia no meio desloca o índice e marca a errada como certa.
+  const corretaIdxBruto = Number(form.get("correta") ?? -1);
+  const alternativas = form.getAll("alternativa")
+    .map((v, i) => ({ texto: String(v).trim(), correta: i === corretaIdxBruto }))
+    .filter((a) => a.texto.length > 0);
+  if (alternativas.length < 2) return { erro: "Informe ao menos 2 alternativas." };
+  if (!alternativas.some((a) => a.correta)) {
+    return { erro: "A alternativa marcada como correta está em branco. Marque uma alternativa preenchida." };
+  }
+
+  const ordem = await db.quizPergunta.count({ where: { quizId } });
+  const pergunta = await db.quizPergunta.create({
+    data: {
+      quizId, enunciado, ordem,
+      alternativas: { create: alternativas },
+    },
+  });
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "criar-pergunta-quiz", entidade: "QuizPergunta", entidadeId: pergunta.id,
+    depois: { enunciado, alternativas: alternativas.length },
+  });
+
+  revalidatePath(`/erp/academy/aulas/${aulaId}`);
+  return { ok: true };
+}
+
+/** Exclusão real (não soft-delete): TentativaQuiz guarda só a nota, não a pergunta — nada se perde. */
+export async function acaoExcluirPergunta(perguntaId: number, aulaId: number) {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+  await db.quizPergunta.delete({ where: { id: perguntaId } });
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "excluir-pergunta-quiz", entidade: "QuizPergunta", entidadeId: perguntaId,
+  });
+  revalidatePath(`/erp/academy/aulas/${aulaId}`);
+}
+
+// ─────────────────────────── Conquistas (CRUD) ───────────────────────────
+
+async function slugUnicoConquista(nome: string): Promise<string> {
+  const base = gerarSlug(nome) || "conquista";
+  let slug = base, n = 1;
+  while (await db.conquista.findUnique({ where: { slug } })) { n += 1; slug = `${base}-${n}`; }
+  return slug;
+}
+
+export async function acaoSalvarConquista(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+
+  const id = form.get("id") ? Number(form.get("id")) : null;
+  const nome = String(form.get("nome") ?? "").trim();
+  if (nome.length < 2) return { erro: "Informe o nome da conquista." };
+  const criterioTipo = String(form.get("criterioTipo") ?? "").trim();
+  if (!criterioTipo) return { erro: "Informe o tipo de critério." };
+
+  const dados = {
+    nome,
+    descricao: String(form.get("descricao") ?? "").trim() || null,
+    icone: String(form.get("icone") ?? "").trim() || null,
+    criterioTipo,
+    criterioValor: Number(form.get("criterioValor") ?? 0) || 0,
+  };
+
+  const salva = id
+    ? await db.conquista.update({ where: { id }, data: dados })
+    : await db.conquista.create({ data: { ...dados, slug: await slugUnicoConquista(nome) } });
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: id ? "editar-conquista" : "criar-conquista", entidade: "Conquista", entidadeId: salva.id,
+    depois: dados,
+  });
+
+  revalidatePath("/erp/academy/conquistas");
+  return { ok: true };
+}
+
+/** Nunca exclui uma conquista já concedida — apagaria a conquista de quem ganhou. */
+export async function acaoExcluirConquista(id: number) {
+  const eu = await exigirPermissao("academy.conteudo.arquivar");
+  const concedidas = await db.conquistaAluno.count({ where: { conquistaId: id } });
+  if (concedidas > 0) return;
+  await db.conquista.delete({ where: { id } });
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "excluir-conquista", entidade: "Conquista", entidadeId: id,
+  });
+  revalidatePath("/erp/academy/conquistas");
+}
+
+// ─────────────────────── Ações manuais sobre o aluno ───────────────────────
+
+export async function acaoConcederXpAluno(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.xp.conceder");
+
+  const usuarioId = Number(form.get("usuarioId"));
+  const xp = Number(form.get("xp"));
+  if (!usuarioId) return { erro: "Aluno inválido." };
+  if (!Number.isFinite(xp) || xp === 0) return { erro: "Informe um valor de XP diferente de zero." };
+
+  const motivo = String(form.get("motivo") ?? "").trim();
+  await concederXpManual(usuarioId, Math.round(xp));
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "conceder-xp-manual", entidade: "Usuario", entidadeId: usuarioId,
+    depois: { xp: Math.round(xp), motivo: motivo || null },
+  });
+
+  revalidatePath(`/erp/alunos/${usuarioId}`);
+  return { ok: true };
+}
+
+export async function acaoConcederConquistaAluno(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.xp.conceder");
+
+  const usuarioId = Number(form.get("usuarioId"));
+  const conquistaId = Number(form.get("conquistaId"));
+  if (!usuarioId || !conquistaId) return { erro: "Selecione o aluno e a conquista." };
+
+  const conquista = await db.conquista.findUnique({ where: { id: conquistaId } });
+  if (!conquista) return { erro: "Conquista não encontrada." };
+
+  await concederConquista(usuarioId, conquista.slug);
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "conceder-conquista-manual", entidade: "Usuario", entidadeId: usuarioId,
+    depois: { conquista: conquista.slug },
+  });
+
+  revalidatePath(`/erp/alunos/${usuarioId}`);
+  return { ok: true };
+}
+
+export async function acaoEmitirCertificadoManual(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.xp.conceder");
+
+  const usuarioId = Number(form.get("usuarioId"));
+  const trilhaId = Number(form.get("trilhaId"));
+  if (!usuarioId || !trilhaId) return { erro: "Selecione o aluno e a trilha." };
+
+  await emitirCertificado(usuarioId, trilhaId);
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp", acao: "emitir-certificado-manual", entidade: "Usuario", entidadeId: usuarioId,
+    depois: { trilhaId },
+  });
+
+  revalidatePath(`/erp/alunos/${usuarioId}`);
+  return { ok: true };
 }

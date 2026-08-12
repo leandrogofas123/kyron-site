@@ -183,49 +183,62 @@ async function verificarModuloETrilhaCompletos(usuarioId: number, moduloId: numb
   if (!jaBonificadaTrilha) {
     await concederXp(usuarioId, "trilha", 100, "Trilha", modulo.trilhaId);
     await emitirCertificado(usuarioId, modulo.trilhaId);
-    await verificarConquistasDeTrilha(usuarioId);
+    const trilhasConcluidas = await db.certificado.count({ where: { usuarioId } });
+    await concederConquistasPorCriterio(usuarioId, "trilha-completa", trilhasConcluidas);
   }
 }
 
-/** Conquistas ligadas a NÚMERO de trilhas concluídas (genéricas, não amarradas a uma trilha específica). */
-async function verificarConquistasDeTrilha(usuarioId: number) {
-  const trilhasConcluidas = await db.certificado.count({ where: { usuarioId } });
-  if (trilhasConcluidas >= 1) await concederConquista(usuarioId, "fechador");
-  if (trilhasConcluidas >= 3) await concederConquista(usuarioId, "trajetoria-completa");
-}
-
-async function emitirCertificado(usuarioId: number, trilhaId: number) {
+/** Idempotente: se já existe certificado para essa trilha, não duplica. */
+export async function emitirCertificado(usuarioId: number, trilhaId: number) {
   const existente = await db.certificado.findUnique({ where: { usuarioId_trilhaId: { usuarioId, trilhaId } } });
-  if (existente) return;
+  if (existente) return existente;
   const codigo = `KY-${trilhaId}-${usuarioId}-${Date.now().toString(36).toUpperCase()}`;
-  await db.certificado.create({ data: { usuarioId, trilhaId, codigo } });
+  return db.certificado.create({ data: { usuarioId, trilhaId, codigo } });
 }
 
-async function concederConquista(usuarioId: number, slug: string) {
-  const conquista = await db.conquista.findUnique({ where: { slug } });
-  if (!conquista) return;
+/** Concede XP fora do fluxo automático (override do admin — ver src/lib/academy/acoes.ts). */
+export async function concederXpManual(usuarioId: number, xp: number) {
+  await concederXp(usuarioId, "manual", xp);
+}
+
+export async function concederConquistaPorId(usuarioId: number, conquistaId: number) {
   await db.conquistaAluno.upsert({
-    where: { usuarioId_conquistaId: { usuarioId, conquistaId: conquista.id } },
+    where: { usuarioId_conquistaId: { usuarioId, conquistaId } },
     update: {},
-    create: { usuarioId, conquistaId: conquista.id },
+    create: { usuarioId, conquistaId },
   });
 }
 
-/** Conquistas simples, avaliadas a cada conclusão de aula. */
+export async function concederConquista(usuarioId: number, slug: string) {
+  const conquista = await db.conquista.findUnique({ where: { slug } });
+  if (conquista) await concederConquistaPorId(usuarioId, conquista.id);
+}
+
+/**
+ * Motor genérico: concede TODA conquista do tipo cujo `criterioValor` já foi
+ * atingido — não só as 7 semeadas. Uma conquista nova criada pela interface
+ * (/erp/academy/conquistas) é avaliada aqui automaticamente, sem precisar
+ * mexer em código.
+ */
+async function concederConquistasPorCriterio(usuarioId: number, criterioTipo: string, valorAtual: number) {
+  const candidatas = await db.conquista.findMany({ where: { criterioTipo, criterioValor: { lte: valorAtual } } });
+  for (const c of candidatas) await concederConquistaPorId(usuarioId, c.id);
+}
+
+/** Conquistas avaliadas a cada conclusão de aula. */
 async function verificarConquistas(usuarioId: number) {
   const totalConcluidas = await db.progresso.count({ where: { usuarioId, status: "CONCLUIDA" } });
-  if (totalConcluidas === 1) await concederConquista(usuarioId, "primeiro-sinal");
+  await concederConquistasPorCriterio(usuarioId, "primeira-aula", totalConcluidas);
 
   const hoje = new Date();
   const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
   const noDia = await db.progresso.count({
     where: { usuarioId, status: "CONCLUIDA", concluidoEm: { gte: inicioDia } },
   });
-  if (noDia >= 3) await concederConquista(usuarioId, "curto-circuito");
+  await concederConquistasPorCriterio(usuarioId, "aulas-dia", noDia);
 
   const perfil = await perfilDoAluno(usuarioId);
-  if (perfil.streakDias >= 7) await concederConquista(usuarioId, "sem-ruido");
-  if (perfil.streakDias >= 30) await concederConquista(usuarioId, "sinal-constante");
+  await concederConquistasPorCriterio(usuarioId, "streak", perfil.streakDias);
 }
 
 /** Nota do quiz e antifraude: no máximo N tentativas por dia. */
@@ -262,7 +275,7 @@ export async function responderQuiz(
     // A tentativa recém-criada já conta; ===1 = é a primeira aprovação.
     const aprovacoes = await db.tentativaQuiz.count({ where: { usuarioId, quizId, aprovado: true } });
     if (aprovacoes === 1) await concederXp(usuarioId, "quiz", quiz.aula.xp * 2, "Quiz", quiz.id);
-    if (nota === 100) await concederConquista(usuarioId, "nota-cheia");
+    await concederConquistasPorCriterio(usuarioId, "quiz-100", nota);
     await concluirAula(usuarioId, quiz.aulaId);
   }
 

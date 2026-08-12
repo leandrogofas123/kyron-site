@@ -49,6 +49,18 @@ export async function getTrilhasAluno(usuarioId: number) {
   });
 }
 
+/** Conquistas do aluno: todas as definidas, marcando quais já foram ganhas. */
+export async function getConquistasAluno(usuarioId: number) {
+  const [todas, ganhas] = await Promise.all([
+    db.conquista.findMany({ orderBy: { nome: "asc" } }),
+    db.conquistaAluno.findMany({ where: { usuarioId } }),
+  ]);
+  const mapaGanhas = new Map(ganhas.map((g) => [g.conquistaId, g.conquistadoEm]));
+  return todas
+    .map((c) => ({ ...c, conquistada: mapaGanhas.has(c.id), conquistadoEm: mapaGanhas.get(c.id) ?? null }))
+    .sort((a, b) => Number(b.conquistada) - Number(a.conquistada));
+}
+
 /** Perfil de XP/nível/streak — leitura pura, sem criar linha (uma visita não deve ter efeito colateral). */
 export async function getPerfilAluno(usuarioId: number) {
   const perfil = await db.alunoPerfil.findUnique({ where: { usuarioId } });

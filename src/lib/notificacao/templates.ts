@@ -57,6 +57,16 @@ const TEMPLATES: Record<string, (v: Vars) => Renderizado> = {
       "<p>Aprove em /erp/alunos para liberar o acesso às aulas.</p>",
     ].join(""),
   }),
+
+  "certificado-emitido": (v) => ({
+    assunto: `Certificado emitido: ${v.trilha ?? "Kyron Academy"}`,
+    html: [
+      `<h2>Parabéns, ${v.nome ?? "aluno"}!</h2>`,
+      `<p>Você concluiu a trilha <b>${v.trilha ?? ""}</b> na Kyron Academy e seu certificado já está disponível.</p>`,
+      v.link ? `<p><a href="${v.link}">Ver e baixar o certificado</a></p>` : "",
+      linhaEmail("Código de validação", v.codigo),
+    ].join(""),
+  }),
 };
 
 /** Renderiza um template; null se o id não existir. */

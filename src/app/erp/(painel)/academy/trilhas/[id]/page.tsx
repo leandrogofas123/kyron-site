@@ -11,6 +11,7 @@ import { TrilhaCabecalho } from "@/components/erp/academy/TrilhaCabecalho";
 import {
   acaoArquivarAulaAcademy, acaoArquivarModulo, acaoArquivarTrilha,
   acaoDespublicarAulaAcademy, acaoDespublicarModulo, acaoDespublicarTrilha,
+  acaoMoverAula, acaoMoverModulo,
   acaoPublicarAulaAcademy, acaoPublicarModulo, acaoPublicarTrilha,
 } from "@/lib/academy/acoes";
 import { getTrilhaAdmin } from "@/lib/academy/dados";
@@ -52,21 +53,29 @@ export default async function ErpTrilhaPage({ params }: { params: Promise<{ id: 
           </p>
         )}
 
-        {trilha.modulos.map((modulo) => (
+        {trilha.modulos.map((modulo, mi) => (
           <ModuloBloco
             key={modulo.id}
             modulo={modulo}
             trilhaId={id}
+            podeSubir={mi > 0}
+            podeDescer={mi < trilha.modulos.length - 1}
+            onSubir={acaoMoverModulo.bind(null, modulo.id, id, "cima")}
+            onDescer={acaoMoverModulo.bind(null, modulo.id, id, "baixo")}
             onPublicar={acaoPublicarModulo.bind(null, modulo.id, id)}
             onDespublicar={acaoDespublicarModulo.bind(null, modulo.id, id)}
             onArquivar={acaoArquivarModulo.bind(null, modulo.id, id)}
           >
-            {modulo.aulas.map((aula) => (
+            {modulo.aulas.map((aula, ai) => (
               <AulaLinha
                 key={aula.id}
                 aula={aula}
                 trilhaId={id}
                 moduloId={modulo.id}
+                podeSubir={ai > 0}
+                podeDescer={ai < modulo.aulas.length - 1}
+                onSubir={acaoMoverAula.bind(null, aula.id, modulo.id, id, "cima")}
+                onDescer={acaoMoverAula.bind(null, aula.id, modulo.id, id, "baixo")}
                 onPublicar={acaoPublicarAulaAcademy.bind(null, aula.id, id)}
                 onDespublicar={acaoDespublicarAulaAcademy.bind(null, aula.id, id)}
                 onArquivar={acaoArquivarAulaAcademy.bind(null, aula.id, id)}

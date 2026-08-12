@@ -1,6 +1,9 @@
 import "server-only";
 
 import { db } from "../db";
+import { SITE_URL } from "../kyron/site";
+import { enviarTemplate } from "../notificacao/servico";
+import { diaSeguinte, mesmoDia, NIVEIS, nivelPorXp } from "./regras-puras";
 
 /**
  * Progresso, XP e streak do aluno (Kyron Academy V2).
@@ -9,29 +12,11 @@ import { db } from "../db";
  * - XP nasce SEMPRE de EventoXP (ledger). Nunca somar direto no perfil.
  * - Concluir aula exige ≥90% assistido (antifraude: clique sem tempo é rejeitado).
  * - Streak: 1 congelamento por mês; XP de "dia com atividade" só 1x/dia.
+ *
+ * NIVEIS/nivelPorXp/mesmoDia/diaSeguinte vêm de regras-puras.ts (sem Prisma
+ * nem e-mail) — é a parte com teste automatizado (tests/academy-regras.test.mjs).
  */
-
-export const NIVEIS = [
-  { nome: "Recruta", minXp: 0 },
-  { nome: "Operador", minXp: 200 },
-  { nome: "Especialista", minXp: 600 },
-  { nome: "Hunter", minXp: 1200 },
-] as const;
-
-export function nivelPorXp(xp: number): string {
-  let atual: string = NIVEIS[0].nome;
-  for (const n of NIVEIS) if (xp >= n.minXp) atual = n.nome;
-  return atual;
-}
-
-const mesmoDia = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
-const diaSeguinte = (a: Date, b: Date) => {
-  const prox = new Date(a);
-  prox.setDate(prox.getDate() + 1);
-  return mesmoDia(prox, b);
-};
+export { NIVEIS, nivelPorXp, mesmoDia, diaSeguinte };
 
 /** Garante que o perfil existe; devolve-o. */
 async function perfilDoAluno(usuarioId: number) {
@@ -188,12 +173,31 @@ async function verificarModuloETrilhaCompletos(usuarioId: number, moduloId: numb
   }
 }
 
-/** Idempotente: se já existe certificado para essa trilha, não duplica. */
+/**
+ * Idempotente: se já existe certificado para essa trilha, não duplica (e não
+ * reenvia o e-mail). Notificação é best-effort — nunca derruba a emissão.
+ */
 export async function emitirCertificado(usuarioId: number, trilhaId: number) {
   const existente = await db.certificado.findUnique({ where: { usuarioId_trilhaId: { usuarioId, trilhaId } } });
   if (existente) return existente;
+
   const codigo = `KY-${trilhaId}-${usuarioId}-${Date.now().toString(36).toUpperCase()}`;
-  return db.certificado.create({ data: { usuarioId, trilhaId, codigo } });
+  const certificado = await db.certificado.create({ data: { usuarioId, trilhaId, codigo } });
+
+  const [usuario, trilha] = await Promise.all([
+    db.usuario.findUnique({ where: { id: usuarioId }, select: { nome: true, email: true } }),
+    db.trilha.findUnique({ where: { id: trilhaId }, select: { nome: true } }),
+  ]);
+  if (usuario?.email) {
+    void enviarTemplate("certificado-emitido", usuario.email, {
+      nome: usuario.nome,
+      trilha: trilha?.nome ?? null,
+      codigo,
+      link: `${SITE_URL}/validar/${codigo}`,
+    });
+  }
+
+  return certificado;
 }
 
 /** Concede XP fora do fluxo automático (override do admin — ver src/lib/academy/acoes.ts). */

@@ -4,12 +4,17 @@ import { useState, type ReactNode } from "react";
 
 import { ModuloForm, type ModuloEdit } from "./ModuloForm";
 import { AcoesStatus, BadgeStatus } from "./AcoesStatus";
+import { BotoesReordenar } from "./BotoesReordenar";
 
 export function ModuloBloco({
-  modulo, trilhaId, onPublicar, onDespublicar, onArquivar, children,
+  modulo, trilhaId, podeSubir, podeDescer, onSubir, onDescer, onPublicar, onDespublicar, onArquivar, children,
 }: {
   modulo: ModuloEdit & { status: string };
   trilhaId: number;
+  podeSubir: boolean;
+  podeDescer: boolean;
+  onSubir: () => Promise<void>;
+  onDescer: () => Promise<void>;
   onPublicar: () => Promise<void>;
   onDespublicar: () => Promise<void>;
   onArquivar: () => Promise<void>;
@@ -29,6 +34,7 @@ export function ModuloBloco({
           </div>
         ) : (
           <>
+            <BotoesReordenar podeSubir={podeSubir} podeDescer={podeDescer} onSubir={onSubir} onDescer={onDescer} />
             <p className="flex-1 text-fluid-base font-medium text-kyron-white">{modulo.nome}</p>
             <BadgeStatus status={modulo.status} />
             <AcoesStatus

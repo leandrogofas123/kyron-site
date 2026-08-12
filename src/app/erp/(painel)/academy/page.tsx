@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BadgeStatus } from "@/components/erp/academy/AcoesStatus";
+import { BotoesReordenar } from "@/components/erp/academy/BotoesReordenar";
 import { TrilhaForm } from "@/components/erp/academy/TrilhaForm";
+import { acaoMoverTrilha } from "@/lib/academy/acoes";
 import { contadoresAcademy, getTrilhasAdmin } from "@/lib/academy/dados";
 import { exigirPermissao } from "@/lib/auth/service";
 
@@ -63,12 +65,14 @@ export default async function ErpAcademyPage() {
           <p className="p-fluid-lg text-center text-fluid-sm text-kyron-silver/60">Nenhuma trilha ainda.</p>
         ) : (
           <ul className="divide-y divide-[var(--kyron-hairline)]">
-            {trilhas.map((t) => (
-              <li key={t.id}>
-                <Link
-                  href={`/erp/academy/trilhas/${t.id}`}
-                  className="flex flex-wrap items-center gap-fluid-sm p-fluid-sm transition-colors hover:bg-kyron-black/30"
-                >
+            {trilhas.map((t, i) => (
+              <li key={t.id} className="flex items-center gap-fluid-sm p-fluid-sm transition-colors hover:bg-kyron-black/30">
+                <BotoesReordenar
+                  podeSubir={i > 0} podeDescer={i < trilhas.length - 1}
+                  onSubir={acaoMoverTrilha.bind(null, t.id, "cima")}
+                  onDescer={acaoMoverTrilha.bind(null, t.id, "baixo")}
+                />
+                <Link href={`/erp/academy/trilhas/${t.id}`} className="flex flex-1 flex-wrap items-center gap-fluid-sm">
                   <span className="kyron-label w-14 shrink-0 text-fluid-xs text-kyron-blue">{t.sigla ?? "—"}</span>
                   <div className="min-w-[10rem] flex-1">
                     <p className="text-fluid-base text-kyron-white">{t.nome}</p>

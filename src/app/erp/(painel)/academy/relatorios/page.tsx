@@ -50,13 +50,13 @@ export default async function ErpAcademyRelatoriosPage() {
         ) : (
           <ul className="divide-y divide-[var(--kyron-hairline)]">
             {trilhas.map((t) => (
-              <li key={t.id} className="flex items-center gap-fluid-sm p-fluid-sm">
+              <li key={t.id} className="flex flex-wrap items-center gap-fluid-sm p-fluid-sm">
                 <span className="kyron-label w-8 shrink-0 text-fluid-2xs text-kyron-blue">{t.nivel}</span>
-                <div className="min-w-[10rem] flex-1">
-                  <p className="text-fluid-sm text-kyron-white">{t.nome}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-fluid-sm text-kyron-white">{t.nome}</p>
                   <p className="text-fluid-2xs text-kyron-silver/50">{t.aulas} aula(s) publicada(s)</p>
                 </div>
-                <span className="kyron-display text-fluid-base text-kyron-white">{t.conclusaoMedia}%</span>
+                <span className="kyron-display shrink-0 text-fluid-base text-kyron-white">{t.conclusaoMedia}%</span>
               </li>
             ))}
           </ul>
@@ -72,13 +72,13 @@ export default async function ErpAcademyRelatoriosPage() {
         ) : (
           <ul className="divide-y divide-[var(--kyron-hairline)]">
             {abandono.map((a) => (
-              <li key={a.id} className="flex items-center gap-fluid-sm p-fluid-sm">
-                <div className="min-w-[10rem] flex-1">
-                  <p className="text-fluid-sm text-kyron-white">{a.titulo}</p>
+              <li key={a.id} className="flex flex-wrap items-center gap-fluid-sm p-fluid-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-fluid-sm text-kyron-white">{a.titulo}</p>
                   <p className="text-fluid-2xs text-kyron-silver/50">{a.trilha} · {a.modulo}</p>
                 </div>
-                <span className="text-fluid-2xs text-kyron-silver/60">{a.concluidas}/{a.iniciadas} concluíram</span>
-                <span className="kyron-display text-fluid-base text-[var(--kyron-amber,#d9902f)]">{a.abandono}%</span>
+                <span className="shrink-0 text-fluid-2xs text-kyron-silver/60">{a.concluidas}/{a.iniciadas} concluíram</span>
+                <span className="kyron-display shrink-0 text-fluid-base text-[var(--kyron-amber,#d9902f)]">{a.abandono}%</span>
               </li>
             ))}
           </ul>

@@ -488,6 +488,50 @@ export async function acaoConcederConquistaAluno(_estado: Estado, form: FormData
   return { ok: true };
 }
 
+// ──────────────────────────── Reordenar (setas) ────────────────────────────
+
+async function trocarOrdem<T extends { id: number; ordem: number }>(
+  lista: T[], id: number, direcao: "cima" | "baixo", trocar: (aId: number, bId: number, aOrdem: number, bOrdem: number) => Promise<unknown>,
+) {
+  const idx = lista.findIndex((item) => item.id === id);
+  if (idx < 0) return;
+  const alvoIdx = direcao === "cima" ? idx - 1 : idx + 1;
+  if (alvoIdx < 0 || alvoIdx >= lista.length) return; // já é o primeiro/último — nada a fazer
+  const atual = lista[idx], alvo = lista[alvoIdx];
+  await trocar(atual.id, alvo.id, atual.ordem, alvo.ordem);
+}
+
+export async function acaoMoverTrilha(id: number, direcao: "cima" | "baixo") {
+  await exigirPermissao("academy.conteudo.gerenciar");
+  const empresa = await empresaPadrao();
+  const lista = await db.trilha.findMany({ where: { empresaId: empresa.id }, orderBy: { ordem: "asc" }, select: { id: true, ordem: true } });
+  await trocarOrdem(lista, id, direcao, (aId, bId, aOrdem, bOrdem) => db.$transaction([
+    db.trilha.update({ where: { id: aId }, data: { ordem: bOrdem } }),
+    db.trilha.update({ where: { id: bId }, data: { ordem: aOrdem } }),
+  ]));
+  revalidatePath("/erp/academy");
+}
+
+export async function acaoMoverModulo(id: number, trilhaId: number, direcao: "cima" | "baixo") {
+  await exigirPermissao("academy.conteudo.gerenciar");
+  const lista = await db.modulo.findMany({ where: { trilhaId }, orderBy: { ordem: "asc" }, select: { id: true, ordem: true } });
+  await trocarOrdem(lista, id, direcao, (aId, bId, aOrdem, bOrdem) => db.$transaction([
+    db.modulo.update({ where: { id: aId }, data: { ordem: bOrdem } }),
+    db.modulo.update({ where: { id: bId }, data: { ordem: aOrdem } }),
+  ]));
+  revalidatePath(`/erp/academy/trilhas/${trilhaId}`);
+}
+
+export async function acaoMoverAula(id: number, moduloId: number, trilhaId: number, direcao: "cima" | "baixo") {
+  await exigirPermissao("academy.conteudo.gerenciar");
+  const lista = await db.aula.findMany({ where: { moduloId }, orderBy: { ordem: "asc" }, select: { id: true, ordem: true } });
+  await trocarOrdem(lista, id, direcao, (aId, bId, aOrdem, bOrdem) => db.$transaction([
+    db.aula.update({ where: { id: aId }, data: { ordem: bOrdem } }),
+    db.aula.update({ where: { id: bId }, data: { ordem: aOrdem } }),
+  ]));
+  revalidatePath(`/erp/academy/trilhas/${trilhaId}`);
+}
+
 export async function acaoEmitirCertificadoManual(_estado: Estado, form: FormData): Promise<Estado> {
   const eu = await exigirPermissao("academy.xp.conceder");
 

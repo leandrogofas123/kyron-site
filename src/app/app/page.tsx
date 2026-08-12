@@ -23,7 +23,6 @@ export default async function AcademyPage() {
     getPosts(), getTrilhasAluno(usuario.id), getMateriaisAluno(), getNovidadesAluno(4), getPerfilAluno(usuario.id),
   ]);
   const treinamentos = posts.filter((post) => Boolean(post.youtubeId));
-  const manuais = posts.filter((post) => !post.youtubeId);
   const primeiroNome = usuario.nome.split(" ")[0] || usuario.nome;
   const sair = acaoLogout.bind(null, "/app/login");
   const ehMaster = usuario.papeis.includes("ADMIN_MASTER");
@@ -47,6 +46,7 @@ export default async function AcademyPage() {
           <span className="academy-nav-label academy-nav-space">CONTEÚDO</span>
           <Link href="/app/biblioteca"><Library size={18} /> Biblioteca</Link>
           <Link href="/app/certificados"><Award size={18} /> Certificados</Link>
+          <Link href="/app/conquistas"><Trophy size={18} /> Conquistas</Link>
           {ehMaster && <Link href="/erp"><Building2 size={18} /> Ir para o ERP</Link>}
         </nav>
         <a
@@ -83,7 +83,7 @@ export default async function AcademyPage() {
           <section id="progresso" className="academy-stats" aria-label="Resumo do aprendizado">
             <Stat icon={<TrendingUp size={19} />} tone="blue" label="Trilhas disponíveis" value={String(trilhas.length)} detail="N1 a N6" />
             <Stat icon={<Play size={19} />} tone="violet" label="Aulas publicadas" value={String(treinamentos.length)} detail="Conteúdo em vídeo" />
-            <Stat icon={<BookOpen size={19} />} tone="green" label="Materiais práticos" value={String(manuais.length)} detail="Guias para consultar" />
+            <Stat icon={<BookOpen size={19} />} tone="green" label="Materiais práticos" value={String(materiais.length)} detail="Guias para consultar" />
             <Stat
               icon={<Trophy size={19} />} tone="orange" label="Próxima conquista"
               value={proximaTrilha?.nivel ?? "—"} detail={proximaTrilha?.nome ?? "Em preparação"}

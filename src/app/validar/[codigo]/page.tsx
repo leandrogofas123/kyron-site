@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, ShieldAlert } from "lucide-react";
 
+import { BotaoImprimirCertificado } from "@/components/BotaoImprimirCertificado";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,17 @@ export default async function ValidarCertificadoPage({ params }: Props) {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-kyron-black px-fluid-md py-fluid-xl">
-      <div className="w-full max-w-[26rem] rounded-kyron-lg border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg text-center">
+      {/* Impressão/"Salvar como PDF": fundo branco, some com navegação e botão. */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          body, main { background: #ffffff !important; }
+          .certificado-print { background: #ffffff !important; border-color: #1E6BFF !important; box-shadow: none !important; }
+          .certificado-print * { color: #0b0f14 !important; }
+          .certificado-print .certificado-selo { color: #1E6BFF !important; }
+        }
+      `}</style>
+      <div className="certificado-print w-full max-w-[26rem] rounded-kyron-lg border border-[var(--kyron-hairline)] bg-kyron-graphite p-fluid-lg text-center">
         <Link href="/" className="kyron-display text-fluid-lg tracking-[0.2em] text-kyron-white">
           KYR<span className="text-kyron-blue">O</span>N
         </Link>
@@ -31,7 +42,7 @@ export default async function ValidarCertificadoPage({ params }: Props) {
 
         {certificado ? (
           <div className="mt-fluid-lg">
-            <CheckCircle2 size={40} className="mx-auto text-emerald-400" />
+            <CheckCircle2 size={40} className="certificado-selo mx-auto text-emerald-400" />
             <p className="mt-fluid-sm text-fluid-xs uppercase tracking-widest text-emerald-400">Certificado válido</p>
             <h1 className="kyron-display mt-fluid-xs text-fluid-lg text-kyron-white">{certificado.trilha.nome}</h1>
             <p className="mt-fluid-2xs text-fluid-sm text-kyron-silver">{certificado.trilha.nivel} · Kyron Academy</p>
@@ -41,6 +52,8 @@ export default async function ValidarCertificadoPage({ params }: Props) {
               <p className="flex justify-between"><span className="text-kyron-silver/60">Data</span><span className="text-kyron-white">{certificado.emitidoEm.toLocaleDateString("pt-BR")}</span></p>
               <p className="flex justify-between"><span className="text-kyron-silver/60">Código</span><span className="text-kyron-white">{certificado.codigo}</span></p>
             </div>
+
+            <BotaoImprimirCertificado />
           </div>
         ) : (
           <div className="mt-fluid-lg">
@@ -52,7 +65,7 @@ export default async function ValidarCertificadoPage({ params }: Props) {
           </div>
         )}
 
-        <Link href="/" className="mt-fluid-lg inline-block text-fluid-2xs text-kyron-silver/60 hover:text-kyron-white">
+        <Link href="/" className="no-print mt-fluid-lg inline-block text-fluid-2xs text-kyron-silver/60 hover:text-kyron-white">
           Voltar ao site
         </Link>
       </div>

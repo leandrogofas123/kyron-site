@@ -6,17 +6,22 @@ import { Clock3, FileText, HelpCircle, Lock, PlayCircle, Settings2, Unlock } fro
 
 import { AulaAcademyForm, type AulaAcademyEdit } from "./AulaAcademyForm";
 import { AcoesStatus, BadgeStatus } from "./AcoesStatus";
+import { BotoesReordenar } from "./BotoesReordenar";
 
 const ICONE_TIPO: Record<string, React.ElementType> = {
   VIDEO: PlayCircle, TEXTO: FileText, QUIZ: HelpCircle, PDF: FileText,
 };
 
 export function AulaLinha({
-  aula, trilhaId, moduloId, onPublicar, onDespublicar, onArquivar,
+  aula, trilhaId, moduloId, podeSubir, podeDescer, onSubir, onDescer, onPublicar, onDespublicar, onArquivar,
 }: {
   aula: AulaAcademyEdit & { status: string };
   trilhaId: number;
   moduloId: number;
+  podeSubir: boolean;
+  podeDescer: boolean;
+  onSubir: () => Promise<void>;
+  onDescer: () => Promise<void>;
   onPublicar: () => Promise<void>;
   onDespublicar: () => Promise<void>;
   onArquivar: () => Promise<void>;
@@ -37,6 +42,7 @@ export function AulaLinha({
 
   return (
     <div className="flex flex-wrap items-center gap-fluid-sm rounded-kyron-sm border border-[var(--kyron-hairline)] bg-kyron-black/30 px-fluid-sm py-fluid-xs">
+      <BotoesReordenar podeSubir={podeSubir} podeDescer={podeDescer} onSubir={onSubir} onDescer={onDescer} />
       <Icone size={16} className="shrink-0 text-kyron-blue" />
       <div className="min-w-[9rem] flex-1">
         <p className="text-fluid-sm text-kyron-white">{aula.titulo}</p>

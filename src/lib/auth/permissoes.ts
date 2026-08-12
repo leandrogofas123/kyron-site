@@ -30,6 +30,14 @@ export const PERMISSOES = [
   "admin.painel", // painel da loja (/admin)
   "usuarios.gerenciar", // conceder/revogar acesso
   "auditoria.ver",
+  // ─── Kyron Academy (V2) ───
+  "academy.conteudo.ver",
+  "academy.conteudo.gerenciar", // criar/editar trilha, módulo, aula, material
+  "academy.conteudo.publicar",
+  "academy.conteudo.arquivar",
+  "academy.aluno.aprovar",
+  "academy.aluno.progresso.ver",
+  "academy.xp.conceder", // XP/badge manual
 ] as const;
 
 export type Permissao = (typeof PERMISSOES)[number];
@@ -84,6 +92,13 @@ const MAPA: Record<Papel, readonly Permissao[] | ["*"]> = {
     "manual.editar",
     "aulas.assistir",
     "admin.painel",
+    "academy.conteudo.ver",
+    "academy.conteudo.gerenciar",
+    "academy.conteudo.publicar",
+    "academy.conteudo.arquivar",
+    "academy.aluno.aprovar",
+    "academy.aluno.progresso.ver",
+    "academy.xp.conceder",
   ],
 
   GERENTE: [
@@ -104,6 +119,11 @@ const MAPA: Record<Papel, readonly Permissao[] | ["*"]> = {
     "manual.editar",
     "aulas.assistir",
     "admin.painel",
+    "academy.conteudo.ver",
+    "academy.conteudo.gerenciar",
+    "academy.conteudo.publicar",
+    "academy.aluno.aprovar",
+    "academy.aluno.progresso.ver",
   ],
 
   VENDEDOR: [
@@ -117,6 +137,7 @@ const MAPA: Record<Papel, readonly Permissao[] | ["*"]> = {
     "crm.escrever",
     "manual.ver",
     "aulas.assistir",
+    "academy.conteudo.ver",
   ],
 
   TECNICO: [
@@ -126,6 +147,7 @@ const MAPA: Record<Papel, readonly Permissao[] | ["*"]> = {
     "estoque.movimentar",
     "manual.ver",
     "aulas.assistir",
+    "academy.conteudo.ver",
   ],
 
   FINANCEIRO: [

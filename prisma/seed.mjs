@@ -160,8 +160,65 @@ async function semearMarcas() {
   console.log(`Marcas: ${total} marca(s), ${vinculados} produto(s) vinculado(s).`);
 }
 
+// As 7 regiões do mapa-cérebro = as 7 trilhas da Academy. Semeadas como
+// RASCUNHO (não aparecem para o aluno até terem conteúdo publicado).
+const TRILHAS = [
+  ["fundamentos", "Fundamentos Kyron", "FND", "N1", "fnd", "#1E6BFF", "Origem, postura e regras que não se negociam."],
+  ["atendimento", "Atendimento", "ATD", "N1", "atd", "#2E7BFF", "Quem é o cliente Kyron, abordagem e pós-venda."],
+  ["produtos", "Produtos e Especificações", "PRD", "N1", "prd", "#3B84FF", "Linha, comparativos e garantia sem enrolação."],
+  ["vendas", "Vendas e Negociação", "VND", "N2", "vnd", "#1550C9", "Diagnóstico, objeções e fechamento."],
+  ["automacao", "Automação e Smart Home", "AUT", "N2", "aut", "#5A96FF", "Infra, projeto, instalação e orçamento."],
+  ["bancada", "Processos e Bancada", "BNC", "N2", "bnc", "#7FA6EE", "Ordem de serviço, diagnóstico e qualidade."],
+  ["marca", "Marca e Conteúdo", "MRC", "N3", "mrc", "#8FB4FF", "Padrão visual, produção e prova real."],
+];
+
+const CONQUISTAS = [
+  ["primeiro-sinal", "Primeiro Sinal", "Concluiu a primeira aula.", "primeira-aula", 1],
+  ["sem-ruido", "Sem Ruído", "7 dias seguidos de estudo.", "streak", 7],
+  ["curto-circuito", "Curto-Circuito", "3 aulas no mesmo dia.", "aulas-dia", 3],
+  ["nota-cheia", "Nota Cheia", "100% num quiz.", "quiz-100", 100],
+  ["bancada-limpa", "Bancada Limpa", "Concluiu a trilha de processos.", "trilha-completa", 0],
+  ["fechador", "Fechador", "Concluiu a trilha de vendas.", "trilha-completa", 0],
+  ["sinal-constante", "Sinal Constante", "30 dias seguidos.", "streak", 30],
+];
+
+async function semearAcademy() {
+  // Defensivo: um erro aqui nunca deve derrubar o deploy inteiro.
+  try {
+    console.log("Semeando Kyron Academy (empresa, trilhas, conquistas)…");
+    const empresa = await db.empresa.upsert({
+      where: { slug: "kyron" },
+      update: {},
+      create: { slug: "kyron", nome: "Kyron Tecnologia" },
+    });
+    let ordem = 0;
+    for (const [slug, nome, sigla, nivel, regiao, cor, descricao] of TRILHAS) {
+      await db.trilha.upsert({
+        where: { empresaId_slug: { empresaId: empresa.id, slug } },
+        update: { nome, sigla, nivel, regiaoMapa: regiao, corHex: cor, descricao, ordem },
+        create: {
+          empresaId: empresa.id, slug, nome, sigla, nivel,
+          regiaoMapa: regiao, corHex: cor, descricao, ordem, status: "RASCUNHO",
+        },
+      });
+      ordem++;
+    }
+    for (const [slug, nome, descricao, criterioTipo, criterioValor] of CONQUISTAS) {
+      await db.conquista.upsert({
+        where: { slug },
+        update: { nome, descricao, criterioTipo, criterioValor },
+        create: { slug, nome, descricao, criterioTipo, criterioValor },
+      });
+    }
+    console.log(`  Academy: 1 empresa, ${TRILHAS.length} trilhas, ${CONQUISTAS.length} conquistas.`);
+  } catch (e) {
+    console.error("  Falha ao semear Academy (ignorado):", e?.message ?? e);
+  }
+}
+
 async function main() {
   await semearAuth();
+  await semearAcademy();
 
   console.log("Semeando categorias…");
   const idPorSlug = {};

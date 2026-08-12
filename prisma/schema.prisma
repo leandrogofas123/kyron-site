@@ -381,6 +381,14 @@ model Usuario {
   tokens           TokenAcesso[]
   identidadesOAuth IdentidadeOAuth[]
 
+  // Kyron Academy (V2)
+  progresso      Progresso[]
+  eventosXP      EventoXP[]
+  alunoPerfil    AlunoPerfil?
+  conquistas     ConquistaAluno[]
+  certificados   Certificado[]
+  tentativasQuiz TentativaQuiz[]
+
   @@index([aprovado])
   @@index([ativo])
 }
@@ -731,5 +739,300 @@ model Interacao {
 
   @@index([leadId])
   @@index([clienteId])
+  @@index([criadoEm])
+}
+
+// ───────────────────────── KYRON ACADEMY (V2) ─────────────────────────
+//
+// Hierarquia real de conteúdo (Trilha → Módulo → Aula), progresso mensurável,
+// gamificação e certificado. Três regras não negociáveis:
+//  1. `status` de publicação (RASCUNHO→REVISAO→PUBLICADO→ARQUIVADO). Aluno só vê PUBLICADO.
+//  2. Excluir = arquivar. Nada com Progresso vinculado sai do banco.
+//  3. XP nasce de EventoXP (ledger). AlunoPerfil.xpTotal é cache recalculável.
+// `empresaId` desde já: multiempresa/white-label sem migração dolorosa depois.
+
+enum StatusConteudo {
+  RASCUNHO
+  REVISAO
+  PUBLICADO
+  ARQUIVADO
+}
+
+enum NivelTrilha {
+  N1
+  N2
+  N3
+}
+
+enum TipoAula {
+  VIDEO
+  TEXTO
+  QUIZ
+  PDF
+}
+
+enum StatusProgresso {
+  NAO_INICIADA
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+/// Empresa dona do conteúdo (multiempresa/white-label). Kyron é a empresa 1.
+model Empresa {
+  id       Int      @id @default(autoincrement())
+  slug     String   @unique
+  nome     String
+  ativo    Boolean  @default(true)
+  criadoEm DateTime @default(now())
+
+  trilhas Trilha[]
+
+  @@index([ativo])
+}
+
+model Trilha {
+  id           Int            @id @default(autoincrement())
+  empresaId    Int
+  empresa      Empresa        @relation(fields: [empresaId], references: [id])
+  slug         String
+  nome         String
+  sigla        String? // FND, ATD, PRD, VND, AUT, BNC, MRC (região do mapa)
+  nivel        NivelTrilha    @default(N1)
+  descricao    String?
+  ordem        Int            @default(0)
+  corHex       String?
+  regiaoMapa   String? // id da região no cérebro
+  status       StatusConteudo @default(RASCUNHO)
+  publicadoEm  DateTime?
+  arquivadoEm  DateTime?
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  modulos      Modulo[]
+  materiais    Material[]
+  certificados Certificado[]
+
+  @@unique([empresaId, slug])
+  @@index([status])
+  @@index([empresaId])
+}
+
+model Modulo {
+  id           Int            @id @default(autoincrement())
+  trilhaId     Int
+  trilha       Trilha         @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  slug         String
+  nome         String
+  ordem        Int            @default(0)
+  status       StatusConteudo @default(RASCUNHO)
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  aulas Aula[]
+
+  @@unique([trilhaId, slug])
+  @@index([trilhaId])
+}
+
+model Aula {
+  id           Int            @id @default(autoincrement())
+  moduloId     Int
+  modulo       Modulo         @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  slug         String         @unique
+  titulo       String
+  resumo       String?
+  tipo         TipoAula       @default(VIDEO)
+  youtubeId    String?
+  conteudoMd   String?
+  duracaoMin   Int            @default(0)
+  ordem        Int            @default(0)
+  xp           Int            @default(10)
+  restrita     Boolean        @default(true)
+  mapaX        Int?
+  mapaY        Int?
+  status       StatusConteudo @default(RASCUNHO)
+  publicadoEm  DateTime?
+  arquivadoEm  DateTime?
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  materiais     Material[]
+  progresso     Progresso[]
+  quiz          Quiz?
+  preRequisitos PreRequisito[] @relation("AulaDependente")
+  liberaPara    PreRequisito[] @relation("AulaPreRequisito")
+
+  @@index([moduloId])
+  @@index([status])
+}
+
+/// Aula depende de outra (libera o nó no mapa quando a anterior conclui).
+model PreRequisito {
+  id          Int  @id @default(autoincrement())
+  aulaId      Int
+  aula        Aula @relation("AulaDependente", fields: [aulaId], references: [id], onDelete: Cascade)
+  dependeDeId Int
+  dependeDe   Aula @relation("AulaPreRequisito", fields: [dependeDeId], references: [id], onDelete: Cascade)
+
+  @@unique([aulaId, dependeDeId])
+  @@index([dependeDeId])
+}
+
+model Material {
+  id        Int            @id @default(autoincrement())
+  aulaId    Int?
+  aula      Aula?          @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+  trilhaId  Int?
+  trilha    Trilha?        @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  titulo    String
+  tipo      String         @default("pdf")
+  url       String
+  tamanhoKb Int?
+  status    StatusConteudo @default(PUBLICADO)
+  criadoEm  DateTime       @default(now())
+
+  @@index([aulaId])
+  @@index([trilhaId])
+}
+
+model Quiz {
+  id            Int  @id @default(autoincrement())
+  aulaId        Int  @unique
+  aula          Aula @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+  notaMinima    Int  @default(70)
+  tentativasDia Int  @default(3)
+
+  perguntas  QuizPergunta[]
+  tentativas TentativaQuiz[]
+}
+
+model QuizPergunta {
+  id        Int    @id @default(autoincrement())
+  quizId    Int
+  quiz      Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  enunciado String
+  ordem     Int    @default(0)
+
+  alternativas QuizAlternativa[]
+
+  @@index([quizId])
+}
+
+model QuizAlternativa {
+  id         Int          @id @default(autoincrement())
+  perguntaId Int
+  pergunta   QuizPergunta @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  texto      String
+  correta    Boolean      @default(false)
+
+  @@index([perguntaId])
+}
+
+model TentativaQuiz {
+  id        Int      @id @default(autoincrement())
+  quizId    Int
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nota      Int
+  aprovado  Boolean  @default(false)
+  criadoEm  DateTime @default(now())
+
+  @@index([quizId, usuarioId])
+  @@index([usuarioId])
+}
+
+/// Progresso do aluno por aula. Fonte da North Star (conclusão).
+model Progresso {
+  id                 Int             @id @default(autoincrement())
+  usuarioId          Int
+  usuario            Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  aulaId             Int
+  aula               Aula            @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+  status             StatusProgresso @default(NAO_INICIADA)
+  segundosAssistidos Int             @default(0)
+  percentual         Int             @default(0)
+  concluidoEm        DateTime?
+  atualizadoEm       DateTime        @updatedAt
+
+  @@unique([usuarioId, aulaId])
+  @@index([usuarioId])
+  @@index([aulaId])
+}
+
+/// Ledger de XP — fonte da verdade. Nunca somar no perfil direto.
+model EventoXP {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo      String // aula | quiz | modulo | trilha | streak | manual
+  xp        Int
+  refTipo   String?
+  refId     Int?
+  criadoEm  DateTime @default(now())
+
+  @@index([usuarioId, criadoEm])
+}
+
+/// Cache recalculável do aluno (XP, nível, streak).
+model AlunoPerfil {
+  usuarioId        Int       @id
+  usuario          Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  xpTotal          Int       @default(0)
+  nivel            String    @default("Recruta")
+  streakDias       Int       @default(0)
+  ultimoAcessoEm   DateTime?
+  congelaStreakAte DateTime?
+}
+
+model Conquista {
+  id            Int    @id @default(autoincrement())
+  slug          String @unique
+  nome          String
+  descricao     String?
+  icone         String?
+  criterioTipo  String // primeira-aula | streak | aulas-dia | quiz-100 | trilha-completa
+  criterioValor Int    @default(0)
+
+  alunos ConquistaAluno[]
+}
+
+model ConquistaAluno {
+  usuarioId     Int
+  conquistaId   Int
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  conquista     Conquista @relation(fields: [conquistaId], references: [id], onDelete: Cascade)
+  conquistadoEm DateTime  @default(now())
+
+  @@id([usuarioId, conquistaId])
+  @@index([conquistaId])
+}
+
+/// Certificado por trilha, validável por código público.
+model Certificado {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  trilhaId  Int
+  trilha    Trilha   @relation(fields: [trilhaId], references: [id])
+  codigo    String   @unique
+  emitidoEm DateTime @default(now())
+
+  @@unique([usuarioId, trilhaId])
+  @@index([codigo])
+}
+
+/// Auditoria específica das ações administrativas da Academy.
+model LogAdmin {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int?
+  usuarioNome String?
+  acao        String // CRIAR | EDITAR | PUBLICAR | DESPUBLICAR | ARQUIVAR
+  entidade    String
+  entidadeId  Int?
+  diffJson    String?
+  criadoEm    DateTime @default(now())
+
+  @@index([entidade, entidadeId])
   @@index([criadoEm])
 }

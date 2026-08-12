@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Trilhas" };
 
-const NIVEL_NOME: Record<string, string> = { N1: "N1 · Fundamentos", N2: "N2 · Intermediário", N3: "N3 · Hunter" };
+const NIVEL_NOME: Record<string, string> = {
+  N1: "N1 · Vendedor Júnior", N2: "N2 · Vendedor Intermediário", N3: "N3 · Vendedor Hunter",
+  N4: "N4 · Líder de Time", N5: "N5 · Gerente Comercial", N6: "N6 · CEO",
+};
 
 export default async function AppTrilhasPage() {
   const usuario = await guardaAcademy();

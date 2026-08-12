@@ -1,13 +1,14 @@
 import {
-  ArrowRight, Award, BarChart3, Bell, BookOpen, CheckCircle2, Clock3,
+  ArrowRight, Award, BarChart3, Bell, BookOpen, Building2, CheckCircle2, Clock3,
   Compass, Headphones, Home, LayoutDashboard, Library, LockKeyhole,
   LogOut, Play, Search, Sparkles, Target, TrendingUp, Trophy, Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
+import { getTrilhasAluno } from "@/lib/academy/aluno-dados";
 import { acaoLogout } from "@/lib/auth/actions";
 import { guardaAcademy } from "@/lib/auth/areas";
+import { KYRON_COMPANY } from "@/lib/kyron/company";
 import { getPosts } from "@/lib/manual";
 
 export const dynamic = "force-dynamic";
@@ -21,22 +22,21 @@ type PostCard = {
   youtubeId: string | null;
 };
 
-const trilhas = [
-  { nivel: "N1", nome: "Vendedor Júnior", descricao: "Atendimento, abordagem, necessidade e fechamento.", modulos: 10, duracao: "7h 20min", cor: "blue" },
-  { nivel: "N2", nome: "Vendedor Intermediário", descricao: "WhatsApp, objeções e perfil do cliente.", modulos: 3, duracao: "3h 40min", cor: "violet" },
-  { nivel: "N3", nome: "Vendedor Hunter", descricao: "Prospecção, carteira, negociação e fechamento.", modulos: 4, duracao: "5h 10min", cor: "orange" },
-];
+type TrilhaCard = Awaited<ReturnType<typeof getTrilhasAluno>>[number];
 
 export default async function AcademyPage() {
   const usuario = await guardaAcademy();
   if (!usuario.aprovado) return <Aguardando nome={usuario.nome} />;
 
-  const posts = await getPosts();
+  const [posts, trilhas] = await Promise.all([getPosts(), getTrilhasAluno(usuario.id)]);
   const treinamentos = posts.filter((post) => Boolean(post.youtubeId));
   const manuais = posts.filter((post) => !post.youtubeId);
   const destaque = treinamentos[0];
   const primeiroNome = usuario.nome.split(" ")[0] || usuario.nome;
   const sair = acaoLogout.bind(null, "/app/login");
+  const ehMaster = usuario.papeis.includes("ADMIN_MASTER");
+  // Próxima trilha a concluir: a primeira não-100%, ou a primeira de todas se já concluiu tudo.
+  const proximaTrilha = trilhas.find((t) => t.percentual < 100) ?? trilhas[0];
 
   return (
     <div className="academy-app">
@@ -45,14 +45,21 @@ export default async function AcademyPage() {
         <nav aria-label="Navegação da Academy">
           <span className="academy-nav-label">APRENDIZADO</span>
           <Link href="/app" className="active"><Home size={18} /> Início</Link>
-          <Link href="/app#trilhas"><BookOpen size={18} /> Minhas trilhas</Link>
+          <Link href="/app/trilhas"><BookOpen size={18} /> Minhas trilhas</Link>
           <Link href="/app#novidades"><Sparkles size={18} /> Novidades <em>{posts.length}</em></Link>
           <Link href="/app#progresso"><BarChart3 size={18} /> Meu progresso</Link>
           <span className="academy-nav-label academy-nav-space">CONTEÚDO</span>
           <Link href="/app#biblioteca"><Library size={18} /> Biblioteca</Link>
-          <Link href="/app#certificados"><Award size={18} /> Certificados</Link>
+          <Link href="/app/certificados"><Award size={18} /> Certificados</Link>
+          {ehMaster && <Link href="/erp"><Building2 size={18} /> Ir para o ERP</Link>}
         </nav>
-        <div className="academy-help"><span><Headphones size={19} /></span><div><b>Precisa de ajuda?</b><small>Fale com a equipe Kyron</small></div></div>
+        <a
+          className="academy-help"
+          href={`https://wa.me/${KYRON_COMPANY.whatsapp}?text=${encodeURIComponent("Oi! Preciso de ajuda na Kyron Academy.")}`}
+          target="_blank" rel="noopener noreferrer"
+        >
+          <span><Headphones size={19} /></span><div><b>Precisa de ajuda?</b><small>Fale com a equipe Kyron</small></div>
+        </a>
         <div className="academy-user"><span>{iniciais(usuario.nome)}</span><div><b>{usuario.nome}</b><small>Aluno aprovado</small></div><form action={sair}><button type="submit" aria-label="Sair"><LogOut size={17} /></button></form></div>
       </aside>
 
@@ -71,17 +78,24 @@ export default async function AcademyPage() {
           <ContinueCard post={destaque} />
 
           <section id="progresso" className="academy-stats" aria-label="Resumo do aprendizado">
-            <Stat icon={<TrendingUp size={19} />} tone="blue" label="Trilhas disponíveis" value="3" detail="N1 a N3" />
+            <Stat icon={<TrendingUp size={19} />} tone="blue" label="Trilhas disponíveis" value={String(trilhas.length)} detail="N1 a N6" />
             <Stat icon={<Play size={19} />} tone="violet" label="Aulas publicadas" value={String(treinamentos.length)} detail="Conteúdo em vídeo" />
             <Stat icon={<BookOpen size={19} />} tone="green" label="Materiais práticos" value={String(manuais.length)} detail="Guias para consultar" />
-            <Stat icon={<Trophy size={19} />} tone="orange" label="Próxima conquista" value="N1" detail="Vendedor Júnior" />
+            <Stat
+              icon={<Trophy size={19} />} tone="orange" label="Próxima conquista"
+              value={proximaTrilha?.nivel ?? "—"} detail={proximaTrilha?.nome ?? "Em preparação"}
+            />
           </section>
 
           <section id="trilhas" className="academy-section">
             <SectionTitle eyebrow="SEU CAMINHO" title="Trilhas de desenvolvimento" />
-            <div className="academy-track-grid">
-              {trilhas.map((trilha, index) => <TrackCard key={trilha.nivel} trilha={trilha} href={index === 0 && destaque ? `/app/treinamentos/${destaque.slug}` : null} />)}
-            </div>
+            {trilhas.length === 0 ? (
+              <Empty label="As trilhas por cargo (N1 a N6) estão em preparação. Volte em breve." />
+            ) : (
+              <div className="academy-track-grid">
+                {trilhas.map((trilha) => <TrackCard key={trilha.id} trilha={trilha} />)}
+              </div>
+            )}
           </section>
 
           <section className="academy-lower-grid">
@@ -92,13 +106,13 @@ export default async function AcademyPage() {
                 {!posts.length && <Empty label="Os primeiros conteúdos serão publicados em breve." />}
               </div>
             </div>
-            <div id="certificados" className="academy-panel academy-goal">
+            <Link href="/app/certificados" id="certificados" className="academy-panel academy-goal">
               <p className="academy-eyebrow"><i /> PRÓXIMA CONQUISTA</p>
-              <div className="academy-goal-ring"><span><b>N1</b><small>trilha inicial</small></span></div>
-              <h2>Vendedor Júnior</h2>
+              <div className="academy-goal-ring"><span><b>{proximaTrilha?.nivel ?? "—"}</b><small>{proximaTrilha ? `${proximaTrilha.percentual}% concluído` : "trilha inicial"}</small></span></div>
+              <h2>{proximaTrilha?.nome ?? "Em preparação"}</h2>
               <p>Conclua as aulas e a avaliação final para emitir seu certificado.</p>
-              <span className="academy-coming"><Award size={15} /> Certificação em preparação</span>
-            </div>
+              <span className="academy-coming"><Award size={15} /> Ver meus certificados</span>
+            </Link>
           </section>
 
           <section id="biblioteca" className="academy-section academy-library">
@@ -129,8 +143,27 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return <div className="academy-section-title"><div><p className="academy-eyebrow"><i /> {eyebrow}</p><h2>{title}</h2></div></div>;
 }
 
-function TrackCard({ trilha, href }: { trilha: typeof trilhas[number]; href: string | null }) {
-  return <article className="academy-track"><div className={`academy-track-art ${trilha.cor}`}><span>{trilha.nivel}</span><i /><small>KYRON ACADEMY</small></div><div className="academy-track-body"><span className="academy-level">{trilha.nivel}</span><h3>{trilha.nome}</h3><p>{trilha.descricao}</p><div className="academy-track-meta"><span><LayoutDashboard size={13} /> {trilha.modulos} módulos</span><span><Clock3 size={13} /> {trilha.duracao}</span></div>{href ? <Link href={href} className="academy-secondary">Começar trilha <ArrowRight size={15} /></Link> : <span className="academy-locked"><LockKeyhole size={14} /> Em preparação</span>}</div></article>;
+function TrackCard({ trilha }: { trilha: TrilhaCard }) {
+  const disponivel = trilha.totalAulas > 0;
+  return (
+    <article className="academy-track">
+      <div className="academy-track-art" style={trilha.corHex ? { background: `radial-gradient(circle at 66% 50%, ${trilha.corHex}4d, transparent 27%), linear-gradient(125deg,#0b1420,#12243a)` } : undefined}>
+        <span>{trilha.sigla ?? trilha.nivel}</span><i /><small>KYRON ACADEMY</small>
+      </div>
+      <div className="academy-track-body">
+        <span className="academy-level">{trilha.nivel}</span>
+        <h3>{trilha.nome}</h3>
+        <p>{trilha.descricao}</p>
+        <div className="academy-track-meta">
+          <span><LayoutDashboard size={13} /> {trilha.totalAulas} aula(s)</span>
+          <span><Clock3 size={13} /> {trilha.percentual}% concluído</span>
+        </div>
+        {disponivel
+          ? <Link href={`/app/trilhas/${trilha.slug}`} className="academy-secondary">{trilha.percentual > 0 ? "Continuar" : "Começar"} trilha <ArrowRight size={15} /></Link>
+          : <span className="academy-locked"><LockKeyhole size={14} /> Em preparação</span>}
+      </div>
+    </article>
+  );
 }
 
 function ContentRow({ post }: { post: PostCard }) {

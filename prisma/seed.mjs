@@ -160,16 +160,23 @@ async function semearMarcas() {
   console.log(`Marcas: ${total} marca(s), ${vinculados} produto(s) vinculado(s).`);
 }
 
-// As 7 regiões do mapa-cérebro = as 7 trilhas da Academy. Semeadas como
+// Trilhas por cargo/carreira comercial (decisão do dono, 2026-08-12,
+// substitui as 7 regiões do mapa-cérebro — o mapa do login virou decoração,
+// não navega mais por trilha). Ordem de progressão N1→N6. Semeadas como
 // RASCUNHO (não aparecem para o aluno até terem conteúdo publicado).
 const TRILHAS = [
-  ["fundamentos", "Fundamentos Kyron", "FND", "N1", "fnd", "#1E6BFF", "Origem, postura e regras que não se negociam."],
-  ["atendimento", "Atendimento", "ATD", "N1", "atd", "#2E7BFF", "Quem é o cliente Kyron, abordagem e pós-venda."],
-  ["produtos", "Produtos e Especificações", "PRD", "N1", "prd", "#3B84FF", "Linha, comparativos e garantia sem enrolação."],
-  ["vendas", "Vendas e Negociação", "VND", "N2", "vnd", "#1550C9", "Diagnóstico, objeções e fechamento."],
-  ["automacao", "Automação e Smart Home", "AUT", "N2", "aut", "#5A96FF", "Infra, projeto, instalação e orçamento."],
-  ["bancada", "Processos e Bancada", "BNC", "N2", "bnc", "#7FA6EE", "Ordem de serviço, diagnóstico e qualidade."],
-  ["marca", "Marca e Conteúdo", "MRC", "N3", "mrc", "#8FB4FF", "Padrão visual, produção e prova real."],
+  ["vendedor-junior", "Vendedor Júnior", "N1", "#1E6BFF", "Primeiros passos: atendimento, produto e postura Kyron."],
+  ["vendedor-intermediario", "Vendedor Intermediário", "N2", "#2E7BFF", "Negociação, objeções e ticket médio maior."],
+  ["vendedor-hunter", "Vendedor Hunter", "N3", "#3B84FF", "Prospecção ativa, carteira e fechamento avançado."],
+  ["lider-de-time", "Líder de Time", "N4", "#1550C9", "Gestão de equipe, rotina e indicadores do time."],
+  ["gerente-comercial", "Gerente Comercial", "N5", "#5A96FF", "Estratégia comercial, metas e resultado da unidade."],
+  ["ceo", "CEO", "N6", "#7FA6EE", "Visão de negócio, cultura e crescimento da Kyron."],
+];
+
+// Trilhas antigas (modelo por região do mapa-cérebro) — nunca excluídas, só
+// arquivadas: preserva histórico/links e qualquer progresso já vinculado.
+const TRILHAS_ANTIGAS_ARQUIVAR = [
+  "fundamentos", "atendimento", "produtos", "vendas", "automacao", "bancada", "marca",
 ];
 
 const CONQUISTAS = [
@@ -192,16 +199,22 @@ async function semearAcademy() {
       create: { slug: "kyron", nome: "Kyron Tecnologia" },
     });
     let ordem = 0;
-    for (const [slug, nome, sigla, nivel, regiao, cor, descricao] of TRILHAS) {
+    for (const [slug, nome, nivel, cor, descricao] of TRILHAS) {
+      // `update` não toca em `status`: se o admin já publicou pelo ERP, fica publicado.
       await db.trilha.upsert({
         where: { empresaId_slug: { empresaId: empresa.id, slug } },
-        update: { nome, sigla, nivel, regiaoMapa: regiao, corHex: cor, descricao, ordem },
-        create: {
-          empresaId: empresa.id, slug, nome, sigla, nivel,
-          regiaoMapa: regiao, corHex: cor, descricao, ordem, status: "RASCUNHO",
-        },
+        update: { nome, nivel, corHex: cor, descricao, ordem },
+        create: { empresaId: empresa.id, slug, nome, nivel, corHex: cor, descricao, ordem, status: "RASCUNHO" },
       });
       ordem++;
+    }
+
+    // Trilhas do modelo antigo (por região do mapa-cérebro): arquiva sem excluir.
+    for (const slugAntigo of TRILHAS_ANTIGAS_ARQUIVAR) {
+      const antiga = await db.trilha.findUnique({ where: { empresaId_slug: { empresaId: empresa.id, slug: slugAntigo } } });
+      if (antiga && antiga.status !== "ARQUIVADO") {
+        await db.trilha.update({ where: { id: antiga.id }, data: { status: "ARQUIVADO", arquivadoEm: new Date() } });
+      }
     }
     for (const [slug, nome, descricao, criterioTipo, criterioValor] of CONQUISTAS) {
       await db.conquista.upsert({

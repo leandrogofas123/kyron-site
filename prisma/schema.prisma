@@ -758,10 +758,16 @@ enum StatusConteudo {
   ARQUIVADO
 }
 
+/// N1→N6 = trilha por cargo/carreira comercial (decisão do dono, 2026-08-12):
+/// Vendedor Júnior, Vendedor Intermediário, Vendedor Hunter, Líder de Time,
+/// Gerente Comercial, CEO — nessa ordem de progressão.
 enum NivelTrilha {
   N1
   N2
   N3
+  N4
+  N5
+  N6
 }
 
 enum TipoAula {

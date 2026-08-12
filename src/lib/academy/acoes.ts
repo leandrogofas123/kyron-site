@@ -59,13 +59,13 @@ export async function acaoSalvarTrilha(_estado: Estado, form: FormData): Promise
   if (nome.length < 2) return { erro: "Informe o nome da trilha." };
 
   const nivel = String(form.get("nivel") ?? "N1");
-  if (!["N1", "N2", "N3"].includes(nivel)) return { erro: "Nível inválido." };
+  if (!["N1", "N2", "N3", "N4", "N5", "N6"].includes(nivel)) return { erro: "Nível inválido." };
 
   const empresa = await empresaPadrao();
   const slug = await slugUnicoTrilha(empresa.id, nome, id ?? undefined);
   const dados = {
     nome,
-    nivel: nivel as "N1" | "N2" | "N3",
+    nivel: nivel as "N1" | "N2" | "N3" | "N4" | "N5" | "N6",
     sigla: String(form.get("sigla") ?? "").trim().toUpperCase() || null,
     descricao: String(form.get("descricao") ?? "").trim() || null,
     corHex: String(form.get("corHex") ?? "").trim() || null,

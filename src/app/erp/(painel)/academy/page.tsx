@@ -22,12 +22,17 @@ export default async function ErpAcademyPage() {
 
   return (
     <>
-      <div className="mb-fluid-lg">
-        <h1 className="kyron-display text-fluid-xl text-kyron-white">Kyron Academy</h1>
-        <p className="text-fluid-2xs text-kyron-silver/60">
-          Hierarquia Trilha → Módulo → Aula. Aluno só vê o que está{" "}
-          <span className="text-emerald-400">Publicado</span>.
-        </p>
+      <div className="mb-fluid-lg flex flex-wrap items-end justify-between gap-fluid-sm">
+        <div>
+          <h1 className="kyron-display text-fluid-xl text-kyron-white">Kyron Academy</h1>
+          <p className="text-fluid-2xs text-kyron-silver/60">
+            Hierarquia Trilha → Módulo → Aula. Aluno só vê o que está{" "}
+            <span className="text-emerald-400">Publicado</span>.
+          </p>
+        </div>
+        <Link href="/erp/academy/relatorios" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
+          Ver relatórios →
+        </Link>
       </div>
 
       <div className="mb-fluid-lg grid grid-cols-2 gap-fluid-sm sm:grid-cols-5">

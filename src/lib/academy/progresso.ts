@@ -183,7 +183,15 @@ async function verificarModuloETrilhaCompletos(usuarioId: number, moduloId: numb
   if (!jaBonificadaTrilha) {
     await concederXp(usuarioId, "trilha", 100, "Trilha", modulo.trilhaId);
     await emitirCertificado(usuarioId, modulo.trilhaId);
+    await verificarConquistasDeTrilha(usuarioId);
   }
+}
+
+/** Conquistas ligadas a NÚMERO de trilhas concluídas (genéricas, não amarradas a uma trilha específica). */
+async function verificarConquistasDeTrilha(usuarioId: number) {
+  const trilhasConcluidas = await db.certificado.count({ where: { usuarioId } });
+  if (trilhasConcluidas >= 1) await concederConquista(usuarioId, "fechador");
+  if (trilhasConcluidas >= 3) await concederConquista(usuarioId, "trajetoria-completa");
 }
 
 async function emitirCertificado(usuarioId: number, trilhaId: number) {

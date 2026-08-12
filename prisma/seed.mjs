@@ -184,8 +184,11 @@ const CONQUISTAS = [
   ["sem-ruido", "Sem Ruído", "7 dias seguidos de estudo.", "streak", 7],
   ["curto-circuito", "Curto-Circuito", "3 aulas no mesmo dia.", "aulas-dia", 3],
   ["nota-cheia", "Nota Cheia", "100% num quiz.", "quiz-100", 100],
-  ["bancada-limpa", "Bancada Limpa", "Concluiu a trilha de processos.", "trilha-completa", 0],
-  ["fechador", "Fechador", "Concluiu a trilha de vendas.", "trilha-completa", 0],
+  // Renomeadas no pivô p/ trilhas por cargo (2026-08-12): eram amarradas às
+  // trilhas antigas por região ("processos"/"vendas"), hoje arquivadas.
+  // Agora genéricas: qualquer trilha conta.
+  ["fechador", "Fechador", "Concluiu a primeira trilha.", "trilha-completa", 1],
+  ["trajetoria-completa", "Trajetória Completa", "Concluiu 3 trilhas.", "trilhas-completas", 3],
   ["sinal-constante", "Sinal Constante", "30 dias seguidos.", "streak", 30],
 ];
 
@@ -215,6 +218,12 @@ async function semearAcademy() {
       if (antiga && antiga.status !== "ARQUIVADO") {
         await db.trilha.update({ where: { id: antiga.id }, data: { status: "ARQUIVADO", arquivadoEm: new Date() } });
       }
+    }
+    // Migra o slug antigo "bancada-limpa" (nunca concedido, seguro renomear)
+    // para o novo "trajetoria-completa" em vez de deixar uma linha órfã.
+    const conquistaAntiga = await db.conquista.findUnique({ where: { slug: "bancada-limpa" } });
+    if (conquistaAntiga) {
+      await db.conquista.update({ where: { id: conquistaAntiga.id }, data: { slug: "trajetoria-completa" } });
     }
     for (const [slug, nome, descricao, criterioTipo, criterioValor] of CONQUISTAS) {
       await db.conquista.upsert({

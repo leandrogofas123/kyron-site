@@ -78,6 +78,9 @@
 .academy-week { margin-left: auto; display: flex; gap: 4px; }
 .academy-week i { width: 18px; height: 18px; display: grid; place-items: center; color: #566170; background: #161c24; border-radius: 50%; font-size: 6px; font-style: normal; }
 .academy-week i.today { color: white; background: var(--academy-blue); box-shadow: 0 0 12px rgba(37,135,255,.45); }
+.academy-xp-pill { margin-left: auto; padding-left: 12px; border-left: 1px solid var(--academy-border); text-align: right; }
+.academy-xp-pill b { display: block; color: var(--academy-blue-bright); font-size: 12px; }
+.academy-xp-pill small { color: var(--academy-dim); font-size: 8px; text-transform: uppercase; letter-spacing: .08em; }
 
 .academy-continue { position: relative; min-height: 326px; display: grid; grid-template-columns: minmax(275px,.86fr) 1.14fr; overflow: hidden; background: linear-gradient(112deg, #09131f, #0b1018 49%, #090d13); border: 1px solid #20334f; border-radius: 16px; box-shadow: 0 22px 70px rgba(0,0,0,.34); }
 .academy-continue-art { position: relative; min-height: 326px; overflow: hidden; background: radial-gradient(circle at 42% 43%, rgba(38,135,255,.22), transparent 23%), linear-gradient(145deg,#061321,#0c1824); border-right: 1px solid rgba(80,139,205,.13); }

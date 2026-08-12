@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { getMateriaisAluno, getNovidadesAluno, getTrilhasAluno, type NovidadeAluno } from "@/lib/academy/aluno-dados";
+import { getMateriaisAluno, getNovidadesAluno, getPerfilAluno, getTrilhasAluno, type NovidadeAluno } from "@/lib/academy/aluno-dados";
 import { acaoLogout } from "@/lib/auth/actions";
 import { guardaAcademy } from "@/lib/auth/areas";
 import { KYRON_COMPANY } from "@/lib/kyron/company";
@@ -13,32 +13,26 @@ import { getPosts } from "@/lib/manual";
 
 export const dynamic = "force-dynamic";
 
-type PostCard = {
-  id: number;
-  slug: string;
-  titulo: string;
-  resumo: string | null;
-  restrito: boolean;
-  youtubeId: string | null;
-};
-
 type TrilhaCard = Awaited<ReturnType<typeof getTrilhasAluno>>[number];
 
 export default async function AcademyPage() {
   const usuario = await guardaAcademy();
   if (!usuario.aprovado) return <Aguardando nome={usuario.nome} />;
 
-  const [posts, trilhas, materiais, novidades] = await Promise.all([
-    getPosts(), getTrilhasAluno(usuario.id), getMateriaisAluno(), getNovidadesAluno(4),
+  const [posts, trilhas, materiais, novidades, perfil] = await Promise.all([
+    getPosts(), getTrilhasAluno(usuario.id), getMateriaisAluno(), getNovidadesAluno(4), getPerfilAluno(usuario.id),
   ]);
   const treinamentos = posts.filter((post) => Boolean(post.youtubeId));
   const manuais = posts.filter((post) => !post.youtubeId);
-  const destaque = treinamentos[0];
   const primeiroNome = usuario.nome.split(" ")[0] || usuario.nome;
   const sair = acaoLogout.bind(null, "/app/login");
   const ehMaster = usuario.papeis.includes("ADMIN_MASTER");
   // Próxima trilha a concluir: a primeira não-100%, ou a primeira de todas se já concluiu tudo.
   const proximaTrilha = trilhas.find((t) => t.percentual < 100) ?? trilhas[0];
+  // Próxima aula pendente em toda a Academy: prioriza trilha já iniciada, depois a primeira ainda não começada.
+  const emAndamento = trilhas.find((t) => t.percentual > 0 && t.percentual < 100 && t.proximaAulaSlug);
+  const naoComecada = trilhas.find((t) => t.percentual === 0 && t.proximaAulaSlug);
+  const proximaAulaGlobal = emAndamento ?? naoComecada ?? null;
 
   return (
     <div className="academy-app">
@@ -74,10 +68,17 @@ export default async function AcademyPage() {
         <main className="academy-content">
           <section className="academy-welcome">
             <div><p className="academy-eyebrow"><i /> SUA JORNADA KYRON</p><h1>Olá, {primeiroNome}. <span>Vamos evoluir?</span></h1><p>Conhecimento aplicado à rotina. Um passo por vez, com resultado visível.</p></div>
-            <div className="academy-streak"><span><Zap size={19} /></span><div><b>Comece hoje</b><small>Construa sua sequência</small></div><div className="academy-week"><i>S</i><i>T</i><i>Q</i><i className="today">Q</i><i>S</i></div></div>
+            <div className="academy-streak">
+              <span><Zap size={19} /></span>
+              <div>
+                <b>{perfil.streakDias > 0 ? `${perfil.streakDias} dia${perfil.streakDias > 1 ? "s" : ""} seguidos` : "Comece hoje"}</b>
+                <small>{perfil.streakDias > 0 ? "Continue firme" : "Construa sua sequência"}</small>
+              </div>
+              <div className="academy-xp-pill"><b>{perfil.xpTotal} XP</b><small>{perfil.nivel}</small></div>
+            </div>
           </section>
 
-          <ContinueCard post={destaque} />
+          <ContinueCard alvo={proximaAulaGlobal} />
 
           <section id="progresso" className="academy-stats" aria-label="Resumo do aprendizado">
             <Stat icon={<TrendingUp size={19} />} tone="blue" label="Trilhas disponíveis" value={String(trilhas.length)} detail="N1 a N6" />
@@ -132,9 +133,28 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return <Link href="/app" className={`academy-logo ${compact ? "compact" : ""}`}><span>K</span>{!compact && <div><b>KYRON</b><small>ACADEMY</small></div>}</Link>;
 }
 
-function ContinueCard({ post }: { post?: PostCard }) {
-  const href = post ? `/app/treinamentos/${post.slug}` : "/app#trilhas";
-  return <section className="academy-continue"><div className="academy-continue-art"><span className="orbit one" /><span className="orbit two" /><span className="orbit three" /><span className="academy-target"><Target size={48} /></span><span className="academy-lesson-pill"><Play size={11} fill="currentColor" /> TRILHA 1 · PRIMEIROS PASSOS</span></div><div className="academy-continue-copy"><p className="academy-eyebrow blue"><i /> {post ? "COMECE POR AQUI" : "SUA JORNADA COMEÇA AQUI"}</p><h2>{post?.titulo ?? "O padrão de atendimento Kyron"}</h2><p>{post?.resumo ?? "A primeira trilha organiza os fundamentos para atender, entender e vender com confiança."}</p><div className="academy-meta"><span><Clock3 size={14} /> No seu ritmo</span><span><BookOpen size={14} /> Trilha N1</span></div><div className="academy-progress"><span><i /></span><small>Seu progresso começa na primeira aula</small></div><Link href={href} className="academy-primary"><Play size={16} fill="currentColor" /> {post ? "Começar aula" : "Conhecer a trilha"}<ArrowRight size={16} /></Link></div><span className="academy-track-number">01</span></section>;
+function ContinueCard({ alvo }: { alvo: TrilhaCard | null | undefined }) {
+  const temAula = Boolean(alvo?.proximaAulaSlug);
+  const href = temAula ? `/app/aula/${alvo!.proximaAulaSlug}` : "/app/trilhas";
+  const iniciando = temAula && alvo!.percentual === 0;
+  return (
+    <section className="academy-continue">
+      <div className="academy-continue-art">
+        <span className="orbit one" /><span className="orbit two" /><span className="orbit three" />
+        <span className="academy-target"><Target size={48} /></span>
+        <span className="academy-lesson-pill"><Play size={11} fill="currentColor" /> {alvo ? `TRILHA ${alvo.nivel} · ${alvo.nome.toUpperCase()}` : "SEU CAMINHO NA ACADEMY"}</span>
+      </div>
+      <div className="academy-continue-copy">
+        <p className="academy-eyebrow blue"><i /> {temAula ? (iniciando ? "COMECE POR AQUI" : "CONTINUE DE ONDE PAROU") : "SUA JORNADA COMEÇA AQUI"}</p>
+        <h2>{alvo?.proximaAulaTitulo ?? "As trilhas por cargo estão em preparação"}</h2>
+        <p>{temAula ? `Parte da trilha ${alvo!.nome}, nível ${alvo!.nivel}.` : "Assim que a primeira trilha for publicada, ela aparece aqui."}</p>
+        <div className="academy-meta"><span><Clock3 size={14} /> No seu ritmo</span><span><BookOpen size={14} /> {alvo ? `Trilha ${alvo.nivel}` : "Em breve"}</span></div>
+        <div className="academy-progress"><span><i style={{ width: `${alvo?.percentual ?? 0}%` }} /></span><small>{alvo ? `${alvo.percentual}% da trilha concluído` : "Seu progresso aparece aqui assim que começar"}</small></div>
+        <Link href={href} className="academy-primary"><Play size={16} fill="currentColor" /> {iniciando ? "Começar aula" : temAula ? "Continuar aula" : "Ver trilhas"}<ArrowRight size={16} /></Link>
+      </div>
+      <span className="academy-track-number">{alvo?.nivel ?? "01"}</span>
+    </section>
+  );
 }
 
 function Stat({ icon, tone, label, value, detail }: { icon: React.ReactNode; tone: string; label: string; value: string; detail: string }) {
@@ -161,7 +181,7 @@ function TrackCard({ trilha }: { trilha: TrilhaCard }) {
           <span><Clock3 size={13} /> {trilha.percentual}% concluído</span>
         </div>
         {disponivel
-          ? <Link href={`/app/trilhas/${trilha.slug}`} className="academy-secondary">{trilha.percentual > 0 ? "Continuar" : "Começar"} trilha <ArrowRight size={15} /></Link>
+          ? <Link href={trilha.proximaAulaSlug ? `/app/aula/${trilha.proximaAulaSlug}` : `/app/trilhas/${trilha.slug}`} className="academy-secondary">{trilha.percentual > 0 ? "Continuar" : "Começar"} trilha <ArrowRight size={15} /></Link>
           : <span className="academy-locked"><LockKeyhole size={14} /> Em preparação</span>}
       </div>
     </article>

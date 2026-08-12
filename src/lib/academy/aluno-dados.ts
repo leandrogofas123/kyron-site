@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "../db";
 import { empresaPadrao } from "./dados";
+import { nivelPorXp } from "./progresso";
 
 /**
  * Leitura do conteúdo da Kyron Academy (V2) — lado do ALUNO.
@@ -13,7 +14,13 @@ export async function getTrilhasAluno(usuarioId: number) {
   const trilhas = await db.trilha.findMany({
     where: { empresaId: empresa.id, status: "PUBLICADO" },
     orderBy: { ordem: "asc" },
-    include: { modulos: { where: { status: "PUBLICADO" }, include: { aulas: { where: { status: "PUBLICADO" } } } } },
+    include: {
+      modulos: {
+        where: { status: "PUBLICADO" },
+        orderBy: { ordem: "asc" },
+        include: { aulas: { where: { status: "PUBLICADO" }, orderBy: { ordem: "asc" } } },
+      },
+    },
   });
 
   const todasAulaIds = trilhas.flatMap((t) => t.modulos.flatMap((m) => m.aulas.map((a) => a.id)));
@@ -26,16 +33,31 @@ export async function getTrilhasAluno(usuarioId: number) {
   const concluidasSet = new Set(concluidas.map((c) => c.aulaId));
 
   return trilhas.map((t) => {
-    const aulaIds = t.modulos.flatMap((m) => m.aulas.map((a) => a.id));
-    const total = aulaIds.length;
-    const feitas = aulaIds.filter((id) => concluidasSet.has(id)).length;
+    // Ordem real: aulas de todos os módulos, na ordem do módulo e depois da aula.
+    const aulasEmOrdem = t.modulos.flatMap((m) => m.aulas);
+    const total = aulasEmOrdem.length;
+    const feitas = aulasEmOrdem.filter((a) => concluidasSet.has(a.id)).length;
+    const proximaAula = aulasEmOrdem.find((a) => !concluidasSet.has(a.id)) ?? null;
     return {
       id: t.id, slug: t.slug, nome: t.nome, sigla: t.sigla, nivel: t.nivel,
       descricao: t.descricao, corHex: t.corHex, regiaoMapa: t.regiaoMapa,
       totalAulas: total, aulasConcluidas: feitas,
       percentual: total ? Math.round((feitas / total) * 100) : 0,
+      proximaAulaSlug: proximaAula?.slug ?? null,
+      proximaAulaTitulo: proximaAula?.titulo ?? null,
     };
   });
+}
+
+/** Perfil de XP/nível/streak — leitura pura, sem criar linha (uma visita não deve ter efeito colateral). */
+export async function getPerfilAluno(usuarioId: number) {
+  const perfil = await db.alunoPerfil.findUnique({ where: { usuarioId } });
+  const xpTotal = perfil?.xpTotal ?? 0;
+  return {
+    xpTotal,
+    nivel: perfil?.nivel ?? nivelPorXp(xpTotal),
+    streakDias: perfil?.streakDias ?? 0,
+  };
 }
 
 export async function getTrilhaAluno(slug: string, usuarioId: number) {

@@ -30,9 +30,14 @@ export default async function ErpAcademyPage() {
             <span className="text-emerald-400">Publicado</span>.
           </p>
         </div>
-        <Link href="/erp/academy/relatorios" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
-          Ver relatórios →
-        </Link>
+        <div className="flex items-center gap-fluid-sm">
+          <Link href="/erp/academy/materiais" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
+            Biblioteca / materiais →
+          </Link>
+          <Link href="/erp/academy/relatorios" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
+            Ver relatórios →
+          </Link>
+        </div>
       </div>
 
       <div className="mb-fluid-lg grid grid-cols-2 gap-fluid-sm sm:grid-cols-5">

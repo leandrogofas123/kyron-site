@@ -112,3 +112,72 @@ export async function getAulaAluno(slug: string, usuarioId: number) {
     bloqueadaPor: pendente ? pendente.dependeDe : null,
   };
 }
+
+/** Materiais visíveis ao aluno: publicados, e se vinculados, o pai também publicado. */
+export async function getMateriaisAluno() {
+  return db.material.findMany({
+    where: {
+      status: "PUBLICADO",
+      AND: [
+        { OR: [{ trilhaId: null }, { trilha: { status: "PUBLICADO" } }] },
+        { OR: [{ aulaId: null }, { aula: { status: "PUBLICADO" } }] },
+      ],
+    },
+    orderBy: { criadoEm: "desc" },
+    include: { trilha: { select: { nome: true } }, aula: { select: { titulo: true } } },
+  });
+}
+
+export type NovidadeAluno = {
+  id: string;
+  titulo: string;
+  resumo: string | null;
+  tipoLabel: string;
+  href: string;
+  data: Date;
+  eVideo: boolean;
+};
+
+/**
+ * Feed "Novidades" do dashboard: aulas recém-publicadas (modelo novo) +
+ * posts do Manual (modelo legado, ainda em uso em /manual e /erp/aulas),
+ * unificados por data. Migração de conteúdo é gradual — não descarta o
+ * legado, só deixa de ser a ÚNICA fonte.
+ */
+export async function getNovidadesAluno(limite = 6): Promise<NovidadeAluno[]> {
+  const [aulas, posts] = await Promise.all([
+    db.aula.findMany({
+      where: { status: "PUBLICADO" },
+      orderBy: { publicadoEm: "desc" },
+      take: limite,
+      select: { id: true, slug: true, titulo: true, resumo: true, tipo: true, publicadoEm: true, criadoEm: true },
+    }),
+    db.post.findMany({
+      where: { publicado: true },
+      orderBy: { criadoEm: "desc" },
+      take: limite,
+      select: { id: true, slug: true, titulo: true, resumo: true, youtubeId: true, criadoEm: true },
+    }),
+  ]);
+
+  const itensAula: NovidadeAluno[] = aulas.map((a) => ({
+    id: `aula-${a.id}`,
+    titulo: a.titulo,
+    resumo: a.resumo,
+    tipoLabel: a.tipo === "VIDEO" ? "AULA EM VÍDEO" : a.tipo === "QUIZ" ? "AVALIAÇÃO" : "MATERIAL",
+    href: `/app/aula/${a.slug}`,
+    data: a.publicadoEm ?? a.criadoEm,
+    eVideo: a.tipo === "VIDEO",
+  }));
+  const itensPost: NovidadeAluno[] = posts.map((p) => ({
+    id: `post-${p.id}`,
+    titulo: p.titulo,
+    resumo: p.resumo,
+    tipoLabel: p.youtubeId ? "AULA EM VÍDEO" : "MATERIAL PRÁTICO",
+    href: `/app/${p.youtubeId ? "treinamentos" : "manuais"}/${p.slug}`,
+    data: p.criadoEm,
+    eVideo: Boolean(p.youtubeId),
+  }));
+
+  return [...itensAula, ...itensPost].sort((a, b) => b.data.getTime() - a.data.getTime()).slice(0, limite);
+}

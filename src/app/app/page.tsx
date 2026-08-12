@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { getTrilhasAluno } from "@/lib/academy/aluno-dados";
+import { getMateriaisAluno, getNovidadesAluno, getTrilhasAluno, type NovidadeAluno } from "@/lib/academy/aluno-dados";
 import { acaoLogout } from "@/lib/auth/actions";
 import { guardaAcademy } from "@/lib/auth/areas";
 import { KYRON_COMPANY } from "@/lib/kyron/company";
@@ -28,7 +28,9 @@ export default async function AcademyPage() {
   const usuario = await guardaAcademy();
   if (!usuario.aprovado) return <Aguardando nome={usuario.nome} />;
 
-  const [posts, trilhas] = await Promise.all([getPosts(), getTrilhasAluno(usuario.id)]);
+  const [posts, trilhas, materiais, novidades] = await Promise.all([
+    getPosts(), getTrilhasAluno(usuario.id), getMateriaisAluno(), getNovidadesAluno(4),
+  ]);
   const treinamentos = posts.filter((post) => Boolean(post.youtubeId));
   const manuais = posts.filter((post) => !post.youtubeId);
   const destaque = treinamentos[0];
@@ -46,10 +48,10 @@ export default async function AcademyPage() {
           <span className="academy-nav-label">APRENDIZADO</span>
           <Link href="/app" className="active"><Home size={18} /> Início</Link>
           <Link href="/app/trilhas"><BookOpen size={18} /> Minhas trilhas</Link>
-          <Link href="/app#novidades"><Sparkles size={18} /> Novidades <em>{posts.length}</em></Link>
+          <Link href="/app#novidades"><Sparkles size={18} /> Novidades <em>{novidades.length}</em></Link>
           <Link href="/app#progresso"><BarChart3 size={18} /> Meu progresso</Link>
           <span className="academy-nav-label academy-nav-space">CONTEÚDO</span>
-          <Link href="/app#biblioteca"><Library size={18} /> Biblioteca</Link>
+          <Link href="/app/biblioteca"><Library size={18} /> Biblioteca</Link>
           <Link href="/app/certificados"><Award size={18} /> Certificados</Link>
           {ehMaster && <Link href="/erp"><Building2 size={18} /> Ir para o ERP</Link>}
         </nav>
@@ -102,8 +104,8 @@ export default async function AcademyPage() {
             <div id="novidades" className="academy-panel">
               <SectionTitle eyebrow="CONTEÚDO PUBLICADO" title="Novos na Academy" />
               <div className="academy-news-list">
-                {posts.slice(0, 4).map((post) => <ContentRow key={post.id} post={post} />)}
-                {!posts.length && <Empty label="Os primeiros conteúdos serão publicados em breve." />}
+                {novidades.map((item) => <NovidadeRow key={item.id} item={item} />)}
+                {!novidades.length && <Empty label="Os primeiros conteúdos serão publicados em breve." />}
               </div>
             </div>
             <Link href="/app/certificados" id="certificados" className="academy-panel academy-goal">
@@ -115,10 +117,10 @@ export default async function AcademyPage() {
             </Link>
           </section>
 
-          <section id="biblioteca" className="academy-section academy-library">
+          <Link href="/app/biblioteca" id="biblioteca" className="academy-section academy-library">
             <div><p className="academy-eyebrow"><i /> BIBLIOTECA KYRON</p><h2>Conhecimento para consultar na hora certa.</h2><p>Manuais, exemplos e referências práticas reunidos em um só lugar.</p></div>
-            <div className="academy-library-count"><Compass size={25} /><span><b>{manuais.length}</b><small>materiais publicados</small></span></div>
-          </section>
+            <div className="academy-library-count"><Compass size={25} /><span><b>{materiais.length}</b><small>materiais publicados</small></span></div>
+          </Link>
         </main>
         <footer className="academy-footer"><Logo compact /><span>© 2026 Kyron Academy</span><span>Aprenda. Pratique. Evolua.</span></footer>
       </div>
@@ -166,9 +168,8 @@ function TrackCard({ trilha }: { trilha: TrilhaCard }) {
   );
 }
 
-function ContentRow({ post }: { post: PostCard }) {
-  const area = post.youtubeId ? "treinamentos" : "manuais";
-  return <Link href={`/app/${area}/${post.slug}`} className="academy-news"><span className={post.youtubeId ? "video" : "manual"}>{post.youtubeId ? <Play size={20} /> : <BookOpen size={20} />}</span><div><em>{post.youtubeId ? "AULA EM VÍDEO" : "MATERIAL PRÁTICO"}</em><b>{post.titulo}</b><small>{post.resumo ?? "Conteúdo Kyron Academy"}</small></div><ArrowRight size={16} /></Link>;
+function NovidadeRow({ item }: { item: NovidadeAluno }) {
+  return <Link href={item.href} className="academy-news"><span className={item.eVideo ? "video" : "manual"}>{item.eVideo ? <Play size={20} /> : <BookOpen size={20} />}</span><div><em>{item.tipoLabel}</em><b>{item.titulo}</b><small>{item.resumo ?? "Conteúdo Kyron Academy"}</small></div><ArrowRight size={16} /></Link>;
 }
 
 function Empty({ label }: { label: string }) {

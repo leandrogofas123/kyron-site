@@ -8,6 +8,7 @@ import { auditar } from "../core/audit";
 import { db } from "../db";
 import { gerarSlug } from "../format";
 import { empresaPadrao } from "./dados";
+import { salvarMaterialAcademy } from "./materiais";
 
 /**
  * Server Actions da Kyron Academy (V2) — administração em /erp/academy.
@@ -230,3 +231,54 @@ async function mudarStatusAula(id: number, trilhaId: number, status: "RASCUNHO" 
 export async function acaoPublicarAulaAcademy(id: number, trilhaId: number) { await mudarStatusAula(id, trilhaId, "PUBLICADO"); }
 export async function acaoDespublicarAulaAcademy(id: number, trilhaId: number) { await mudarStatusAula(id, trilhaId, "RASCUNHO"); }
 export async function acaoArquivarAulaAcademy(id: number, trilhaId: number) { await mudarStatusAula(id, trilhaId, "ARQUIVADO"); }
+
+// ──────────────────────────── Material (Biblioteca) ────────────────────────────
+
+export async function acaoCriarMaterial(_estado: Estado, form: FormData): Promise<Estado> {
+  const eu = await exigirPermissao("academy.conteudo.gerenciar");
+
+  const titulo = String(form.get("titulo") ?? "").trim();
+  if (titulo.length < 2) return { erro: "Informe o título do material." };
+
+  const arquivo = form.get("arquivo");
+  if (!(arquivo instanceof File) || arquivo.size === 0) return { erro: "Selecione um arquivo." };
+
+  const trilhaId = Number(form.get("trilhaId") ?? 0) || null;
+  const aulaId = Number(form.get("aulaId") ?? 0) || null;
+
+  const resultado = await salvarMaterialAcademy(arquivo);
+  if (!resultado.ok) return { erro: resultado.erro };
+
+  const tipo = arquivo.name.split(".").pop()?.toLowerCase() ?? "arquivo";
+  const material = await db.material.create({
+    data: {
+      titulo, tipo, url: resultado.url, tamanhoKb: resultado.tamanhoKb,
+      trilhaId, aulaId, status: "PUBLICADO",
+    },
+  });
+
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp",
+    acao: "criar-material",
+    entidade: "Material",
+    entidadeId: material.id,
+    depois: { titulo, tipo, trilhaId, aulaId },
+  });
+
+  revalidatePath("/erp/academy/materiais");
+  return { ok: true };
+}
+
+export async function acaoArquivarMaterial(id: number) {
+  const eu = await exigirPermissao("academy.conteudo.arquivar");
+  await db.material.update({ where: { id }, data: { status: "ARQUIVADO" } });
+  await auditar({
+    ator: { tipo: "usuario", id: eu.id, nome: eu.nome },
+    modulo: "erp",
+    acao: "arquivar-material",
+    entidade: "Material",
+    entidadeId: id,
+  });
+  revalidatePath("/erp/academy/materiais");
+}

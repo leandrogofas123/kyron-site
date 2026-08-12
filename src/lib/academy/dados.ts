@@ -47,6 +47,27 @@ export async function getTrilhaAdmin(id: number) {
   });
 }
 
+export async function getMateriaisAdmin() {
+  return db.material.findMany({
+    where: { status: { not: "ARQUIVADO" } },
+    orderBy: { criadoEm: "desc" },
+    include: {
+      trilha: { select: { nome: true } },
+      aula: { select: { titulo: true } },
+    },
+  });
+}
+
+/** Trilhas para o seletor de vínculo do upload (nome + id, todas as não-arquivadas). */
+export async function getTrilhasParaVinculo() {
+  const empresa = await empresaPadrao();
+  return db.trilha.findMany({
+    where: { empresaId: empresa.id, status: { not: "ARQUIVADO" } },
+    orderBy: { ordem: "asc" },
+    select: { id: true, nome: true },
+  });
+}
+
 export async function contadoresAcademy() {
   const [trilhas, publicadas, aulas, aulasPublicadas, alunosAprovados] = await Promise.all([
     db.trilha.count(),

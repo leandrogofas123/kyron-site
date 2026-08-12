@@ -72,6 +72,24 @@ export async function getPerfilAluno(usuarioId: number) {
   };
 }
 
+const ORIGEM_XP: Record<string, string> = {
+  aula: "Aula concluída", modulo: "Módulo completo", trilha: "Trilha completa",
+  quiz: "Quiz aprovado", streak: "Dia de estudo", manual: "Concedido pela equipe Kyron",
+};
+
+/** Histórico recente de XP — para a página /app/progresso. */
+export async function getEventosXpAluno(usuarioId: number, limite = 15) {
+  const eventos = await db.eventoXP.findMany({
+    where: { usuarioId },
+    orderBy: { criadoEm: "desc" },
+    take: limite,
+  });
+  return eventos.map((e) => ({
+    id: e.id, xp: e.xp, criadoEm: e.criadoEm,
+    descricao: ORIGEM_XP[e.tipo] ?? e.tipo,
+  }));
+}
+
 export async function getTrilhaAluno(slug: string, usuarioId: number) {
   const empresa = await empresaPadrao();
   const trilha = await db.trilha.findFirst({

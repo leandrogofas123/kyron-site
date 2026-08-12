@@ -62,6 +62,9 @@
 .academy-top-actions button { position: relative; background: #0d1118; }
 .academy-top-actions button i { position: absolute; right: 7px; top: 7px; width: 5px; height: 5px; background: var(--academy-blue); border-radius: 50%; }
 .academy-content { width: min(1180px, calc(100% - 8vw)); margin: 0 auto; padding: 44px 0 72px; }
+/* Botão "voltar" — mesmo padrão em toda página da Academy (aluno). */
+.academy-back { margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; color: #8695a7; font-size: 12px; transition: color .18s ease; }
+.academy-back:hover { color: white; }
 .academy-welcome { margin-bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
 .academy-eyebrow { margin: 0; display: flex; align-items: center; gap: 7px; color: #697485; font-size: 8px; font-weight: 750; letter-spacing: .17em; }
 .academy-eyebrow i { width: 13px; height: 1px; background: #4d5765; }

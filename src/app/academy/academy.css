@@ -53,14 +53,30 @@
 
 .academy-main { min-height: 100vh; margin-left: 244px; }
 .academy-topbar { position: sticky; top: 0; z-index: 20; height: 76px; padding: 0 4vw; display: flex; align-items: center; justify-content: space-between; background: rgba(6,8,12,.86); border-bottom: 1px solid var(--academy-border-soft); backdrop-filter: blur(18px); }
-.academy-search { width: min(430px, 47vw); height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 9px; color: var(--academy-dim); background: #0b1016; border: 1px solid var(--academy-border); border-radius: 9px; font-size: 10px; }
-.academy-search span { flex: 1; }
+.academy-search { position: relative; width: min(430px, 47vw); height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 9px; color: var(--academy-dim); background: #0b1016; border: 1px solid var(--academy-border); border-radius: 9px; font-size: 10px; }
+.academy-search:focus-within { border-color: var(--academy-blue); }
+.academy-search input { flex: 1; min-width: 0; height: 100%; color: var(--academy-text); background: transparent; border: 0; outline: none; font-size: 12px; font-family: inherit; }
+.academy-search input::placeholder { color: var(--academy-dim); }
+.academy-search input::-webkit-search-cancel-button { display: none; }
 .academy-search kbd { padding: 3px 6px; color: #667181; background: #151b24; border: 1px solid #262f3c; border-radius: 5px; font-size: 8px; }
 .academy-top-actions { display: flex; align-items: center; gap: 11px; }
 .academy-live { padding: 6px 9px; display: flex; align-items: center; gap: 6px; color: #81deb0; background: rgba(91,224,157,.06); border: 1px solid rgba(91,224,157,.13); border-radius: 7px; font-size: 7px; font-weight: 750; letter-spacing: .12em; }
 .academy-live i { width: 5px; height: 5px; background: var(--academy-green); border-radius: 50%; box-shadow: 0 0 8px var(--academy-green); }
 .academy-top-actions button { position: relative; background: #0d1118; }
 .academy-top-actions button i { position: absolute; right: 7px; top: 7px; width: 5px; height: 5px; background: var(--academy-blue); border-radius: 50%; }
+.academy-notif { position: relative; }
+
+/* Painéis suspensos da busca e das notificações — mesmo cartão visual. */
+.academy-search-panel, .academy-notif-panel { position: absolute; top: calc(100% + 8px); z-index: 40; padding: 8px; display: flex; flex-direction: column; gap: 2px; background: var(--academy-surface); border: 1px solid var(--academy-border); border-radius: 11px; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+.academy-search-panel { left: 0; width: min(430px, 90vw); }
+.academy-notif-panel { right: 0; width: min(340px, 90vw); }
+.academy-notif-title { margin: 4px 8px 6px; color: var(--academy-dim); font-size: 8px; font-weight: 750; letter-spacing: .17em; text-transform: uppercase; }
+.academy-search-empty { padding: 10px 8px; color: var(--academy-dim); font-size: 11px; }
+.academy-search-item, .academy-notif-item { padding: 9px 8px; display: flex; flex-direction: column; gap: 3px; border-radius: 8px; transition: background .15s ease; }
+.academy-search-item:hover, .academy-notif-item:hover { background: #10151e; }
+.academy-search-item-tipo { color: var(--academy-blue-bright); font-size: 8px; font-weight: 750; letter-spacing: .1em; }
+.academy-search-item-titulo { color: var(--academy-text); font-size: 12px; }
+.academy-notif-ver-todas { margin-top: 4px; padding: 9px 8px 4px; color: var(--academy-blue-bright); font-size: 11px; font-weight: 600; border-top: 1px solid var(--academy-border-soft); }
 .academy-content { width: min(1180px, calc(100% - 8vw)); margin: 0 auto; padding: 44px 0 72px; }
 /* Botão "voltar" — mesmo padrão em toda página da Academy (aluno). */
 .academy-back { margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; color: #8695a7; font-size: 12px; transition: color .18s ease; }
@@ -321,7 +337,8 @@
 @media (max-width: 540px) {
   .academy-login-panel { padding: 26px 20px; }
   .academy-login-back { margin-bottom: 36px; }
-  .academy-search span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .academy-search input { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .academy-search-panel { width: 90vw; }
   .academy-search kbd { display: none; }
   .academy-welcome h1 { font-size: 1.95rem; }
   .academy-continue-copy { padding: 26px 21px; }

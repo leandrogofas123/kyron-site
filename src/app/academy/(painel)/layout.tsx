@@ -1,6 +1,8 @@
-import { Bell, CheckCircle2, LogOut, Search } from "lucide-react";
+import { CheckCircle2, LogOut } from "lucide-react";
 
+import { AcademyBusca } from "@/components/academy/AcademyBusca";
 import { AcademySidebar, Logo } from "@/components/academy/AcademySidebar";
+import { NotificacoesBell } from "@/components/academy/NotificacoesBell";
 import { getNovidadesAluno } from "@/lib/academy/aluno-dados";
 import { acaoLogout } from "@/lib/auth/actions";
 import { guardaAcademy } from "@/lib/auth/areas";
@@ -25,10 +27,10 @@ export default async function PainelLayout({ children }: { children: React.React
 
       <div className="academy-main">
         <header className="academy-topbar">
-          <div className="academy-search"><Search size={17} /><span>Buscar trilhas, aulas ou materiais</span><kbd>⌘ K</kbd></div>
+          <AcademyBusca />
           <div className="academy-top-actions">
             <span className="academy-live"><i /> ACESSO ATIVO</span>
-            <button aria-label="Notificações"><Bell size={18} /><i /></button>
+            <NotificacoesBell novidades={novidades} />
           </div>
         </header>
 

@@ -21,7 +21,7 @@ export default async function AppTrilhasPage() {
 
   return (
     <>
-      <VoltarLink href="/app" label="Início" />
+      <VoltarLink href="/academy" label="Início" />
       <div className="academy-welcome">
         <div>
           <p className="academy-eyebrow blue"><i /> KYRON ACADEMY</p>
@@ -40,7 +40,7 @@ export default async function AppTrilhasPage() {
       ) : (
         <div className="academy-track-grid">
           {trilhas.map((t) => (
-            <Link key={t.id} href={`/app/trilhas/${t.slug}`} className="academy-track">
+            <Link key={t.id} href={`/academy/trilhas/${t.slug}`} className="academy-track">
               <div className="academy-track-art">
                 <span>{t.sigla ?? t.nome.slice(0, 3).toUpperCase()}</span>
                 <i />

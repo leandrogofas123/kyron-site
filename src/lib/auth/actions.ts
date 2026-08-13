@@ -109,7 +109,7 @@ export async function acaoCadastrar(_estado: Estado, form: FormData): Promise<Es
   const email = normalizar(String(form.get("email") ?? ""));
   const senha = String(form.get("senha") ?? "");
   // Para onde ir após o cadastro. Áreas diferentes reaproveitam a mesma ação:
-  // a loja manda para /aulas; a Academy manda para /app.
+  // a loja manda para /aulas; a Academy manda para /academy.
   const destinoRaw = String(form.get("destino") ?? "/aulas");
   const destino = destinoRaw.startsWith("/") && !destinoRaw.startsWith("//") ? destinoRaw : "/aulas";
 

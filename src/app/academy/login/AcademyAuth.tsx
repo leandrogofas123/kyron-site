@@ -10,7 +10,7 @@ import { acaoCadastrar, acaoLogin } from "@/lib/auth/actions";
 
 type Estado = { erro?: string; ok?: boolean; mensagem?: string };
 
-const entrarAcao = acaoLogin.bind(null, "/app");
+const entrarAcao = acaoLogin.bind(null, "/academy");
 
 export function AcademyAuth({ erroOAuth }: { erroOAuth: string | null }) {
   const [modo, setModo] = useState<"login" | "cadastro">("login");
@@ -41,8 +41,8 @@ export function AcademyAuth({ erroOAuth }: { erroOAuth: string | null }) {
       <div className="academy-sep"><span>ou continue com</span></div>
 
       <div className="academy-oauth-row">
-        <a href="/api/auth/google?redirect=/app" className="academy-oauth google"><span>G</span> Google</a>
-        <a href="/api/auth/linkedin?redirect=/app" className="academy-oauth linkedin"><span>in</span> LinkedIn</a>
+        <a href="/api/auth/google?redirect=/academy" className="academy-oauth google"><span>G</span> Google</a>
+        <a href="/api/auth/linkedin?redirect=/academy" className="academy-oauth linkedin"><span>in</span> LinkedIn</a>
       </div>
 
       <p className="academy-login-terms">
@@ -79,7 +79,7 @@ function FormCadastro() {
   const [estado, action, pendente] = useActionState<Estado, FormData>(acaoCadastrar, {});
   return (
     <form action={action} className="academy-form">
-      <input type="hidden" name="destino" value="/app" />
+      <input type="hidden" name="destino" value="/academy" />
       <label className="academy-field">
         <span><User size={15} /> Nome completo</span>
         <input name="nome" type="text" autoComplete="name" required placeholder="Seu nome" />

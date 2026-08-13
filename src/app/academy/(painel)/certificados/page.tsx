@@ -21,7 +21,7 @@ export default async function AppCertificadosPage() {
 
   return (
     <>
-      <VoltarLink href="/app" label="Início" />
+      <VoltarLink href="/academy" label="Início" />
       <div className="academy-welcome">
         <div>
           <p className="academy-eyebrow blue"><i /> KYRON ACADEMY</p>

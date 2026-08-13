@@ -30,7 +30,7 @@ export default async function AppAulaPage({ params }: Props) {
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <VoltarLink href={`/app/trilhas/${aula.trilha.slug}`} label={aula.trilha.nome} />
+      <VoltarLink href={`/academy/trilhas/${aula.trilha.slug}`} label={aula.trilha.nome} />
 
       <div>
         <p className="academy-eyebrow blue"><i /> {aula.modulo.nome.toUpperCase()}</p>

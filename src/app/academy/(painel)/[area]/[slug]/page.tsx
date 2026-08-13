@@ -28,7 +28,7 @@ export default async function ConteudoPage({ params }: Props) {
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <VoltarLink href="/app" label="Início" />
+      <VoltarLink href="/academy" label="Início" />
 
       <p className="academy-eyebrow blue"><i /> {ehTreinamento ? "TREINAMENTO EM VÍDEO" : "MANUAL PRÁTICO"}</p>
       <h1 style={{ margin: "10px 0 8px", color: "var(--academy-text)", fontSize: "clamp(1.4rem,2.4vw,1.9rem)", letterSpacing: "-.03em" }}>

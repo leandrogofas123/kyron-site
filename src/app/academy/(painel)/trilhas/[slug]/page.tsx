@@ -27,7 +27,7 @@ export default async function AppTrilhaPage({ params }: Props) {
 
   return (
     <>
-      <VoltarLink href="/app/trilhas" label="Todas as trilhas" />
+      <VoltarLink href="/academy/trilhas" label="Todas as trilhas" />
 
       <div className="academy-welcome">
         <div>
@@ -56,7 +56,7 @@ export default async function AppTrilhaPage({ params }: Props) {
                 return (
                   <Link
                     key={aula.id}
-                    href={`/app/aula/${aula.slug}`}
+                    href={`/academy/aula/${aula.slug}`}
                     className="academy-news"
                     style={{ padding: "12px 18px", borderTop: "1px solid var(--academy-border-soft)" }}
                   >

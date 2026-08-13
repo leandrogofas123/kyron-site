@@ -12,37 +12,37 @@ import { KYRON_COMPANY } from "@/lib/kyron/company";
 /**
  * Casca de navegação da Kyron Academy — um só lugar, usado pelo layout
  * `(painel)`. Cada ícone do menu leva a uma página REAL (nunca uma âncora):
- * antes "Novidades" e "Meu progresso" eram `/app#novidades`/`/app#progresso`
- * (rolagem dentro do dashboard); agora são `/app/novidades` e `/app/progresso`.
+ * antes "Novidades" e "Meu progresso" eram âncoras no dashboard; agora são
+ * páginas próprias dentro de `/academy`.
  */
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/app" className={`academy-logo ${compact ? "compact" : ""}`}>
+    <Link href="/academy" className={`academy-logo ${compact ? "compact" : ""}`}>
       <span>K</span>{!compact && <div><b>KYRON</b><small>ACADEMY</small></div>}
     </Link>
   );
 }
 
 const ITENS_APRENDIZADO = [
-  { href: "/app", label: "Início", Icone: Home },
-  { href: "/app/trilhas", label: "Minhas trilhas", Icone: BookOpen },
-  { href: "/app/novidades", label: "Novidades", Icone: Sparkles },
-  { href: "/app/progresso", label: "Meu progresso", Icone: BarChart3 },
+  { href: "/academy", label: "Início", Icone: Home },
+  { href: "/academy/trilhas", label: "Minhas trilhas", Icone: BookOpen },
+  { href: "/academy/novidades", label: "Novidades", Icone: Sparkles },
+  { href: "/academy/progresso", label: "Meu progresso", Icone: BarChart3 },
 ] as const;
 
 const ITENS_CONTEUDO = [
-  { href: "/app/biblioteca", label: "Biblioteca", Icone: Library },
-  { href: "/app/certificados", label: "Certificados", Icone: Award },
-  { href: "/app/conquistas", label: "Conquistas", Icone: Trophy },
+  { href: "/academy/biblioteca", label: "Biblioteca", Icone: Library },
+  { href: "/academy/certificados", label: "Certificados", Icone: Award },
+  { href: "/academy/conquistas", label: "Conquistas", Icone: Trophy },
 ] as const;
 
 export function AcademySidebar({
   nome, ehMaster, novidadesCount,
 }: { nome: string; ehMaster: boolean; novidadesCount: number }) {
   const pathname = usePathname();
-  const sair = acaoLogout.bind(null, "/app/login");
-  const ativo = (href: string) => (href === "/app" ? pathname === "/app" : pathname.startsWith(href));
+  const sair = acaoLogout.bind(null, "/academy/login");
+  const ativo = (href: string) => (href === "/academy" ? pathname === "/academy" : pathname.startsWith(href));
 
   return (
     <aside className="academy-sidebar">
@@ -52,7 +52,7 @@ export function AcademySidebar({
         {ITENS_APRENDIZADO.map(({ href, label, Icone }) => (
           <Link key={href} href={href} className={ativo(href) ? "active" : undefined}>
             <Icone size={18} /> {label}
-            {href === "/app/novidades" && novidadesCount > 0 && <em>{novidadesCount}</em>}
+            {href === "/academy/novidades" && novidadesCount > 0 && <em>{novidadesCount}</em>}
           </Link>
         ))}
         <span className="academy-nav-label academy-nav-space">CONTEÚDO</span>

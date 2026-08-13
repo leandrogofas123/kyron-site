@@ -31,7 +31,7 @@ export default async function AcademyPage() {
     <>
       <section className="academy-welcome">
         <div><p className="academy-eyebrow"><i /> SUA JORNADA KYRON</p><h1>Olá, {primeiroNome}. <span>Vamos evoluir?</span></h1><p>Conhecimento aplicado à rotina. Um passo por vez, com resultado visível.</p></div>
-        <Link href="/app/progresso" className="academy-streak" title="Ver meu progresso completo">
+        <Link href="/academy/progresso" className="academy-streak" title="Ver meu progresso completo">
           <span><TrendingUp size={19} /></span>
           <div>
             <b>{perfil.streakDias > 0 ? `${perfil.streakDias} dia${perfil.streakDias > 1 ? "s" : ""} seguidos` : "Comece hoje"}</b>
@@ -68,14 +68,14 @@ export default async function AcademyPage() {
         <div className="academy-panel">
           <div className="academy-section-title">
             <div><p className="academy-eyebrow"><i /> CONTEÚDO PUBLICADO</p><h2>Novos na Academy</h2></div>
-            <Link href="/app/novidades" className="academy-back" style={{ margin: 0 }}>Ver todas <ArrowRight size={13} /></Link>
+            <Link href="/academy/novidades" className="academy-back" style={{ margin: 0 }}>Ver todas <ArrowRight size={13} /></Link>
           </div>
           <div className="academy-news-list">
             {novidades.map((item) => <NovidadeRow key={item.id} item={item} />)}
             {!novidades.length && <Empty label="Os primeiros conteúdos serão publicados em breve." />}
           </div>
         </div>
-        <Link href="/app/certificados" className="academy-panel academy-goal">
+        <Link href="/academy/certificados" className="academy-panel academy-goal">
           <p className="academy-eyebrow"><i /> PRÓXIMA CONQUISTA</p>
           <div className="academy-goal-ring"><span><b>{proximaTrilha?.nivel ?? "—"}</b><small>{proximaTrilha ? `${proximaTrilha.percentual}% concluído` : "trilha inicial"}</small></span></div>
           <h2>{proximaTrilha?.nome ?? "Em preparação"}</h2>
@@ -84,7 +84,7 @@ export default async function AcademyPage() {
         </Link>
       </section>
 
-      <Link href="/app/biblioteca" className="academy-section academy-library">
+      <Link href="/academy/biblioteca" className="academy-section academy-library">
         <div><p className="academy-eyebrow"><i /> BIBLIOTECA KYRON</p><h2>Conhecimento para consultar na hora certa.</h2><p>Manuais, exemplos e referências práticas reunidos em um só lugar.</p></div>
         <div className="academy-library-count"><Compass size={25} /><span><b>{materiais.length}</b><small>materiais publicados</small></span></div>
       </Link>
@@ -94,7 +94,7 @@ export default async function AcademyPage() {
 
 function ContinueCard({ alvo }: { alvo: TrilhaCard | null | undefined }) {
   const temAula = Boolean(alvo?.proximaAulaSlug);
-  const href = temAula ? `/app/aula/${alvo!.proximaAulaSlug}` : "/app/trilhas";
+  const href = temAula ? `/academy/aula/${alvo!.proximaAulaSlug}` : "/academy/trilhas";
   const iniciando = temAula && alvo!.percentual === 0;
   return (
     <section className="academy-continue">
@@ -140,7 +140,7 @@ function TrackCard({ trilha }: { trilha: TrilhaCard }) {
           <span><Clock3 size={13} /> {trilha.percentual}% concluído</span>
         </div>
         {disponivel
-          ? <Link href={trilha.proximaAulaSlug ? `/app/aula/${trilha.proximaAulaSlug}` : `/app/trilhas/${trilha.slug}`} className="academy-secondary">{trilha.percentual > 0 ? "Continuar" : "Começar"} trilha <ArrowRight size={15} /></Link>
+          ? <Link href={trilha.proximaAulaSlug ? `/academy/aula/${trilha.proximaAulaSlug}` : `/academy/trilhas/${trilha.slug}`} className="academy-secondary">{trilha.percentual > 0 ? "Continuar" : "Começar"} trilha <ArrowRight size={15} /></Link>
           : <span className="academy-locked"><LockKeyhole size={14} /> Em preparação</span>}
       </div>
     </article>

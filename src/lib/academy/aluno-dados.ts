@@ -77,7 +77,7 @@ const ORIGEM_XP: Record<string, string> = {
   quiz: "Quiz aprovado", streak: "Dia de estudo", manual: "Concedido pela equipe Kyron",
 };
 
-/** Histórico recente de XP — para a página /app/progresso. */
+/** Histórico recente de XP — para a página /academy/progresso. */
 export async function getEventosXpAluno(usuarioId: number, limite = 15) {
   const eventos = await db.eventoXP.findMany({
     where: { usuarioId },
@@ -217,7 +217,7 @@ export async function getNovidadesAluno(limite = 6): Promise<NovidadeAluno[]> {
     titulo: a.titulo,
     resumo: a.resumo,
     tipoLabel: a.tipo === "VIDEO" ? "AULA EM VÍDEO" : a.tipo === "QUIZ" ? "AVALIAÇÃO" : "MATERIAL",
-    href: `/app/aula/${a.slug}`,
+    href: `/academy/aula/${a.slug}`,
     data: a.publicadoEm ?? a.criadoEm,
     eVideo: a.tipo === "VIDEO",
   }));
@@ -226,7 +226,7 @@ export async function getNovidadesAluno(limite = 6): Promise<NovidadeAluno[]> {
     titulo: p.titulo,
     resumo: p.resumo,
     tipoLabel: p.youtubeId ? "AULA EM VÍDEO" : "MATERIAL PRÁTICO",
-    href: `/app/${p.youtubeId ? "treinamentos" : "manuais"}/${p.slug}`,
+    href: `/academy/${p.youtubeId ? "treinamentos" : "manuais"}/${p.slug}`,
     data: p.criadoEm,
     eVideo: Boolean(p.youtubeId),
   }));

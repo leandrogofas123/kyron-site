@@ -23,8 +23,8 @@ export async function acaoConcluirAula(aulaId: number, trilhaSlug: string) {
   const usuario = await guardaAcademy();
   if (!usuario.aprovado) return { ok: false as const, motivo: "Conta ainda não aprovada." };
   const r = await concluirAula(usuario.id, aulaId);
-  revalidatePath(`/app/trilhas/${trilhaSlug}`);
-  revalidatePath("/app");
+  revalidatePath(`/academy/trilhas/${trilhaSlug}`);
+  revalidatePath("/academy");
   return r;
 }
 
@@ -32,7 +32,7 @@ export async function acaoResponderQuiz(quizId: number, trilhaSlug: string, resp
   const usuario = await guardaAcademy();
   if (!usuario.aprovado) return { ok: false as const, motivo: "Conta ainda não aprovada." };
   const r = await responderQuiz(usuario.id, quizId, respostas);
-  revalidatePath(`/app/trilhas/${trilhaSlug}`);
-  revalidatePath("/app");
+  revalidatePath(`/academy/trilhas/${trilhaSlug}`);
+  revalidatePath("/academy");
   return r;
 }

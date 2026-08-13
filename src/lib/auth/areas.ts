@@ -35,7 +35,7 @@ export function podeAcessarAcademy(papeis: readonly string[]): boolean {
  */
 export async function guardaAcademy(): Promise<UsuarioAtual> {
   const u = await usuarioAtual();
-  if (!u) redirect("/app/login");
-  if (!podeAcessarAcademy(u.papeis)) redirect("/app/login?erro=somente-alunos");
+  if (!u) redirect("/academy/login");
+  if (!podeAcessarAcademy(u.papeis)) redirect("/academy/login?erro=somente-alunos");
   return u;
 }

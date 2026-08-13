@@ -29,7 +29,7 @@ export default async function AppProgressoPage() {
 
   return (
     <>
-      <VoltarLink href="/app" label="Início" />
+      <VoltarLink href="/academy" label="Início" />
       <div className="academy-welcome">
         <div>
           <p className="academy-eyebrow blue"><i /> KYRON ACADEMY</p>
@@ -60,7 +60,7 @@ export default async function AppProgressoPage() {
       <section className="academy-section">
         <div className="academy-section-title">
           <div><p className="academy-eyebrow"><i /> POR TRILHA</p><h2>Seu andamento</h2></div>
-          <Link href="/app/trilhas" className="academy-back" style={{ margin: 0 }}>Ver trilhas <ArrowRight size={13} /></Link>
+          <Link href="/academy/trilhas" className="academy-back" style={{ margin: 0 }}>Ver trilhas <ArrowRight size={13} /></Link>
         </div>
         <div className="academy-panel">
           {trilhas.length === 0 && <p style={{ padding: 18, textAlign: "center", color: "var(--academy-dim)", fontSize: 12 }}>Nenhuma trilha publicada ainda.</p>}

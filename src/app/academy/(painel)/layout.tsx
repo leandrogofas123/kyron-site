@@ -6,8 +6,8 @@ import { acaoLogout } from "@/lib/auth/actions";
 import { guardaAcademy } from "@/lib/auth/areas";
 
 /**
- * Casca ÚNICA de toda a área logada da Academy (exceto /app/login, que tem
- * seu próprio design de página cheia). Antes só o dashboard `/app` tinha a
+ * Casca ÚNICA de toda a área logada da Academy (exceto /academy/login, que tem
+ * seu próprio design de página cheia). Antes só o dashboard `/academy` tinha a
  * barra lateral — cada página nova esquecia de repeti-la. Agora é
  * estrutural: qualquer página dentro de (painel) ganha o menu automaticamente,
  * e o aprovado/pendente é checado UMA vez, aqui, não em cada página.
@@ -43,7 +43,7 @@ export default async function PainelLayout({ children }: { children: React.React
 }
 
 function Aguardando({ nome }: { nome: string }) {
-  const sair = acaoLogout.bind(null, "/app/login");
+  const sair = acaoLogout.bind(null, "/academy/login");
   return (
     <main className="academy-pending">
       <Logo />

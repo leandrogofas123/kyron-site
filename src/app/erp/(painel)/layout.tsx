@@ -57,6 +57,9 @@ const GRUPOS = [
     itens: [
       { label: "Alunos", href: "/erp/alunos", acao: "alunos", icone: "clientes" },
       { label: "Kyron Academy", href: "/erp/academy", acao: "aulas", icone: "aulas" },
+      { label: "Biblioteca Academy", href: "/erp/academy/materiais", acao: "aulas", icone: "aulas" },
+      { label: "Conquistas Academy", href: "/erp/academy/conquistas", acao: "aulas", icone: "aulas" },
+      { label: "Relatórios Academy", href: "/erp/academy/relatorios", acao: "aulas", icone: "analytics" },
       { label: "Aulas · Manual", href: "/erp/aulas", acao: "aulas", icone: "aulas" },
     ],
   },

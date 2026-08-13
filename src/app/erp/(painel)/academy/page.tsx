@@ -32,15 +32,24 @@ export default async function ErpAcademyPage() {
             <span className="text-emerald-400">Publicado</span>.
           </p>
         </div>
-        <div className="flex items-center gap-fluid-sm">
-          <Link href="/erp/academy/materiais" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
-            Biblioteca / materiais →
+        <div className="flex flex-wrap items-center justify-end gap-fluid-2xs">
+          <Link
+            href="/erp/academy/materiais"
+            className="kyron-label inline-flex items-center rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-fluid-sm py-fluid-xs text-fluid-2xs text-kyron-silver transition-colors hover:border-[var(--kyron-blue-line)] hover:bg-kyron-blue/10 hover:text-kyron-white"
+          >
+            Biblioteca / materiais
           </Link>
-          <Link href="/erp/academy/conquistas" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
-            Conquistas →
+          <Link
+            href="/erp/academy/conquistas"
+            className="kyron-label inline-flex items-center rounded-kyron-sm border border-[var(--kyron-hairline-strong)] px-fluid-sm py-fluid-xs text-fluid-2xs text-kyron-silver transition-colors hover:border-[var(--kyron-blue-line)] hover:bg-kyron-blue/10 hover:text-kyron-white"
+          >
+            Conquistas
           </Link>
-          <Link href="/erp/academy/relatorios" className="text-fluid-2xs text-kyron-blue hover:text-kyron-white">
-            Ver relatórios →
+          <Link
+            href="/erp/academy/relatorios"
+            className="kyron-label inline-flex items-center rounded-kyron-sm bg-kyron-blue px-fluid-sm py-fluid-xs text-fluid-2xs text-white transition-all hover:-translate-y-px"
+          >
+            Ver relatórios
           </Link>
         </div>
       </div>

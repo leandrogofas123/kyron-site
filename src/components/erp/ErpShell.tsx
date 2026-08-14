@@ -158,7 +158,7 @@ export function ErpShell({
                       href={a.href}
                       onClick={() => setMobile(false)}
                       title={colapsada ? a.label : undefined}
-                      className={`group flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
+                      className={`group flex flex-col gap-1 rounded-kyron-sm border p-fluid-2xs text-fluid-2xs transition-colors ${
                         colapsada ? "lg:items-center" : ""
                       } ${
                         ativo
@@ -190,13 +190,13 @@ export function ErpShell({
                   onClick={() => alternar(g.label)}
                   aria-expanded={aberto}
                   title={colapsada ? g.label : undefined}
-                  className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
+                  className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-2xs text-fluid-2xs transition-colors ${
                     colapsada ? "lg:justify-center" : ""
                   } ${contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"}`}
                 >
-                  <span className={`shrink-0 ${contémAtivo ? "text-kyron-blue" : ""}`}><Icone nome={g.icone} /></span>
+                  <span className={`shrink-0 ${contémAtivo ? "text-kyron-blue" : ""}`}><Icone nome={g.icone} tamanho={16} /></span>
                   <span className="erp-label kyron-label whitespace-nowrap">{g.label}</span>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`erp-label ml-auto transition-transform ${aberto ? "rotate-90" : ""}`}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`erp-label ml-auto shrink-0 transition-transform ${aberto ? "rotate-90" : ""}`}>
                     <path d="M9 6l6 6-6 6" />
                   </svg>
                 </button>
@@ -213,7 +213,7 @@ export function ErpShell({
                           key={item.href}
                           href={item.href}
                           onClick={() => setMobile(false)}
-                          className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
+                          className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-2xs text-fluid-2xs transition-colors ${
                             ativo
                               ? "bg-kyron-blue/12 text-kyron-white"
                               : "text-kyron-silver hover:bg-white/[0.04] hover:text-kyron-white"

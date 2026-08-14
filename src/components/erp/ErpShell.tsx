@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { acaoSairErp } from "@/lib/erp/actions";
 
@@ -59,6 +59,25 @@ export function ErpShell({
   const pathname = usePathname();
   const [mobile, setMobile] = useState(false);
 
+  // Menu retrátil (só desktop — no mobile o menu já é um overlay que some
+  // sozinho). Preferência lembrada por navegador, igual ao tema.
+  const [colapsada, setColapsada] = useState(false);
+  useEffect(() => {
+    try {
+      setColapsada(localStorage.getItem("erp-sidebar-colapsada") === "1");
+    } catch {
+      /* modo privado: só não persiste */
+    }
+  }, []);
+  function definirColapsada(novo: boolean) {
+    setColapsada(novo);
+    try {
+      localStorage.setItem("erp-sidebar-colapsada", novo ? "1" : "0");
+    } catch {
+      /* modo privado: só não persiste */
+    }
+  }
+
   const ehAtivo = (href: string) => (href === "/erp" ? pathname === "/erp" : pathname.startsWith(href));
 
   // Grupo que contém a rota atual começa aberto; os demais, fechados.
@@ -68,12 +87,16 @@ export function ErpShell({
     [pathname, grupos],
   );
   const [abertos, setAbertos] = useState<Set<string>>(() => new Set(grupoAtivo ? [grupoAtivo] : []));
-  const alternar = (label: string) =>
+  const alternar = (label: string) => {
+    // Clicar num grupo com o menu recolhido expande o menu junto — sem isso
+    // não dá pra ver os subitens (a lista indentada só cabe com o menu aberto).
+    if (colapsada) definirColapsada(false);
     setAbertos((prev) => {
       const n = new Set(prev);
       n.has(label) ? n.delete(label) : n.add(label);
       return n;
     });
+  };
 
   const iniciais = usuario.nome.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
@@ -96,11 +119,24 @@ export function ErpShell({
       <aside
         className={`erp-aside fixed top-0 z-50 flex h-dvh shrink-0 flex-col border-r border-[var(--kyron-hairline)] bg-kyron-graphite transition-transform duration-200 lg:sticky lg:translate-x-0 ${
           mobile ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${colapsada ? "erp-aside-colapsada" : ""}`}
       >
-        <div className="flex items-center gap-fluid-xs px-fluid-md py-fluid-md">
+        {/* Botão de retrair/expandir — só desktop; no mobile o menu já fecha sozinho. */}
+        <button
+          type="button"
+          onClick={() => definirColapsada(!colapsada)}
+          aria-label={colapsada ? "Expandir menu" : "Recolher menu"}
+          title={colapsada ? "Expandir menu" : "Recolher menu"}
+          className="absolute top-16 -right-3 z-10 hidden h-6 w-6 place-items-center rounded-full border border-[var(--kyron-hairline)] bg-kyron-graphite text-kyron-silver/70 shadow-md transition-colors hover:text-kyron-white lg:grid"
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" className={`transition-transform ${colapsada ? "rotate-180" : ""}`}>
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+
+        <div className={`erp-aside-topo flex items-center gap-fluid-xs px-fluid-md py-fluid-md ${colapsada ? "lg:justify-center lg:px-0" : ""}`}>
           <Link href="/erp" className="grid h-8 w-8 shrink-0 place-items-center rounded-kyron-sm bg-kyron-blue font-bold text-white">K</Link>
-          <span className="kyron-display text-fluid-sm tracking-[0.18em] text-kyron-white">
+          <span className="erp-label kyron-display text-fluid-sm tracking-[0.18em] text-kyron-white">
             KYR<span className="text-kyron-blue">O</span>N
           </span>
           <button onClick={() => setMobile(false)} aria-label="Fechar menu" className="ml-auto text-kyron-silver/60 hover:text-kyron-white lg:hidden">
@@ -112,8 +148,8 @@ export function ErpShell({
           {/* Atalhos rápidos — módulos mais importantes */}
           {atalhos.length > 0 && (
             <div>
-              <p className="kyron-label px-fluid-sm pb-1 text-[0.6rem] text-kyron-silver/40">Atalhos</p>
-              <div className="grid grid-cols-2 gap-fluid-2xs">
+              <p className="erp-label kyron-label px-fluid-sm pb-1 text-[0.6rem] text-kyron-silver/40">Atalhos</p>
+              <div className={`grid grid-cols-2 gap-fluid-2xs ${colapsada ? "lg:grid-cols-1" : ""}`}>
                 {atalhos.map((a) => {
                   const ativo = ehAtivo(a.href);
                   return (
@@ -121,7 +157,10 @@ export function ErpShell({
                       key={a.href}
                       href={a.href}
                       onClick={() => setMobile(false)}
+                      title={colapsada ? a.label : undefined}
                       className={`group flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
+                        colapsada ? "lg:items-center" : ""
+                      } ${
                         ativo
                           ? "border-[var(--kyron-blue-line)] bg-kyron-blue/12 text-kyron-white"
                           : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:bg-kyron-blue/10 hover:text-kyron-white"
@@ -132,7 +171,7 @@ export function ErpShell({
                       <span className={`shrink-0 transition-colors ${ativo ? "text-kyron-blue" : "text-kyron-silver/80 group-hover:text-kyron-blue"}`}>
                         <Icone nome={a.icone} tamanho={16} />
                       </span>
-                      <span className="whitespace-nowrap">{a.label}</span>
+                      <span className="erp-label whitespace-nowrap">{a.label}</span>
                     </Link>
                   );
                 })}
@@ -150,18 +189,23 @@ export function ErpShell({
                   type="button"
                   onClick={() => alternar(g.label)}
                   aria-expanded={aberto}
+                  title={colapsada ? g.label : undefined}
                   className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
-                    contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"
-                  }`}
+                    colapsada ? "lg:justify-center" : ""
+                  } ${contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"}`}
                 >
                   <span className={`shrink-0 ${contémAtivo ? "text-kyron-blue" : ""}`}><Icone nome={g.icone} /></span>
-                  <span className="kyron-label whitespace-nowrap">{g.label}</span>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`ml-auto transition-transform ${aberto ? "rotate-90" : ""}`}>
+                  <span className="erp-label kyron-label whitespace-nowrap">{g.label}</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`erp-label ml-auto transition-transform ${aberto ? "rotate-90" : ""}`}>
                     <path d="M9 6l6 6-6 6" />
                   </svg>
                 </button>
                 {aberto && (
-                  <div className="mt-0.5 space-y-0.5 border-l border-[var(--kyron-hairline)] pl-fluid-xs">
+                  // erp-subitens: escondido via CSS quando o menu está recolhido no
+                  // desktop (classe .erp-aside-colapsada, só dentro do media query lg:) —
+                  // não uma condição em JS, pra não também sumir no overlay do mobile
+                  // (onde "colapsada" pode estar true por uma escolha salva do desktop).
+                  <div className="erp-subitens mt-0.5 space-y-0.5 border-l border-[var(--kyron-hairline)] pl-fluid-xs">
                     {g.itens.map((item) => {
                       const ativo = ehAtivo(item.href);
                       return (
@@ -187,13 +231,17 @@ export function ErpShell({
           })}
         </nav>
 
-        <div className="flex items-center gap-fluid-xs border-t border-[var(--kyron-hairline)] px-fluid-md py-fluid-sm">
+        <div
+          className={`flex items-center gap-fluid-xs border-t border-[var(--kyron-hairline)] px-fluid-md py-fluid-sm ${
+            colapsada ? "lg:flex-col lg:gap-fluid-2xs" : ""
+          }`}
+        >
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-fluid-2xs font-bold text-kyron-silver">{iniciais}</span>
-          <div className="min-w-0">
+          <div className="erp-label min-w-0">
             <p className="truncate text-fluid-2xs font-semibold text-kyron-white">{usuario.nome}</p>
             <p className="text-fluid-2xs text-kyron-silver/50">{usuario.papel}</p>
           </div>
-          <div className="ml-auto flex items-center gap-fluid-xs">
+          <div className={`ml-auto flex items-center gap-fluid-xs ${colapsada ? "lg:ml-0" : ""}`}>
             <ErpTemaToggle />
             <form action={acaoSairErp}>
               <button type="submit" title="Sair" className="text-kyron-silver/70 hover:text-kyron-white">

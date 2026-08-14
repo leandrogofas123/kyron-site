@@ -317,4 +317,27 @@ select:focus-visible {
    como overlay; no desktop fica acoplada. */
 .erp-aside {
   width: 15rem;
+  transition: width 0.18s ease;
+}
+
+/* Menu retrátil — só no desktop (mesmo breakpoint do `lg:` do Tailwind).
+   No celular o menu já é um overlay full-width que fecha sozinho; a
+   preferência de "recolhido" salva no desktop não deve afetar o celular,
+   por isso a regra inteira vive dentro deste media query. */
+@media (min-width: 1024px) {
+  .erp-aside-colapsada {
+    width: 4.5rem;
+  }
+  /* Textos/rótulos que não cabem no modo ícone-só (nome do app, labels de
+     atalho/grupo, seta de expandir, nome do usuário). */
+  .erp-aside-colapsada .erp-label {
+    display: none;
+  }
+  /* Subitens do grupo — a lista indentada não cabe em 4.5rem; clicar num
+     grupo recolhido já reexpande o menu (ver `alternar` em ErpShell.tsx),
+     então isso só evita um piscar de conteúdo cortado entre o clique e o
+     reflow. */
+  .erp-aside-colapsada .erp-subitens {
+    display: none;
+  }
 }

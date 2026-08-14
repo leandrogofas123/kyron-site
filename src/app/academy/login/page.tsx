@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
 
-import { AcademyAuth } from "./AcademyAuth";
-import { CerebroKyron } from "./CerebroKyron";
+import { AcademyLoginScreen } from "./AcademyLoginScreen";
 
 export const dynamic = "force-dynamic";
 
@@ -29,44 +26,5 @@ export default async function AppLoginPage({ searchParams }: { searchParams: Pro
   const { erro } = await searchParams;
   const erroOAuth = erro ? MENSAGENS[erro] ?? "Não foi possível concluir o login." : null;
 
-  return (
-    <main className="academy-login">
-      <section className="academy-login-brand">
-        <div className="academy-login-aura" />
-        <div className="academy-login-grid" />
-        <div className="academy-login-brand-content">
-          <Link href="/" className="academy-brandmark">
-            <img src="/marca/kyron-simbolo.png" alt="Kyron" />
-            <div><b>KYRON</b><small>ACADEMY</small></div>
-          </Link>
-
-          <div className="academy-login-hero">
-            <p className="academy-eyebrow blue"><i /> APRENDA. PRATIQUE. EVOLUA.</p>
-            <h1>Um mapa vivo das suas <span>competências.</span></h1>
-            <p className="academy-login-sub">
-              Cada competência é um território do conhecimento comercial. A Academy
-              guia sua equipe a dominar um de cada vez — com método e evolução visível.
-            </p>
-          </div>
-
-          <div className="academy-cerebro">
-            <CerebroKyron />
-          </div>
-
-          <ul className="academy-login-bullets">
-            <li><CheckCircle2 size={17} /> Conteúdo direto e aplicável</li>
-            <li><CheckCircle2 size={17} /> Evolução acompanhada pela liderança</li>
-            <li><CheckCircle2 size={17} /> Certificação por competência</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="academy-login-panel">
-        <div className="academy-login-card">
-          <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
-          <AcademyAuth erroOAuth={erroOAuth} />
-        </div>
-      </section>
-    </main>
-  );
+  return <AcademyLoginScreen erroOAuth={erroOAuth} />;
 }

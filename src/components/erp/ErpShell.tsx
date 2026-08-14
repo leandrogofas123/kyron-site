@@ -11,14 +11,19 @@ type Grupo = { label: string; icone: string; itens: Item[] };
 
 /** Ícones de linha (stroke). Um por seção do ERP. */
 const I: Record<string, ReactNode> = {
-  dashboard: <><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></>,
+  // dashboard/notas/ordens/financeiro: mesmo traçado do lucide-react (já é
+  // dependência do projeto) — desenhados como um conjunto, com peso óptico
+  // consistente entre si. Os hand-drawn antigos (principalmente "notas" e
+  // "ordens") tinham proporções diferentes e pareciam "de tamanhos diferentes"
+  // mesmo com o mesmo tamanho de caixa (viewBox 24×24, prop `tamanho` igual).
+  dashboard: <><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></>,
   pdv: <path d="M13 2 3 14h7l-1 8 10-12h-7z" />,
   analytics: <><path d="M3 3v18h18" /><path d="M7 14l4-4 3 3 5-6" /></>,
   produtos: <><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></>,
   estoque: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></>,
   inventario: <><path d="M9 11l3 3 5-5" /><rect x="4" y="3" width="16" height="18" rx="2" /></>,
-  ordens: <path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-2.1-2.1z" />,
-  notas: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8M8 17h5" /></>,
+  ordens: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" />,
+  notas: <><path d="M12 17V7" /><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" /><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></>,
   fornecedores: <><rect x="1" y="6" width="14" height="11" rx="1" /><path d="M15 9h4l3 3v5h-7z" /><circle cx="6" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></>,
   clientes: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
   financeiro: <><path d="M12 1v22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></>,
@@ -114,13 +119,17 @@ export function ErpShell({
                       key={a.href}
                       href={a.href}
                       onClick={() => setMobile(false)}
-                      className={`flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
+                      className={`group flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
                         ativo
                           ? "border-[var(--kyron-blue-line)] bg-kyron-blue/12 text-kyron-white"
-                          : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
+                          : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:bg-kyron-blue/10 hover:text-kyron-white"
                       }`}
                     >
-                      <span className={ativo ? "text-kyron-blue" : "text-kyron-silver/80"}><Icone nome={a.icone} tamanho={16} /></span>
+                      {/* Mesmo tamanho (16) para os quatro — a inconsistência visual antiga vinha
+                          do desenho de cada ícone, não desse valor; ver comentário acima do mapa `I`. */}
+                      <span className={`transition-colors ${ativo ? "text-kyron-blue" : "text-kyron-silver/80 group-hover:text-kyron-blue"}`}>
+                        <Icone nome={a.icone} tamanho={16} />
+                      </span>
                       <span className="whitespace-nowrap">{a.label}</span>
                     </Link>
                   );

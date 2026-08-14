@@ -51,18 +51,18 @@ export function AcademySidebar({
         <span className="academy-nav-label">APRENDIZADO</span>
         {ITENS_APRENDIZADO.map(({ href, label, Icone }) => (
           <Link key={href} href={href} className={ativo(href) ? "active" : undefined}>
-            <Icone size={18} /> {label}
+            <Icone size={18} className="shrink-0" /> {label}
             {href === "/academy/novidades" && novidadesCount > 0 && <em>{novidadesCount}</em>}
           </Link>
         ))}
         <span className="academy-nav-label academy-nav-space">CONTEÚDO</span>
         {ITENS_CONTEUDO.map(({ href, label, Icone }) => (
           <Link key={href} href={href} className={ativo(href) ? "active" : undefined}>
-            <Icone size={18} /> {label}
+            <Icone size={18} className="shrink-0" /> {label}
           </Link>
         ))}
         {ehMaster && (
-          <Link href="/erp"><Building2 size={18} /> Ir para o ERP</Link>
+          <Link href="/erp"><Building2 size={18} className="shrink-0" /> Ir para o ERP</Link>
         )}
       </nav>
       <a

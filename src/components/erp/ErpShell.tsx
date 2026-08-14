@@ -243,7 +243,7 @@ export function ErpShell({
           </div>
           <div className={`ml-auto flex shrink-0 items-center gap-fluid-xs ${colapsada ? "lg:ml-0" : ""}`}>
             <ErpTemaToggle />
-            <form action={acaoSairErp}>
+            <form action={acaoSairErp} className="shrink-0">
               <button type="submit" title="Sair" className="shrink-0 text-kyron-silver/70 hover:text-kyron-white">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" className="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
               </button>

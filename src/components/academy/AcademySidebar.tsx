@@ -75,7 +75,7 @@ export function AcademySidebar({
       <div className="academy-user">
         <span>{iniciais(nome)}</span>
         <div><b>{nome}</b><small>Aluno aprovado</small></div>
-        <form action={sair}><button type="submit" aria-label="Sair"><LogOut size={17} /></button></form>
+        <form action={sair} className="shrink-0"><button type="submit" aria-label="Sair"><LogOut size={17} className="shrink-0" /></button></form>
       </div>
     </aside>
   );

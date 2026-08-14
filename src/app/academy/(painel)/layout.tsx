@@ -2,6 +2,7 @@ import { CheckCircle2, LogOut } from "lucide-react";
 
 import { AcademyBusca } from "@/components/academy/AcademyBusca";
 import { AcademySidebar, Logo } from "@/components/academy/AcademySidebar";
+import { AcademyTemaToggle } from "@/components/academy/AcademyTemaToggle";
 import { NotificacoesBell } from "@/components/academy/NotificacoesBell";
 import { getNovidadesAluno } from "@/lib/academy/aluno-dados";
 import { acaoLogout } from "@/lib/auth/actions";
@@ -30,6 +31,7 @@ export default async function PainelLayout({ children }: { children: React.React
           <AcademyBusca />
           <div className="academy-top-actions">
             <span className="academy-live"><i /> ACESSO ATIVO</span>
+            <AcademyTemaToggle />
             <NotificacoesBell novidades={novidades} />
           </div>
         </header>

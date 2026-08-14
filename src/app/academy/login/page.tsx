@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
+import { AcademyTemaToggle } from "@/components/academy/AcademyTemaToggle";
+
 import { AcademyAuth } from "./AcademyAuth";
 import { CerebroKyron } from "./CerebroKyron";
 
@@ -63,7 +65,10 @@ export default async function AppLoginPage({ searchParams }: { searchParams: Pro
 
       <section className="academy-login-panel">
         <div className="academy-login-card">
-          <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
+          <div className="academy-login-topo">
+            <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
+            <AcademyTemaToggle />
+          </div>
           <AcademyAuth erroOAuth={erroOAuth} />
         </div>
       </section>

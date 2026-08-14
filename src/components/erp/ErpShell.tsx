@@ -6,6 +6,8 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { acaoSairErp } from "@/lib/erp/actions";
 
+import { ErpTemaToggle } from "./ErpTemaToggle";
+
 type Item = { label: string; href: string; icone: string };
 type Grupo = { label: string; icone: string; itens: Item[] };
 
@@ -191,11 +193,14 @@ export function ErpShell({
             <p className="truncate text-fluid-2xs font-semibold text-kyron-white">{usuario.nome}</p>
             <p className="text-fluid-2xs text-kyron-silver/50">{usuario.papel}</p>
           </div>
-          <form action={acaoSairErp} className="ml-auto">
-            <button type="submit" title="Sair" className="text-kyron-silver/70 hover:text-kyron-white">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
-            </button>
-          </form>
+          <div className="ml-auto flex items-center gap-fluid-xs">
+            <ErpTemaToggle />
+            <form action={acaoSairErp}>
+              <button type="submit" title="Sair" className="text-kyron-silver/70 hover:text-kyron-white">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 

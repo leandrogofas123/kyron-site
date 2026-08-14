@@ -34,9 +34,9 @@ export function ErpTemaToggle() {
       onClick={alternar}
       title={claro ? "Tema escuro" : "Tema claro"}
       aria-label={claro ? "Mudar para tema escuro" : "Mudar para tema claro"}
-      className="text-kyron-silver/70 hover:text-kyron-white"
+      className="shrink-0 text-kyron-silver/70 hover:text-kyron-white"
     >
-      {claro ? <Moon size={17} /> : <Sun size={17} />}
+      {claro ? <Moon size={17} className="shrink-0" /> : <Sun size={17} className="shrink-0" />}
     </button>
   );
 }

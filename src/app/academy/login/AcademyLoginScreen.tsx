@@ -7,19 +7,19 @@ import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { AcademyTemaToggle } from "@/components/academy/AcademyTemaToggle";
 
 import { AcademyAuth } from "./AcademyAuth";
-import { CerebroKyron } from "./CerebroKyron";
 
 /**
- * Tela de login da Academy — painel de acesso que se abre por cima de uma
- * vitrine giratória do que o aluno vai aprender. Fechado por padrão: o
- * visitante vê a proposta de valor primeiro; a aba "ENTRAR" (ou um erro de
- * OAuth vindo da URL) revela o formulário.
+ * Tela de login da Academy — reprodução fiel do modelo "Redesign Kyron
+ * Academy login": painel de acesso que se abre por cima de uma vitrine
+ * giratória do que o aluno vai aprender. Fechado por padrão: o visitante vê
+ * a proposta de valor primeiro; a aba "ENTRAR" (ou um erro de OAuth vindo da
+ * URL) revela o formulário.
  *
  * Claro/escuro usa o MESMO AcademyTemaToggle do resto do site/ERP — a
- * escolha é uma só em todo o domínio (data-tema no <html>). As variáveis
- * --lg-* em academy.css só reagem a esse atributo global; o painel de marca
- * à esquerda (cérebro + vitrine) fica sempre escuro nos dois temas, de
- * propósito, como o resto do "hero" da Academy.
+ * escolha é uma só em todo o domínio (data-tema no <html>). O painel de
+ * marca à esquerda (ícones + cérebro + vitrine) fica sempre escuro nos dois
+ * temas, de propósito — é vitrine de marca, não conteúdo de leitura, exatamente
+ * como no modelo original.
  */
 
 type Topico = { titulo: string; desc: string; icone: string };
@@ -111,54 +111,53 @@ export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) 
   return (
     <main className="academy-login" data-open={aberto}>
       <section className="academy-login-brand">
-        <div className="academy-login-aura" />
-        <div className="academy-login-grid" />
-        <div className="academy-login-brand-content">
-          <div className="academy-login-brandrow">
-            <Link href="/" className="academy-brandmark">
-              <img src="/marca/kyron-simbolo.png" alt="Kyron" />
-              <div><b>KYRON</b><small>ACADEMY</small></div>
-            </Link>
-            <div className="academy-login-theme-gate">
-              <AcademyTemaToggle />
-            </div>
+        <header className="academy-login-header">
+          <img src="/marca/kyron-simbolo.png" alt="Kyron" />
+          <div className="academy-login-wordmark">KYRON</div>
+          <div className="academy-login-divider" />
+          <div className="academy-login-wordmark accent">ACADEMY</div>
+        </header>
+
+        <div className="academy-login-theme-gate">
+          <AcademyTemaToggle />
+        </div>
+
+        <div className="academy-login-topics">
+          <div className="academy-login-topics-list" role="tablist" aria-label="O que você vai dominar">
+            {TOPICOS.map((t, n) => (
+              <button
+                key={t.titulo}
+                type="button"
+                role="tab"
+                aria-selected={n === indice}
+                className="academy-login-topic"
+                data-active={n === indice}
+                onClick={() => irPara(n)}
+              >
+                <span className="academy-login-topic-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={t.icone} />
+                  </svg>
+                </span>
+                <span className="academy-login-topic-label">
+                  <span>{t.titulo}</span>
+                </span>
+              </button>
+            ))}
           </div>
 
-          <div className="academy-login-topics">
-            <div className="academy-login-topics-list" role="tablist" aria-label="O que você vai dominar">
-              {TOPICOS.map((t, n) => (
-                <button
-                  key={t.titulo}
-                  type="button"
-                  role="tab"
-                  aria-selected={n === indice}
-                  className="academy-login-topic"
-                  data-active={n === indice}
-                  onClick={() => irPara(n)}
-                >
-                  <span className="academy-login-topic-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={t.icone} />
-                    </svg>
-                  </span>
-                  <span className="academy-login-topic-label">{t.titulo}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="academy-login-orb">
-              <div className="academy-login-orb-plate" aria-hidden="true" />
-              <div className="academy-login-orb-glow" aria-hidden="true" />
-              <CerebroKyron />
-            </div>
+          <div className="academy-login-orb">
+            <div className="academy-login-orb-plate" aria-hidden="true" />
+            <div className="academy-login-orb-glow" aria-hidden="true" />
+            <img className="academy-login-orb-img" src="/academy/login-cerebro.png" alt="" />
           </div>
+        </div>
 
-          <div className="academy-login-copy">
-            <p className="academy-eyebrow blue"><i /> O QUE VOCÊ VAI DOMINAR</p>
-            <div key={indice} className="academy-login-copy-fade">
-              <h2>{ativo.titulo}</h2>
-              <p>{ativo.desc}</p>
-            </div>
+        <div className="academy-login-copy">
+          <p className="academy-login-topics-eyebrow">O QUE VOCÊ VAI DOMINAR</p>
+          <div key={indice} className="academy-login-copy-fade">
+            <h2>{ativo.titulo}</h2>
+            <p>{ativo.desc}</p>
           </div>
         </div>
       </section>
@@ -189,7 +188,7 @@ export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) 
 
         <div className="academy-login-card">
           <div className="academy-login-panel-head">
-            <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
+            <Link href="/" className="academy-login-back"><ArrowLeft size={17} /> Voltar ao site</Link>
             <AcademyTemaToggle />
           </div>
           <AcademyAuth erroOAuth={erroOAuth} />

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { guardaAcademy } from "../auth/areas";
+import { buscarConteudoAcademy, type ResultadoBuscaAluno } from "./aluno-dados";
 import { concluirAula, registrarHeartbeat, responderQuiz } from "./progresso";
 
 /**
@@ -35,4 +36,11 @@ export async function acaoResponderQuiz(quizId: number, trilhaSlug: string, resp
   revalidatePath(`/academy/trilhas/${trilhaSlug}`);
   revalidatePath("/academy");
   return r;
+}
+
+/** Busca da topbar da Academy (`AcademyBusca`) — trilha, aula e material publicados. */
+export async function acaoBuscarAcademy(termo: string): Promise<ResultadoBuscaAluno[]> {
+  const usuario = await guardaAcademy();
+  if (!usuario.aprovado) return [];
+  return buscarConteudoAcademy(termo);
 }

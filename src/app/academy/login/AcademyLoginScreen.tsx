@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Moon, Sun, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, X } from "lucide-react";
+
+import { AcademyTemaToggle } from "@/components/academy/AcademyTemaToggle";
 
 import { AcademyAuth } from "./AcademyAuth";
 import { CerebroKyron } from "./CerebroKyron";
@@ -13,9 +15,11 @@ import { CerebroKyron } from "./CerebroKyron";
  * visitante vê a proposta de valor primeiro; a aba "ENTRAR" (ou um erro de
  * OAuth vindo da URL) revela o formulário.
  *
- * Claro/escuro aqui é só um verniz local do próprio card de login — a
- * Academy inteira é escura (academy.css), então o toggle não mexe no resto
- * do app, só nas variáveis --pg/--txt etc. usadas nesta tela.
+ * Claro/escuro usa o MESMO AcademyTemaToggle do resto do site/ERP — a
+ * escolha é uma só em todo o domínio (data-tema no <html>). As variáveis
+ * --lg-* em academy.css só reagem a esse atributo global; o painel de marca
+ * à esquerda (cérebro + vitrine) fica sempre escuro nos dois temas, de
+ * propósito, como o resto do "hero" da Academy.
  */
 
 type Topico = { titulo: string; desc: string; icone: string };
@@ -79,23 +83,8 @@ function reduzMovimento(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function ToggleTemaLogin({ claro, aoClicar, className }: { claro: boolean; aoClicar: () => void; className?: string }) {
-  return (
-    <button
-      type="button"
-      className={className ? `academy-login-theme ${className}` : "academy-login-theme"}
-      onClick={aoClicar}
-      title={claro ? "Tema escuro" : "Tema claro"}
-      aria-label={claro ? "Mudar para tema escuro" : "Mudar para tema claro"}
-    >
-      {claro ? <Sun size={17} /> : <Moon size={17} />}
-    </button>
-  );
-}
-
 export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) {
   const [aberto, setAberto] = useState(() => Boolean(erroOAuth));
-  const [claro, setClaro] = useState(false);
   const [indice, setIndice] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -118,10 +107,9 @@ export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) 
   }
 
   const ativo = TOPICOS[indice];
-  const alternarTema = () => setClaro((v) => !v);
 
   return (
-    <main className="academy-login" data-open={aberto} data-login-tema={claro ? "claro" : "escuro"}>
+    <main className="academy-login" data-open={aberto}>
       <section className="academy-login-brand">
         <div className="academy-login-aura" />
         <div className="academy-login-grid" />
@@ -131,7 +119,9 @@ export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) 
               <img src="/marca/kyron-simbolo.png" alt="Kyron" />
               <div><b>KYRON</b><small>ACADEMY</small></div>
             </Link>
-            <ToggleTemaLogin claro={claro} aoClicar={alternarTema} className="academy-login-theme-gate" />
+            <div className="academy-login-theme-gate">
+              <AcademyTemaToggle />
+            </div>
           </div>
 
           <div className="academy-login-topics">
@@ -200,7 +190,7 @@ export function AcademyLoginScreen({ erroOAuth }: { erroOAuth: string | null }) 
         <div className="academy-login-card">
           <div className="academy-login-panel-head">
             <Link href="/" className="academy-login-back"><ArrowLeft size={16} /> Voltar ao site</Link>
-            <ToggleTemaLogin claro={claro} aoClicar={alternarTema} />
+            <AcademyTemaToggle />
           </div>
           <AcademyAuth erroOAuth={erroOAuth} />
         </div>

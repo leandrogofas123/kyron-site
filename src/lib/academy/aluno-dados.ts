@@ -233,3 +233,53 @@ export async function getNovidadesAluno(limite = 6): Promise<NovidadeAluno[]> {
 
   return [...itensAula, ...itensPost].sort((a, b) => b.data.getTime() - a.data.getTime()).slice(0, limite);
 }
+
+export type ResultadoBuscaAluno = { id: string; titulo: string; tipoLabel: string; href: string };
+
+/**
+ * Busca da topbar (`AcademyBusca`) — cobre trilha, aula e material,
+ * sempre restrita ao que está PUBLICADO (mesma regra de visibilidade
+ * das demais leituras deste arquivo). Usada pela Server Action
+ * `acaoBuscarAcademy` em `aluno-acoes.ts`.
+ */
+export async function buscarConteudoAcademy(termoBruto: string): Promise<ResultadoBuscaAluno[]> {
+  const termo = termoBruto.trim();
+  if (termo.length < 2) return [];
+
+  const empresa = await empresaPadrao();
+  const contem = { contains: termo, mode: "insensitive" as const };
+
+  const [trilhas, aulas, materiais] = await Promise.all([
+    db.trilha.findMany({
+      where: { empresaId: empresa.id, status: "PUBLICADO", OR: [{ nome: contem }, { descricao: contem }] },
+      orderBy: { ordem: "asc" },
+      take: 5,
+      select: { slug: true, nome: true },
+    }),
+    db.aula.findMany({
+      where: { status: "PUBLICADO", titulo: contem },
+      take: 5,
+      select: { slug: true, titulo: true, tipo: true },
+    }),
+    db.material.findMany({
+      where: {
+        status: "PUBLICADO",
+        titulo: contem,
+        AND: [
+          { OR: [{ trilhaId: null }, { trilha: { status: "PUBLICADO" } }] },
+          { OR: [{ aulaId: null }, { aula: { status: "PUBLICADO" } }] },
+        ],
+      },
+      take: 5,
+      select: { id: true, titulo: true, url: true },
+    }),
+  ]);
+
+  const TIPO_LABEL: Record<string, string> = { VIDEO: "AULA EM VÍDEO", TEXTO: "AULA", QUIZ: "AVALIAÇÃO", PDF: "MATERIAL" };
+
+  return [
+    ...trilhas.map((t) => ({ id: `trilha-${t.slug}`, titulo: t.nome, tipoLabel: "TRILHA", href: `/academy/trilhas/${t.slug}` })),
+    ...aulas.map((a) => ({ id: `aula-${a.slug}`, titulo: a.titulo, tipoLabel: TIPO_LABEL[a.tipo] ?? "AULA", href: `/academy/aula/${a.slug}` })),
+    ...materiais.map((m) => ({ id: `material-${m.id}`, titulo: m.titulo, tipoLabel: "MATERIAL", href: m.url })),
+  ].slice(0, 8);
+}

@@ -2,23 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { acaoSairErp } from "@/lib/erp/actions";
+
+import { ErpTemaToggle } from "./ErpTemaToggle";
 
 type Item = { label: string; href: string; icone: string };
 type Grupo = { label: string; icone: string; itens: Item[] };
 
 /** Ícones de linha (stroke). Um por seção do ERP. */
 const I: Record<string, ReactNode> = {
-  dashboard: <><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></>,
+  // dashboard/notas/ordens/financeiro: mesmo traçado do lucide-react (já é
+  // dependência do projeto) — desenhados como um conjunto, com peso óptico
+  // consistente entre si. Os hand-drawn antigos (principalmente "notas" e
+  // "ordens") tinham proporções diferentes e pareciam "de tamanhos diferentes"
+  // mesmo com o mesmo tamanho de caixa (viewBox 24×24, prop `tamanho` igual).
+  dashboard: <><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></>,
   pdv: <path d="M13 2 3 14h7l-1 8 10-12h-7z" />,
   analytics: <><path d="M3 3v18h18" /><path d="M7 14l4-4 3 3 5-6" /></>,
   produtos: <><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /></>,
   estoque: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></>,
   inventario: <><path d="M9 11l3 3 5-5" /><rect x="4" y="3" width="16" height="18" rx="2" /></>,
-  ordens: <path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-2.1-2.1z" />,
-  notas: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8M8 17h5" /></>,
+  ordens: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" />,
+  notas: <><path d="M12 17V7" /><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" /><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></>,
   fornecedores: <><rect x="1" y="6" width="14" height="11" rx="1" /><path d="M15 9h4l3 3v5h-7z" /><circle cx="6" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></>,
   clientes: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
   financeiro: <><path d="M12 1v22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></>,
@@ -52,6 +59,25 @@ export function ErpShell({
   const pathname = usePathname();
   const [mobile, setMobile] = useState(false);
 
+  // Menu retrátil (só desktop — no mobile o menu já é um overlay que some
+  // sozinho). Preferência lembrada por navegador, igual ao tema.
+  const [colapsada, setColapsada] = useState(false);
+  useEffect(() => {
+    try {
+      setColapsada(localStorage.getItem("erp-sidebar-colapsada") === "1");
+    } catch {
+      /* modo privado: só não persiste */
+    }
+  }, []);
+  function definirColapsada(novo: boolean) {
+    setColapsada(novo);
+    try {
+      localStorage.setItem("erp-sidebar-colapsada", novo ? "1" : "0");
+    } catch {
+      /* modo privado: só não persiste */
+    }
+  }
+
   const ehAtivo = (href: string) => (href === "/erp" ? pathname === "/erp" : pathname.startsWith(href));
 
   // Grupo que contém a rota atual começa aberto; os demais, fechados.
@@ -61,12 +87,16 @@ export function ErpShell({
     [pathname, grupos],
   );
   const [abertos, setAbertos] = useState<Set<string>>(() => new Set(grupoAtivo ? [grupoAtivo] : []));
-  const alternar = (label: string) =>
+  const alternar = (label: string) => {
+    // Clicar num grupo com o menu recolhido expande o menu junto — sem isso
+    // não dá pra ver os subitens (a lista indentada só cabe com o menu aberto).
+    if (colapsada) definirColapsada(false);
     setAbertos((prev) => {
       const n = new Set(prev);
       n.has(label) ? n.delete(label) : n.add(label);
       return n;
     });
+  };
 
   const iniciais = usuario.nome.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
@@ -89,11 +119,24 @@ export function ErpShell({
       <aside
         className={`erp-aside fixed top-0 z-50 flex h-dvh shrink-0 flex-col border-r border-[var(--kyron-hairline)] bg-kyron-graphite transition-transform duration-200 lg:sticky lg:translate-x-0 ${
           mobile ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${colapsada ? "erp-aside-colapsada" : ""}`}
       >
-        <div className="flex items-center gap-fluid-xs px-fluid-md py-fluid-md">
+        {/* Botão de retrair/expandir — só desktop; no mobile o menu já fecha sozinho. */}
+        <button
+          type="button"
+          onClick={() => definirColapsada(!colapsada)}
+          aria-label={colapsada ? "Expandir menu" : "Recolher menu"}
+          title={colapsada ? "Expandir menu" : "Recolher menu"}
+          className="absolute top-16 -right-3 z-10 hidden h-6 w-6 place-items-center rounded-full border border-[var(--kyron-hairline)] bg-kyron-graphite text-kyron-silver/70 shadow-md transition-colors hover:text-kyron-white lg:grid"
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" className={`transition-transform ${colapsada ? "rotate-180" : ""}`}>
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+
+        <div className={`erp-aside-topo flex items-center gap-fluid-xs px-fluid-md py-fluid-md ${colapsada ? "lg:justify-center lg:px-0" : ""}`}>
           <Link href="/erp" className="grid h-8 w-8 shrink-0 place-items-center rounded-kyron-sm bg-kyron-blue font-bold text-white">K</Link>
-          <span className="kyron-display text-fluid-sm tracking-[0.18em] text-kyron-white">
+          <span className="erp-label kyron-display text-fluid-sm tracking-[0.18em] text-kyron-white">
             KYR<span className="text-kyron-blue">O</span>N
           </span>
           <button onClick={() => setMobile(false)} aria-label="Fechar menu" className="ml-auto text-kyron-silver/60 hover:text-kyron-white lg:hidden">
@@ -105,8 +148,8 @@ export function ErpShell({
           {/* Atalhos rápidos — módulos mais importantes */}
           {atalhos.length > 0 && (
             <div>
-              <p className="kyron-label px-fluid-sm pb-1 text-[0.6rem] text-kyron-silver/40">Atalhos</p>
-              <div className="grid grid-cols-2 gap-fluid-2xs">
+              <p className="erp-label kyron-label px-fluid-sm pb-1 text-[0.6rem] text-kyron-silver/40">Atalhos</p>
+              <div className={`grid grid-cols-2 gap-fluid-2xs ${colapsada ? "lg:grid-cols-1" : ""}`}>
                 {atalhos.map((a) => {
                   const ativo = ehAtivo(a.href);
                   return (
@@ -114,14 +157,21 @@ export function ErpShell({
                       key={a.href}
                       href={a.href}
                       onClick={() => setMobile(false)}
-                      className={`flex flex-col gap-1 rounded-kyron-sm border p-fluid-xs text-fluid-2xs transition-colors ${
+                      title={colapsada ? a.label : undefined}
+                      className={`group flex flex-col gap-1 rounded-kyron-sm border p-fluid-2xs text-fluid-2xs transition-colors ${
+                        colapsada ? "lg:items-center" : ""
+                      } ${
                         ativo
                           ? "border-[var(--kyron-blue-line)] bg-kyron-blue/12 text-kyron-white"
-                          : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:text-kyron-white"
+                          : "border-[var(--kyron-hairline)] text-kyron-silver hover:border-[var(--kyron-blue-line)] hover:bg-kyron-blue/10 hover:text-kyron-white"
                       }`}
                     >
-                      <span className={ativo ? "text-kyron-blue" : "text-kyron-silver/80"}><Icone nome={a.icone} tamanho={16} /></span>
-                      <span className="whitespace-nowrap">{a.label}</span>
+                      {/* Mesmo tamanho (16) para os quatro — a inconsistência visual antiga vinha
+                          do desenho de cada ícone, não desse valor; ver comentário acima do mapa `I`. */}
+                      <span className={`shrink-0 transition-colors ${ativo ? "text-kyron-blue" : "text-kyron-silver/80 group-hover:text-kyron-blue"}`}>
+                        <Icone nome={a.icone} tamanho={16} />
+                      </span>
+                      <span className="erp-label whitespace-nowrap">{a.label}</span>
                     </Link>
                   );
                 })}
@@ -139,18 +189,23 @@ export function ErpShell({
                   type="button"
                   onClick={() => alternar(g.label)}
                   aria-expanded={aberto}
-                  className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
-                    contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"
-                  }`}
+                  title={colapsada ? g.label : undefined}
+                  className={`flex w-full items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-2xs text-fluid-2xs transition-colors ${
+                    colapsada ? "lg:justify-center" : ""
+                  } ${contémAtivo ? "text-kyron-white" : "text-kyron-silver hover:text-kyron-white"}`}
                 >
-                  <span className={contémAtivo ? "text-kyron-blue" : ""}><Icone nome={g.icone} /></span>
-                  <span className="kyron-label whitespace-nowrap">{g.label}</span>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`ml-auto transition-transform ${aberto ? "rotate-90" : ""}`}>
+                  <span className={`shrink-0 ${contémAtivo ? "text-kyron-blue" : ""}`}><Icone nome={g.icone} tamanho={16} /></span>
+                  <span className="erp-label kyron-label whitespace-nowrap">{g.label}</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={`erp-label ml-auto shrink-0 transition-transform ${aberto ? "rotate-90" : ""}`}>
                     <path d="M9 6l6 6-6 6" />
                   </svg>
                 </button>
                 {aberto && (
-                  <div className="mt-0.5 space-y-0.5 border-l border-[var(--kyron-hairline)] pl-fluid-xs">
+                  // erp-subitens: escondido via CSS quando o menu está recolhido no
+                  // desktop (classe .erp-aside-colapsada, só dentro do media query lg:) —
+                  // não uma condição em JS, pra não também sumir no overlay do mobile
+                  // (onde "colapsada" pode estar true por uma escolha salva do desktop).
+                  <div className="erp-subitens mt-0.5 space-y-0.5 border-l border-[var(--kyron-hairline)] pl-fluid-xs">
                     {g.itens.map((item) => {
                       const ativo = ehAtivo(item.href);
                       return (
@@ -158,13 +213,13 @@ export function ErpShell({
                           key={item.href}
                           href={item.href}
                           onClick={() => setMobile(false)}
-                          className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-xs text-fluid-2xs transition-colors ${
+                          className={`flex items-center gap-fluid-sm rounded-kyron-sm px-fluid-sm py-fluid-2xs text-fluid-2xs transition-colors ${
                             ativo
                               ? "bg-kyron-blue/12 text-kyron-white"
                               : "text-kyron-silver hover:bg-white/[0.04] hover:text-kyron-white"
                           }`}
                         >
-                          <span className={ativo ? "text-kyron-blue" : "text-kyron-silver/70"}><Icone nome={item.icone} tamanho={16} /></span>
+                          <span className={`shrink-0 ${ativo ? "text-kyron-blue" : "text-kyron-silver/70"}`}><Icone nome={item.icone} tamanho={16} /></span>
                           <span className="whitespace-nowrap">{item.label}</span>
                         </Link>
                       );
@@ -176,17 +231,24 @@ export function ErpShell({
           })}
         </nav>
 
-        <div className="flex items-center gap-fluid-xs border-t border-[var(--kyron-hairline)] px-fluid-md py-fluid-sm">
+        <div
+          className={`flex items-center gap-fluid-xs border-t border-[var(--kyron-hairline)] px-fluid-md py-fluid-sm ${
+            colapsada ? "lg:flex-col lg:gap-fluid-2xs" : ""
+          }`}
+        >
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-fluid-2xs font-bold text-kyron-silver">{iniciais}</span>
-          <div className="min-w-0">
+          <div className="erp-label min-w-0">
             <p className="truncate text-fluid-2xs font-semibold text-kyron-white">{usuario.nome}</p>
             <p className="text-fluid-2xs text-kyron-silver/50">{usuario.papel}</p>
           </div>
-          <form action={acaoSairErp} className="ml-auto">
-            <button type="submit" title="Sair" className="text-kyron-silver/70 hover:text-kyron-white">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
-            </button>
-          </form>
+          <div className={`ml-auto flex shrink-0 items-center gap-fluid-xs ${colapsada ? "lg:ml-0" : ""}`}>
+            <ErpTemaToggle />
+            <form action={acaoSairErp} className="shrink-0">
+              <button type="submit" title="Sair" className="shrink-0 text-kyron-silver/70 hover:text-kyron-white">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" className="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 
